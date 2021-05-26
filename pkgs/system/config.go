@@ -7,7 +7,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var SystemConfigVar SystemConfig
+var (
+	SystemConfigVar SystemConfig
+	SystemVersion   string
+)
 
 type SystemConfig struct {
 	MRZ_SW_AUTO struct {
@@ -26,7 +29,6 @@ type SystemConfig struct {
 				Password string `yaml:"password"`
 			} `yaml:"http_auth_users"`
 		} `yaml:"security"`
-		Version string `yaml:"version"`
 	} `yaml:"mrz_sw_auto"`
 }
 

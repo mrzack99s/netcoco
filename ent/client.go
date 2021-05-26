@@ -10,12 +10,15 @@ import (
 	"github.com/mrzack99s/netcoco/ent/migrate"
 
 	"github.com/mrzack99s/netcoco/ent/administrator"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -29,8 +32,12 @@ type Client struct {
 	Schema *migrate.Schema
 	// Administrator is the client for interacting with the Administrator builders.
 	Administrator *AdministratorClient
+	// DeletedVlanLog is the client for interacting with the DeletedVlanLog builders.
+	DeletedVlanLog *DeletedVlanLogClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
+	// DevicePlatform is the client for interacting with the DevicePlatform builders.
+	DevicePlatform *DevicePlatformClient
 	// DeviceType is the client for interacting with the DeviceType builders.
 	DeviceType *DeviceTypeClient
 	// NetInterface is the client for interacting with the NetInterface builders.
@@ -41,6 +48,8 @@ type Client struct {
 	NetTopology *NetTopologyClient
 	// NetTopologyDeviceMap is the client for interacting with the NetTopologyDeviceMap builders.
 	NetTopologyDeviceMap *NetTopologyDeviceMapClient
+	// Vlan is the client for interacting with the Vlan builders.
+	Vlan *VlanClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -55,12 +64,15 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Administrator = NewAdministratorClient(c.config)
+	c.DeletedVlanLog = NewDeletedVlanLogClient(c.config)
 	c.Device = NewDeviceClient(c.config)
+	c.DevicePlatform = NewDevicePlatformClient(c.config)
 	c.DeviceType = NewDeviceTypeClient(c.config)
 	c.NetInterface = NewNetInterfaceClient(c.config)
 	c.NetInterfaceMode = NewNetInterfaceModeClient(c.config)
 	c.NetTopology = NewNetTopologyClient(c.config)
 	c.NetTopologyDeviceMap = NewNetTopologyDeviceMapClient(c.config)
+	c.Vlan = NewVlanClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -95,12 +107,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                  ctx,
 		config:               cfg,
 		Administrator:        NewAdministratorClient(cfg),
+		DeletedVlanLog:       NewDeletedVlanLogClient(cfg),
 		Device:               NewDeviceClient(cfg),
+		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
 		NetTopology:          NewNetTopologyClient(cfg),
 		NetTopologyDeviceMap: NewNetTopologyDeviceMapClient(cfg),
+		Vlan:                 NewVlanClient(cfg),
 	}, nil
 }
 
@@ -120,12 +135,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		config:               cfg,
 		Administrator:        NewAdministratorClient(cfg),
+		DeletedVlanLog:       NewDeletedVlanLogClient(cfg),
 		Device:               NewDeviceClient(cfg),
+		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
 		NetTopology:          NewNetTopologyClient(cfg),
 		NetTopologyDeviceMap: NewNetTopologyDeviceMapClient(cfg),
+		Vlan:                 NewVlanClient(cfg),
 	}, nil
 }
 
@@ -156,12 +174,15 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Administrator.Use(hooks...)
+	c.DeletedVlanLog.Use(hooks...)
 	c.Device.Use(hooks...)
+	c.DevicePlatform.Use(hooks...)
 	c.DeviceType.Use(hooks...)
 	c.NetInterface.Use(hooks...)
 	c.NetInterfaceMode.Use(hooks...)
 	c.NetTopology.Use(hooks...)
 	c.NetTopologyDeviceMap.Use(hooks...)
+	c.Vlan.Use(hooks...)
 }
 
 // AdministratorClient is a client for the Administrator schema.
@@ -252,6 +273,112 @@ func (c *AdministratorClient) GetX(ctx context.Context, id int) *Administrator {
 // Hooks returns the client hooks.
 func (c *AdministratorClient) Hooks() []Hook {
 	return c.hooks.Administrator
+}
+
+// DeletedVlanLogClient is a client for the DeletedVlanLog schema.
+type DeletedVlanLogClient struct {
+	config
+}
+
+// NewDeletedVlanLogClient returns a client for the DeletedVlanLog from the given config.
+func NewDeletedVlanLogClient(c config) *DeletedVlanLogClient {
+	return &DeletedVlanLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `deletedvlanlog.Hooks(f(g(h())))`.
+func (c *DeletedVlanLogClient) Use(hooks ...Hook) {
+	c.hooks.DeletedVlanLog = append(c.hooks.DeletedVlanLog, hooks...)
+}
+
+// Create returns a create builder for DeletedVlanLog.
+func (c *DeletedVlanLogClient) Create() *DeletedVlanLogCreate {
+	mutation := newDeletedVlanLogMutation(c.config, OpCreate)
+	return &DeletedVlanLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DeletedVlanLog entities.
+func (c *DeletedVlanLogClient) CreateBulk(builders ...*DeletedVlanLogCreate) *DeletedVlanLogCreateBulk {
+	return &DeletedVlanLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DeletedVlanLog.
+func (c *DeletedVlanLogClient) Update() *DeletedVlanLogUpdate {
+	mutation := newDeletedVlanLogMutation(c.config, OpUpdate)
+	return &DeletedVlanLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeletedVlanLogClient) UpdateOne(dvl *DeletedVlanLog) *DeletedVlanLogUpdateOne {
+	mutation := newDeletedVlanLogMutation(c.config, OpUpdateOne, withDeletedVlanLog(dvl))
+	return &DeletedVlanLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeletedVlanLogClient) UpdateOneID(id int) *DeletedVlanLogUpdateOne {
+	mutation := newDeletedVlanLogMutation(c.config, OpUpdateOne, withDeletedVlanLogID(id))
+	return &DeletedVlanLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DeletedVlanLog.
+func (c *DeletedVlanLogClient) Delete() *DeletedVlanLogDelete {
+	mutation := newDeletedVlanLogMutation(c.config, OpDelete)
+	return &DeletedVlanLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *DeletedVlanLogClient) DeleteOne(dvl *DeletedVlanLog) *DeletedVlanLogDeleteOne {
+	return c.DeleteOneID(dvl.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *DeletedVlanLogClient) DeleteOneID(id int) *DeletedVlanLogDeleteOne {
+	builder := c.Delete().Where(deletedvlanlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeletedVlanLogDeleteOne{builder}
+}
+
+// Query returns a query builder for DeletedVlanLog.
+func (c *DeletedVlanLogClient) Query() *DeletedVlanLogQuery {
+	return &DeletedVlanLogQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a DeletedVlanLog entity by its id.
+func (c *DeletedVlanLogClient) Get(ctx context.Context, id int) (*DeletedVlanLog, error) {
+	return c.Query().Where(deletedvlanlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeletedVlanLogClient) GetX(ctx context.Context, id int) *DeletedVlanLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOnDevice queries the on_device edge of a DeletedVlanLog.
+func (c *DeletedVlanLogClient) QueryOnDevice(dvl *DeletedVlanLog) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := dvl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deletedvlanlog.Table, deletedvlanlog.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, deletedvlanlog.OnDeviceTable, deletedvlanlog.OnDeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(dvl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeletedVlanLogClient) Hooks() []Hook {
+	return c.hooks.DeletedVlanLog
 }
 
 // DeviceClient is a client for the Device schema.
@@ -355,6 +482,22 @@ func (c *DeviceClient) QueryInType(d *Device) *DeviceTypeQuery {
 	return query
 }
 
+// QueryInPlatform queries the in_platform edge of a Device.
+func (c *DeviceClient) QueryInPlatform(d *Device) *DevicePlatformQuery {
+	query := &DevicePlatformQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(deviceplatform.Table, deviceplatform.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, device.InPlatformTable, device.InPlatformColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryInterfaces queries the interfaces edge of a Device.
 func (c *DeviceClient) QueryInterfaces(d *Device) *NetInterfaceQuery {
 	query := &NetInterfaceQuery{config: c.config}
@@ -387,9 +530,147 @@ func (c *DeviceClient) QueryInTopology(d *Device) *NetTopologyDeviceMapQuery {
 	return query
 }
 
+// QueryStoreVlans queries the store_vlans edge of a Device.
+func (c *DeviceClient) QueryStoreVlans(d *Device) *VlanQuery {
+	query := &VlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, device.StoreVlansTable, device.StoreVlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeletedVlans queries the deleted_vlans edge of a Device.
+func (c *DeviceClient) QueryDeletedVlans(d *Device) *DeletedVlanLogQuery {
+	query := &DeletedVlanLogQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(deletedvlanlog.Table, deletedvlanlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.DeletedVlansTable, device.DeletedVlansColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DeviceClient) Hooks() []Hook {
 	return c.hooks.Device
+}
+
+// DevicePlatformClient is a client for the DevicePlatform schema.
+type DevicePlatformClient struct {
+	config
+}
+
+// NewDevicePlatformClient returns a client for the DevicePlatform from the given config.
+func NewDevicePlatformClient(c config) *DevicePlatformClient {
+	return &DevicePlatformClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `deviceplatform.Hooks(f(g(h())))`.
+func (c *DevicePlatformClient) Use(hooks ...Hook) {
+	c.hooks.DevicePlatform = append(c.hooks.DevicePlatform, hooks...)
+}
+
+// Create returns a create builder for DevicePlatform.
+func (c *DevicePlatformClient) Create() *DevicePlatformCreate {
+	mutation := newDevicePlatformMutation(c.config, OpCreate)
+	return &DevicePlatformCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DevicePlatform entities.
+func (c *DevicePlatformClient) CreateBulk(builders ...*DevicePlatformCreate) *DevicePlatformCreateBulk {
+	return &DevicePlatformCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DevicePlatform.
+func (c *DevicePlatformClient) Update() *DevicePlatformUpdate {
+	mutation := newDevicePlatformMutation(c.config, OpUpdate)
+	return &DevicePlatformUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DevicePlatformClient) UpdateOne(dp *DevicePlatform) *DevicePlatformUpdateOne {
+	mutation := newDevicePlatformMutation(c.config, OpUpdateOne, withDevicePlatform(dp))
+	return &DevicePlatformUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DevicePlatformClient) UpdateOneID(id int) *DevicePlatformUpdateOne {
+	mutation := newDevicePlatformMutation(c.config, OpUpdateOne, withDevicePlatformID(id))
+	return &DevicePlatformUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DevicePlatform.
+func (c *DevicePlatformClient) Delete() *DevicePlatformDelete {
+	mutation := newDevicePlatformMutation(c.config, OpDelete)
+	return &DevicePlatformDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *DevicePlatformClient) DeleteOne(dp *DevicePlatform) *DevicePlatformDeleteOne {
+	return c.DeleteOneID(dp.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *DevicePlatformClient) DeleteOneID(id int) *DevicePlatformDeleteOne {
+	builder := c.Delete().Where(deviceplatform.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DevicePlatformDeleteOne{builder}
+}
+
+// Query returns a query builder for DevicePlatform.
+func (c *DevicePlatformClient) Query() *DevicePlatformQuery {
+	return &DevicePlatformQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a DevicePlatform entity by its id.
+func (c *DevicePlatformClient) Get(ctx context.Context, id int) (*DevicePlatform, error) {
+	return c.Query().Where(deviceplatform.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DevicePlatformClient) GetX(ctx context.Context, id int) *DevicePlatform {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPlatforms queries the platforms edge of a DevicePlatform.
+func (c *DevicePlatformClient) QueryPlatforms(dp *DevicePlatform) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := dp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deviceplatform.Table, deviceplatform.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deviceplatform.PlatformsTable, deviceplatform.PlatformsColumn),
+		)
+		fromV = sqlgraph.Neighbors(dp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DevicePlatformClient) Hooks() []Hook {
+	return c.hooks.DevicePlatform
 }
 
 // DeviceTypeClient is a client for the DeviceType schema.
@@ -608,6 +889,38 @@ func (c *NetInterfaceClient) QueryMode(ni *NetInterface) *NetInterfaceModeQuery 
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
 			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.ModeTable, netinterface.ModeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHaveVlans queries the have_vlans edge of a NetInterface.
+func (c *NetInterfaceClient) QueryHaveVlans(ni *NetInterface) *VlanQuery {
+	query := &VlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, netinterface.HaveVlansTable, netinterface.HaveVlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeOnVlan queries the native_on_vlan edge of a NetInterface.
+func (c *NetInterfaceClient) QueryNativeOnVlan(ni *NetInterface) *VlanQuery {
+	query := &VlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.NativeOnVlanTable, netinterface.NativeOnVlanColumn),
 		)
 		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
 		return fromV, nil
@@ -968,4 +1281,142 @@ func (c *NetTopologyDeviceMapClient) QueryEdge(ntdm *NetTopologyDeviceMap) *NetT
 // Hooks returns the client hooks.
 func (c *NetTopologyDeviceMapClient) Hooks() []Hook {
 	return c.hooks.NetTopologyDeviceMap
+}
+
+// VlanClient is a client for the Vlan schema.
+type VlanClient struct {
+	config
+}
+
+// NewVlanClient returns a client for the Vlan from the given config.
+func NewVlanClient(c config) *VlanClient {
+	return &VlanClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `vlan.Hooks(f(g(h())))`.
+func (c *VlanClient) Use(hooks ...Hook) {
+	c.hooks.Vlan = append(c.hooks.Vlan, hooks...)
+}
+
+// Create returns a create builder for Vlan.
+func (c *VlanClient) Create() *VlanCreate {
+	mutation := newVlanMutation(c.config, OpCreate)
+	return &VlanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Vlan entities.
+func (c *VlanClient) CreateBulk(builders ...*VlanCreate) *VlanCreateBulk {
+	return &VlanCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Vlan.
+func (c *VlanClient) Update() *VlanUpdate {
+	mutation := newVlanMutation(c.config, OpUpdate)
+	return &VlanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VlanClient) UpdateOne(v *Vlan) *VlanUpdateOne {
+	mutation := newVlanMutation(c.config, OpUpdateOne, withVlan(v))
+	return &VlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VlanClient) UpdateOneID(id int) *VlanUpdateOne {
+	mutation := newVlanMutation(c.config, OpUpdateOne, withVlanID(id))
+	return &VlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Vlan.
+func (c *VlanClient) Delete() *VlanDelete {
+	mutation := newVlanMutation(c.config, OpDelete)
+	return &VlanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *VlanClient) DeleteOne(v *Vlan) *VlanDeleteOne {
+	return c.DeleteOneID(v.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *VlanClient) DeleteOneID(id int) *VlanDeleteOne {
+	builder := c.Delete().Where(vlan.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VlanDeleteOne{builder}
+}
+
+// Query returns a query builder for Vlan.
+func (c *VlanClient) Query() *VlanQuery {
+	return &VlanQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Vlan entity by its id.
+func (c *VlanClient) Get(ctx context.Context, id int) (*Vlan, error) {
+	return c.Query().Where(vlan.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VlanClient) GetX(ctx context.Context, id int) *Vlan {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVlans queries the vlans edge of a Vlan.
+func (c *VlanClient) QueryVlans(v *Vlan) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, vlan.VlansTable, vlan.VlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeVlan queries the native_vlan edge of a Vlan.
+func (c *VlanClient) QueryNativeVlan(v *Vlan) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, vlan.NativeVlanTable, vlan.NativeVlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnDevice queries the on_device edge of a Vlan.
+func (c *VlanClient) QueryOnDevice(v *Vlan) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, vlan.OnDeviceTable, vlan.OnDevicePrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VlanClient) Hooks() []Hook {
+	return c.hooks.Vlan
 }

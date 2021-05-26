@@ -9,8 +9,14 @@ import (
 // Administrator is the predicate function for administrator builders.
 type Administrator func(*sql.Selector)
 
+// DeletedVlanLog is the predicate function for deletedvlanlog builders.
+type DeletedVlanLog func(*sql.Selector)
+
 // Device is the predicate function for device builders.
 type Device func(*sql.Selector)
+
+// DevicePlatform is the predicate function for deviceplatform builders.
+type DevicePlatform func(*sql.Selector)
 
 // DeviceType is the predicate function for devicetype builders.
 type DeviceType func(*sql.Selector)
@@ -26,3 +32,6 @@ type NetTopology func(*sql.Selector)
 
 // NetTopologyDeviceMap is the predicate function for nettopologydevicemap builders.
 type NetTopologyDeviceMap func(*sql.Selector)
+
+// Vlan is the predicate function for vlan builders.
+type Vlan func(*sql.Selector)

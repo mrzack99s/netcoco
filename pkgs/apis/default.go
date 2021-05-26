@@ -14,5 +14,8 @@ func DefaultSystem(client *ent.Client) {
 	NewTopologyDeviceMapController(system.SecureAPIGroup, client)
 	NewDeviceTypeController(system.SecureAPIGroup, client)
 	NewInterfaceModeController(system.SecureAPIGroup, client)
+	NewNetAutomationController(system.SecureAPIGroup, client)
+	NewDevicePlatformController(system.SecureAPIGroup, client)
+	NewVlanController(system.SecureAPIGroup, client)
 	templates.NewHTMLController(false)
 }

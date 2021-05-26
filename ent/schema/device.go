@@ -31,10 +31,21 @@ func (Device) Edges() []ent.Edge {
 		edge.From("in_type", DeviceType.Type).
 			Ref("types").
 			Unique(),
+		edge.From("in_platform", DevicePlatform.Type).
+			Ref("platforms").
+			Unique(),
 		edge.To("interfaces", NetInterface.Type).Annotations(entsql.Annotation{
 			OnDelete: entsql.Cascade,
 		}),
 		edge.To("in_topology", NetTopologyDeviceMap.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		edge.To("store_vlans", Vlan.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		edge.To("deleted_vlans", DeletedVlanLog.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),

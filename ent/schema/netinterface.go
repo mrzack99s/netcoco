@@ -15,8 +15,7 @@ type NetInterface struct {
 func (NetInterface) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("interface_name").NotEmpty(),
-		field.String("interface_vlan").Default("no_vlan"),
-		field.String("interface_native_vlan").Default("no_vlan"),
+		field.Bool("interface_shutdown").Default(true),
 	}
 }
 
@@ -29,5 +28,9 @@ func (NetInterface) Edges() []ent.Edge {
 		edge.From("mode", NetInterfaceMode.Type).
 			Ref("modes").
 			Unique(),
+		edge.From("have_vlans", Vlan.Type).
+			Ref("vlans"),
+		edge.From("native_on_vlan", Vlan.Type).
+			Ref("native_vlan").Unique(),
 	}
 }

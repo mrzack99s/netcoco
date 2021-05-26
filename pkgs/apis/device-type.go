@@ -8,14 +8,14 @@ import (
 	"github.com/mrzack99s/netcoco/pkgs/services"
 )
 
-type DeviceTypeController struct {
+type VlanController struct {
 	client *ent.Client
 	router gin.IRouter
 }
 
-func (ctl *DeviceTypeController) Create(c *gin.Context) {
+func (ctl *VlanController) Create(c *gin.Context) {
 
-	obj := ent.DeviceType{}
+	obj := ent.Vlan{}
 	if err := c.ShouldBind(&obj); err != nil {
 		c.JSON(400, gin.H{
 			"error": "binding failed",
@@ -23,7 +23,7 @@ func (ctl *DeviceTypeController) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := services.CreateDeviceType(ctl.client, obj)
+	u, err := services.CreateVlan(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": err,
@@ -35,9 +35,9 @@ func (ctl *DeviceTypeController) Create(c *gin.Context) {
 
 }
 
-func (ctl *DeviceTypeController) Edit(c *gin.Context) {
+func (ctl *VlanController) Edit(c *gin.Context) {
 
-	obj := ent.DeviceType{}
+	obj := ent.Vlan{}
 	if err := c.ShouldBind(&obj); err != nil {
 		c.JSON(400, gin.H{
 			"error": "binding failed",
@@ -45,7 +45,7 @@ func (ctl *DeviceTypeController) Edit(c *gin.Context) {
 		return
 	}
 
-	usr, err := services.EditDeviceTypeDetail(ctl.client, obj)
+	usr, err := services.EditVlanDetail(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": err,
@@ -59,9 +59,9 @@ func (ctl *DeviceTypeController) Edit(c *gin.Context) {
 
 }
 
-func (ctl *DeviceTypeController) GetAll(c *gin.Context) {
+func (ctl *VlanController) GetAll(c *gin.Context) {
 
-	usr, err := services.GetAllDeviceType(ctl.client)
+	usr, err := services.GetAllVlan(ctl.client)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"status": false,
@@ -75,11 +75,11 @@ func (ctl *DeviceTypeController) GetAll(c *gin.Context) {
 
 }
 
-func (ctl *DeviceTypeController) Get(c *gin.Context) {
+func (ctl *VlanController) Get(c *gin.Context) {
 
-	deviceTypeId, _ := strconv.Atoi(c.Param("deviceTypeId"))
+	vlanId, _ := strconv.Atoi(c.Param("vlanId"))
 
-	usr, err := services.GetDeviceType(ctl.client, deviceTypeId)
+	usr, err := services.GetVlan(ctl.client, vlanId)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": err,
@@ -93,11 +93,11 @@ func (ctl *DeviceTypeController) Get(c *gin.Context) {
 
 }
 
-func (ctl *DeviceTypeController) Delete(c *gin.Context) {
+func (ctl *VlanController) Delete(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := services.DeleteDeviceType(ctl.client, id)
+	err := services.DeleteVlan(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": err,
@@ -113,8 +113,8 @@ func (ctl *DeviceTypeController) Delete(c *gin.Context) {
 
 }
 
-func NewDeviceTypeController(router gin.IRouter, client *ent.Client) *DeviceTypeController {
-	pc := &DeviceTypeController{
+func NewVlanController(router gin.IRouter, client *ent.Client) *VlanController {
+	pc := &VlanController{
 		client: client,
 		router: router,
 	}
@@ -125,11 +125,11 @@ func NewDeviceTypeController(router gin.IRouter, client *ent.Client) *DeviceType
 
 }
 
-func (ctl *DeviceTypeController) register() {
-	router := ctl.router.Group("/device-type")
+func (ctl *VlanController) register() {
+	router := ctl.router.Group("/vlan")
 	router.POST("create", ctl.Create)
 	router.POST("edit", ctl.Edit)
 	router.DELETE("delete/:id", ctl.Delete)
 	router.GET("get", ctl.GetAll)
-	router.GET("get/:deviceTypeId", ctl.Get)
+	router.GET("get/:vlanId", ctl.Get)
 }

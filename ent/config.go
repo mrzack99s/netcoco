@@ -25,12 +25,15 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	Administrator        []ent.Hook
+	DeletedVlanLog       []ent.Hook
 	Device               []ent.Hook
+	DevicePlatform       []ent.Hook
 	DeviceType           []ent.Hook
 	NetInterface         []ent.Hook
 	NetInterfaceMode     []ent.Hook
 	NetTopology          []ent.Hook
 	NetTopologyDeviceMap []ent.Hook
+	Vlan                 []ent.Hook
 }
 
 // Options applies the options on the config object.

@@ -13,6 +13,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/predicate"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // NetInterfaceUpdate is the builder for updating NetInterface entities.
@@ -34,30 +35,16 @@ func (niu *NetInterfaceUpdate) SetInterfaceName(s string) *NetInterfaceUpdate {
 	return niu
 }
 
-// SetInterfaceVlan sets the "interface_vlan" field.
-func (niu *NetInterfaceUpdate) SetInterfaceVlan(s string) *NetInterfaceUpdate {
-	niu.mutation.SetInterfaceVlan(s)
+// SetInterfaceShutdown sets the "interface_shutdown" field.
+func (niu *NetInterfaceUpdate) SetInterfaceShutdown(b bool) *NetInterfaceUpdate {
+	niu.mutation.SetInterfaceShutdown(b)
 	return niu
 }
 
-// SetNillableInterfaceVlan sets the "interface_vlan" field if the given value is not nil.
-func (niu *NetInterfaceUpdate) SetNillableInterfaceVlan(s *string) *NetInterfaceUpdate {
-	if s != nil {
-		niu.SetInterfaceVlan(*s)
-	}
-	return niu
-}
-
-// SetInterfaceNativeVlan sets the "interface_native_vlan" field.
-func (niu *NetInterfaceUpdate) SetInterfaceNativeVlan(s string) *NetInterfaceUpdate {
-	niu.mutation.SetInterfaceNativeVlan(s)
-	return niu
-}
-
-// SetNillableInterfaceNativeVlan sets the "interface_native_vlan" field if the given value is not nil.
-func (niu *NetInterfaceUpdate) SetNillableInterfaceNativeVlan(s *string) *NetInterfaceUpdate {
-	if s != nil {
-		niu.SetInterfaceNativeVlan(*s)
+// SetNillableInterfaceShutdown sets the "interface_shutdown" field if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableInterfaceShutdown(b *bool) *NetInterfaceUpdate {
+	if b != nil {
+		niu.SetInterfaceShutdown(*b)
 	}
 	return niu
 }
@@ -100,6 +87,40 @@ func (niu *NetInterfaceUpdate) SetMode(n *NetInterfaceMode) *NetInterfaceUpdate 
 	return niu.SetModeID(n.ID)
 }
 
+// AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
+func (niu *NetInterfaceUpdate) AddHaveVlanIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.AddHaveVlanIDs(ids...)
+	return niu
+}
+
+// AddHaveVlans adds the "have_vlans" edges to the Vlan entity.
+func (niu *NetInterfaceUpdate) AddHaveVlans(v ...*Vlan) *NetInterfaceUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return niu.AddHaveVlanIDs(ids...)
+}
+
+// SetNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID.
+func (niu *NetInterfaceUpdate) SetNativeOnVlanID(id int) *NetInterfaceUpdate {
+	niu.mutation.SetNativeOnVlanID(id)
+	return niu
+}
+
+// SetNillableNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableNativeOnVlanID(id *int) *NetInterfaceUpdate {
+	if id != nil {
+		niu = niu.SetNativeOnVlanID(*id)
+	}
+	return niu
+}
+
+// SetNativeOnVlan sets the "native_on_vlan" edge to the Vlan entity.
+func (niu *NetInterfaceUpdate) SetNativeOnVlan(v *Vlan) *NetInterfaceUpdate {
+	return niu.SetNativeOnVlanID(v.ID)
+}
+
 // Mutation returns the NetInterfaceMutation object of the builder.
 func (niu *NetInterfaceUpdate) Mutation() *NetInterfaceMutation {
 	return niu.mutation
@@ -114,6 +135,33 @@ func (niu *NetInterfaceUpdate) ClearOnDevice() *NetInterfaceUpdate {
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (niu *NetInterfaceUpdate) ClearMode() *NetInterfaceUpdate {
 	niu.mutation.ClearMode()
+	return niu
+}
+
+// ClearHaveVlans clears all "have_vlans" edges to the Vlan entity.
+func (niu *NetInterfaceUpdate) ClearHaveVlans() *NetInterfaceUpdate {
+	niu.mutation.ClearHaveVlans()
+	return niu
+}
+
+// RemoveHaveVlanIDs removes the "have_vlans" edge to Vlan entities by IDs.
+func (niu *NetInterfaceUpdate) RemoveHaveVlanIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.RemoveHaveVlanIDs(ids...)
+	return niu
+}
+
+// RemoveHaveVlans removes "have_vlans" edges to Vlan entities.
+func (niu *NetInterfaceUpdate) RemoveHaveVlans(v ...*Vlan) *NetInterfaceUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return niu.RemoveHaveVlanIDs(ids...)
+}
+
+// ClearNativeOnVlan clears the "native_on_vlan" edge to the Vlan entity.
+func (niu *NetInterfaceUpdate) ClearNativeOnVlan() *NetInterfaceUpdate {
+	niu.mutation.ClearNativeOnVlan()
 	return niu
 }
 
@@ -209,18 +257,11 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: netinterface.FieldInterfaceName,
 		})
 	}
-	if value, ok := niu.mutation.InterfaceVlan(); ok {
+	if value, ok := niu.mutation.InterfaceShutdown(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
-			Column: netinterface.FieldInterfaceVlan,
-		})
-	}
-	if value, ok := niu.mutation.InterfaceNativeVlan(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: netinterface.FieldInterfaceNativeVlan,
+			Column: netinterface.FieldInterfaceShutdown,
 		})
 	}
 	if niu.mutation.OnDeviceCleared() {
@@ -293,6 +334,95 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if niu.mutation.HaveVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.RemovedHaveVlansIDs(); len(nodes) > 0 && !niu.mutation.HaveVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.HaveVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.NativeOnVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.NativeOnVlanTable,
+			Columns: []string{netinterface.NativeOnVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.NativeOnVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.NativeOnVlanTable,
+			Columns: []string{netinterface.NativeOnVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, niu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{netinterface.Label}
@@ -318,30 +448,16 @@ func (niuo *NetInterfaceUpdateOne) SetInterfaceName(s string) *NetInterfaceUpdat
 	return niuo
 }
 
-// SetInterfaceVlan sets the "interface_vlan" field.
-func (niuo *NetInterfaceUpdateOne) SetInterfaceVlan(s string) *NetInterfaceUpdateOne {
-	niuo.mutation.SetInterfaceVlan(s)
+// SetInterfaceShutdown sets the "interface_shutdown" field.
+func (niuo *NetInterfaceUpdateOne) SetInterfaceShutdown(b bool) *NetInterfaceUpdateOne {
+	niuo.mutation.SetInterfaceShutdown(b)
 	return niuo
 }
 
-// SetNillableInterfaceVlan sets the "interface_vlan" field if the given value is not nil.
-func (niuo *NetInterfaceUpdateOne) SetNillableInterfaceVlan(s *string) *NetInterfaceUpdateOne {
-	if s != nil {
-		niuo.SetInterfaceVlan(*s)
-	}
-	return niuo
-}
-
-// SetInterfaceNativeVlan sets the "interface_native_vlan" field.
-func (niuo *NetInterfaceUpdateOne) SetInterfaceNativeVlan(s string) *NetInterfaceUpdateOne {
-	niuo.mutation.SetInterfaceNativeVlan(s)
-	return niuo
-}
-
-// SetNillableInterfaceNativeVlan sets the "interface_native_vlan" field if the given value is not nil.
-func (niuo *NetInterfaceUpdateOne) SetNillableInterfaceNativeVlan(s *string) *NetInterfaceUpdateOne {
-	if s != nil {
-		niuo.SetInterfaceNativeVlan(*s)
+// SetNillableInterfaceShutdown sets the "interface_shutdown" field if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableInterfaceShutdown(b *bool) *NetInterfaceUpdateOne {
+	if b != nil {
+		niuo.SetInterfaceShutdown(*b)
 	}
 	return niuo
 }
@@ -384,6 +500,40 @@ func (niuo *NetInterfaceUpdateOne) SetMode(n *NetInterfaceMode) *NetInterfaceUpd
 	return niuo.SetModeID(n.ID)
 }
 
+// AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
+func (niuo *NetInterfaceUpdateOne) AddHaveVlanIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.AddHaveVlanIDs(ids...)
+	return niuo
+}
+
+// AddHaveVlans adds the "have_vlans" edges to the Vlan entity.
+func (niuo *NetInterfaceUpdateOne) AddHaveVlans(v ...*Vlan) *NetInterfaceUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return niuo.AddHaveVlanIDs(ids...)
+}
+
+// SetNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID.
+func (niuo *NetInterfaceUpdateOne) SetNativeOnVlanID(id int) *NetInterfaceUpdateOne {
+	niuo.mutation.SetNativeOnVlanID(id)
+	return niuo
+}
+
+// SetNillableNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableNativeOnVlanID(id *int) *NetInterfaceUpdateOne {
+	if id != nil {
+		niuo = niuo.SetNativeOnVlanID(*id)
+	}
+	return niuo
+}
+
+// SetNativeOnVlan sets the "native_on_vlan" edge to the Vlan entity.
+func (niuo *NetInterfaceUpdateOne) SetNativeOnVlan(v *Vlan) *NetInterfaceUpdateOne {
+	return niuo.SetNativeOnVlanID(v.ID)
+}
+
 // Mutation returns the NetInterfaceMutation object of the builder.
 func (niuo *NetInterfaceUpdateOne) Mutation() *NetInterfaceMutation {
 	return niuo.mutation
@@ -398,6 +548,33 @@ func (niuo *NetInterfaceUpdateOne) ClearOnDevice() *NetInterfaceUpdateOne {
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (niuo *NetInterfaceUpdateOne) ClearMode() *NetInterfaceUpdateOne {
 	niuo.mutation.ClearMode()
+	return niuo
+}
+
+// ClearHaveVlans clears all "have_vlans" edges to the Vlan entity.
+func (niuo *NetInterfaceUpdateOne) ClearHaveVlans() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearHaveVlans()
+	return niuo
+}
+
+// RemoveHaveVlanIDs removes the "have_vlans" edge to Vlan entities by IDs.
+func (niuo *NetInterfaceUpdateOne) RemoveHaveVlanIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.RemoveHaveVlanIDs(ids...)
+	return niuo
+}
+
+// RemoveHaveVlans removes "have_vlans" edges to Vlan entities.
+func (niuo *NetInterfaceUpdateOne) RemoveHaveVlans(v ...*Vlan) *NetInterfaceUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return niuo.RemoveHaveVlanIDs(ids...)
+}
+
+// ClearNativeOnVlan clears the "native_on_vlan" edge to the Vlan entity.
+func (niuo *NetInterfaceUpdateOne) ClearNativeOnVlan() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearNativeOnVlan()
 	return niuo
 }
 
@@ -517,18 +694,11 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 			Column: netinterface.FieldInterfaceName,
 		})
 	}
-	if value, ok := niuo.mutation.InterfaceVlan(); ok {
+	if value, ok := niuo.mutation.InterfaceShutdown(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
-			Column: netinterface.FieldInterfaceVlan,
-		})
-	}
-	if value, ok := niuo.mutation.InterfaceNativeVlan(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: netinterface.FieldInterfaceNativeVlan,
+			Column: netinterface.FieldInterfaceShutdown,
 		})
 	}
 	if niuo.mutation.OnDeviceCleared() {
@@ -593,6 +763,95 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterfacemode.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.HaveVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.RemovedHaveVlansIDs(); len(nodes) > 0 && !niuo.mutation.HaveVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.HaveVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.NativeOnVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.NativeOnVlanTable,
+			Columns: []string{netinterface.NativeOnVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.NativeOnVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.NativeOnVlanTable,
+			Columns: []string{netinterface.NativeOnVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
 				},
 			},
 		}

@@ -8,13 +8,16 @@ import (
 	"sync"
 
 	"github.com/mrzack99s/netcoco/ent/administrator"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/predicate"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 
 	"entgo.io/ent"
 )
@@ -29,12 +32,15 @@ const (
 
 	// Node types.
 	TypeAdministrator        = "Administrator"
+	TypeDeletedVlanLog       = "DeletedVlanLog"
 	TypeDevice               = "Device"
+	TypeDevicePlatform       = "DevicePlatform"
 	TypeDeviceType           = "DeviceType"
 	TypeNetInterface         = "NetInterface"
 	TypeNetInterfaceMode     = "NetInterfaceMode"
 	TypeNetTopology          = "NetTopology"
 	TypeNetTopologyDeviceMap = "NetTopologyDeviceMap"
+	TypeVlan                 = "Vlan"
 )
 
 // AdministratorMutation represents an operation that mutates the Administrator nodes in the graph.
@@ -378,6 +384,452 @@ func (m *AdministratorMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Administrator edge %s", name)
 }
 
+// DeletedVlanLogMutation represents an operation that mutates the DeletedVlanLog nodes in the graph.
+type DeletedVlanLogMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	vlan_id          *int
+	addvlan_id       *int
+	deleted          *bool
+	clearedFields    map[string]struct{}
+	on_device        *int
+	clearedon_device bool
+	done             bool
+	oldValue         func(context.Context) (*DeletedVlanLog, error)
+	predicates       []predicate.DeletedVlanLog
+}
+
+var _ ent.Mutation = (*DeletedVlanLogMutation)(nil)
+
+// deletedvlanlogOption allows management of the mutation configuration using functional options.
+type deletedvlanlogOption func(*DeletedVlanLogMutation)
+
+// newDeletedVlanLogMutation creates new mutation for the DeletedVlanLog entity.
+func newDeletedVlanLogMutation(c config, op Op, opts ...deletedvlanlogOption) *DeletedVlanLogMutation {
+	m := &DeletedVlanLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDeletedVlanLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDeletedVlanLogID sets the ID field of the mutation.
+func withDeletedVlanLogID(id int) deletedvlanlogOption {
+	return func(m *DeletedVlanLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DeletedVlanLog
+		)
+		m.oldValue = func(ctx context.Context) (*DeletedVlanLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DeletedVlanLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDeletedVlanLog sets the old DeletedVlanLog of the mutation.
+func withDeletedVlanLog(node *DeletedVlanLog) deletedvlanlogOption {
+	return func(m *DeletedVlanLogMutation) {
+		m.oldValue = func(context.Context) (*DeletedVlanLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DeletedVlanLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DeletedVlanLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *DeletedVlanLogMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetVlanID sets the "vlan_id" field.
+func (m *DeletedVlanLogMutation) SetVlanID(i int) {
+	m.vlan_id = &i
+	m.addvlan_id = nil
+}
+
+// VlanID returns the value of the "vlan_id" field in the mutation.
+func (m *DeletedVlanLogMutation) VlanID() (r int, exists bool) {
+	v := m.vlan_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVlanID returns the old "vlan_id" field's value of the DeletedVlanLog entity.
+// If the DeletedVlanLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeletedVlanLogMutation) OldVlanID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldVlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldVlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVlanID: %w", err)
+	}
+	return oldValue.VlanID, nil
+}
+
+// AddVlanID adds i to the "vlan_id" field.
+func (m *DeletedVlanLogMutation) AddVlanID(i int) {
+	if m.addvlan_id != nil {
+		*m.addvlan_id += i
+	} else {
+		m.addvlan_id = &i
+	}
+}
+
+// AddedVlanID returns the value that was added to the "vlan_id" field in this mutation.
+func (m *DeletedVlanLogMutation) AddedVlanID() (r int, exists bool) {
+	v := m.addvlan_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVlanID resets all changes to the "vlan_id" field.
+func (m *DeletedVlanLogMutation) ResetVlanID() {
+	m.vlan_id = nil
+	m.addvlan_id = nil
+}
+
+// SetDeleted sets the "deleted" field.
+func (m *DeletedVlanLogMutation) SetDeleted(b bool) {
+	m.deleted = &b
+}
+
+// Deleted returns the value of the "deleted" field in the mutation.
+func (m *DeletedVlanLogMutation) Deleted() (r bool, exists bool) {
+	v := m.deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeleted returns the old "deleted" field's value of the DeletedVlanLog entity.
+// If the DeletedVlanLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeletedVlanLogMutation) OldDeleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDeleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDeleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeleted: %w", err)
+	}
+	return oldValue.Deleted, nil
+}
+
+// ResetDeleted resets all changes to the "deleted" field.
+func (m *DeletedVlanLogMutation) ResetDeleted() {
+	m.deleted = nil
+}
+
+// SetOnDeviceID sets the "on_device" edge to the Device entity by id.
+func (m *DeletedVlanLogMutation) SetOnDeviceID(id int) {
+	m.on_device = &id
+}
+
+// ClearOnDevice clears the "on_device" edge to the Device entity.
+func (m *DeletedVlanLogMutation) ClearOnDevice() {
+	m.clearedon_device = true
+}
+
+// OnDeviceCleared reports if the "on_device" edge to the Device entity was cleared.
+func (m *DeletedVlanLogMutation) OnDeviceCleared() bool {
+	return m.clearedon_device
+}
+
+// OnDeviceID returns the "on_device" edge ID in the mutation.
+func (m *DeletedVlanLogMutation) OnDeviceID() (id int, exists bool) {
+	if m.on_device != nil {
+		return *m.on_device, true
+	}
+	return
+}
+
+// OnDeviceIDs returns the "on_device" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OnDeviceID instead. It exists only for internal usage by the builders.
+func (m *DeletedVlanLogMutation) OnDeviceIDs() (ids []int) {
+	if id := m.on_device; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOnDevice resets all changes to the "on_device" edge.
+func (m *DeletedVlanLogMutation) ResetOnDevice() {
+	m.on_device = nil
+	m.clearedon_device = false
+}
+
+// Op returns the operation name.
+func (m *DeletedVlanLogMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (DeletedVlanLog).
+func (m *DeletedVlanLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DeletedVlanLogMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.vlan_id != nil {
+		fields = append(fields, deletedvlanlog.FieldVlanID)
+	}
+	if m.deleted != nil {
+		fields = append(fields, deletedvlanlog.FieldDeleted)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DeletedVlanLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		return m.VlanID()
+	case deletedvlanlog.FieldDeleted:
+		return m.Deleted()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DeletedVlanLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		return m.OldVlanID(ctx)
+	case deletedvlanlog.FieldDeleted:
+		return m.OldDeleted(ctx)
+	}
+	return nil, fmt.Errorf("unknown DeletedVlanLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DeletedVlanLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVlanID(v)
+		return nil
+	case deletedvlanlog.FieldDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeleted(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DeletedVlanLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DeletedVlanLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addvlan_id != nil {
+		fields = append(fields, deletedvlanlog.FieldVlanID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DeletedVlanLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		return m.AddedVlanID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DeletedVlanLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVlanID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DeletedVlanLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DeletedVlanLogMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DeletedVlanLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DeletedVlanLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DeletedVlanLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DeletedVlanLogMutation) ResetField(name string) error {
+	switch name {
+	case deletedvlanlog.FieldVlanID:
+		m.ResetVlanID()
+		return nil
+	case deletedvlanlog.FieldDeleted:
+		m.ResetDeleted()
+		return nil
+	}
+	return fmt.Errorf("unknown DeletedVlanLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DeletedVlanLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.on_device != nil {
+		edges = append(edges, deletedvlanlog.EdgeOnDevice)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DeletedVlanLogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case deletedvlanlog.EdgeOnDevice:
+		if id := m.on_device; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DeletedVlanLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DeletedVlanLogMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DeletedVlanLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedon_device {
+		edges = append(edges, deletedvlanlog.EdgeOnDevice)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DeletedVlanLogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case deletedvlanlog.EdgeOnDevice:
+		return m.clearedon_device
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DeletedVlanLogMutation) ClearEdge(name string) error {
+	switch name {
+	case deletedvlanlog.EdgeOnDevice:
+		m.ClearOnDevice()
+		return nil
+	}
+	return fmt.Errorf("unknown DeletedVlanLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DeletedVlanLogMutation) ResetEdge(name string) error {
+	switch name {
+	case deletedvlanlog.EdgeOnDevice:
+		m.ResetOnDevice()
+		return nil
+	}
+	return fmt.Errorf("unknown DeletedVlanLog edge %s", name)
+}
+
 // DeviceMutation represents an operation that mutates the Device nodes in the graph.
 type DeviceMutation struct {
 	config
@@ -395,12 +847,20 @@ type DeviceMutation struct {
 	clearedFields        map[string]struct{}
 	in_type              *int
 	clearedin_type       bool
+	in_platform          *int
+	clearedin_platform   bool
 	interfaces           map[int]struct{}
 	removedinterfaces    map[int]struct{}
 	clearedinterfaces    bool
 	in_topology          map[int]struct{}
 	removedin_topology   map[int]struct{}
 	clearedin_topology   bool
+	store_vlans          map[int]struct{}
+	removedstore_vlans   map[int]struct{}
+	clearedstore_vlans   bool
+	deleted_vlans        map[int]struct{}
+	removeddeleted_vlans map[int]struct{}
+	cleareddeleted_vlans bool
 	done                 bool
 	oldValue             func(context.Context) (*Device, error)
 	predicates           []predicate.Device
@@ -835,6 +1295,45 @@ func (m *DeviceMutation) ResetInType() {
 	m.clearedin_type = false
 }
 
+// SetInPlatformID sets the "in_platform" edge to the DevicePlatform entity by id.
+func (m *DeviceMutation) SetInPlatformID(id int) {
+	m.in_platform = &id
+}
+
+// ClearInPlatform clears the "in_platform" edge to the DevicePlatform entity.
+func (m *DeviceMutation) ClearInPlatform() {
+	m.clearedin_platform = true
+}
+
+// InPlatformCleared reports if the "in_platform" edge to the DevicePlatform entity was cleared.
+func (m *DeviceMutation) InPlatformCleared() bool {
+	return m.clearedin_platform
+}
+
+// InPlatformID returns the "in_platform" edge ID in the mutation.
+func (m *DeviceMutation) InPlatformID() (id int, exists bool) {
+	if m.in_platform != nil {
+		return *m.in_platform, true
+	}
+	return
+}
+
+// InPlatformIDs returns the "in_platform" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InPlatformID instead. It exists only for internal usage by the builders.
+func (m *DeviceMutation) InPlatformIDs() (ids []int) {
+	if id := m.in_platform; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInPlatform resets all changes to the "in_platform" edge.
+func (m *DeviceMutation) ResetInPlatform() {
+	m.in_platform = nil
+	m.clearedin_platform = false
+}
+
 // AddInterfaceIDs adds the "interfaces" edge to the NetInterface entity by ids.
 func (m *DeviceMutation) AddInterfaceIDs(ids ...int) {
 	if m.interfaces == nil {
@@ -939,6 +1438,112 @@ func (m *DeviceMutation) ResetInTopology() {
 	m.in_topology = nil
 	m.clearedin_topology = false
 	m.removedin_topology = nil
+}
+
+// AddStoreVlanIDs adds the "store_vlans" edge to the Vlan entity by ids.
+func (m *DeviceMutation) AddStoreVlanIDs(ids ...int) {
+	if m.store_vlans == nil {
+		m.store_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.store_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStoreVlans clears the "store_vlans" edge to the Vlan entity.
+func (m *DeviceMutation) ClearStoreVlans() {
+	m.clearedstore_vlans = true
+}
+
+// StoreVlansCleared reports if the "store_vlans" edge to the Vlan entity was cleared.
+func (m *DeviceMutation) StoreVlansCleared() bool {
+	return m.clearedstore_vlans
+}
+
+// RemoveStoreVlanIDs removes the "store_vlans" edge to the Vlan entity by IDs.
+func (m *DeviceMutation) RemoveStoreVlanIDs(ids ...int) {
+	if m.removedstore_vlans == nil {
+		m.removedstore_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedstore_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStoreVlans returns the removed IDs of the "store_vlans" edge to the Vlan entity.
+func (m *DeviceMutation) RemovedStoreVlansIDs() (ids []int) {
+	for id := range m.removedstore_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StoreVlansIDs returns the "store_vlans" edge IDs in the mutation.
+func (m *DeviceMutation) StoreVlansIDs() (ids []int) {
+	for id := range m.store_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStoreVlans resets all changes to the "store_vlans" edge.
+func (m *DeviceMutation) ResetStoreVlans() {
+	m.store_vlans = nil
+	m.clearedstore_vlans = false
+	m.removedstore_vlans = nil
+}
+
+// AddDeletedVlanIDs adds the "deleted_vlans" edge to the DeletedVlanLog entity by ids.
+func (m *DeviceMutation) AddDeletedVlanIDs(ids ...int) {
+	if m.deleted_vlans == nil {
+		m.deleted_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.deleted_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDeletedVlans clears the "deleted_vlans" edge to the DeletedVlanLog entity.
+func (m *DeviceMutation) ClearDeletedVlans() {
+	m.cleareddeleted_vlans = true
+}
+
+// DeletedVlansCleared reports if the "deleted_vlans" edge to the DeletedVlanLog entity was cleared.
+func (m *DeviceMutation) DeletedVlansCleared() bool {
+	return m.cleareddeleted_vlans
+}
+
+// RemoveDeletedVlanIDs removes the "deleted_vlans" edge to the DeletedVlanLog entity by IDs.
+func (m *DeviceMutation) RemoveDeletedVlanIDs(ids ...int) {
+	if m.removeddeleted_vlans == nil {
+		m.removeddeleted_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removeddeleted_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDeletedVlans returns the removed IDs of the "deleted_vlans" edge to the DeletedVlanLog entity.
+func (m *DeviceMutation) RemovedDeletedVlansIDs() (ids []int) {
+	for id := range m.removeddeleted_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DeletedVlansIDs returns the "deleted_vlans" edge IDs in the mutation.
+func (m *DeviceMutation) DeletedVlansIDs() (ids []int) {
+	for id := range m.deleted_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDeletedVlans resets all changes to the "deleted_vlans" edge.
+func (m *DeviceMutation) ResetDeletedVlans() {
+	m.deleted_vlans = nil
+	m.cleareddeleted_vlans = false
+	m.removeddeleted_vlans = nil
 }
 
 // Op returns the operation name.
@@ -1192,15 +1797,24 @@ func (m *DeviceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DeviceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 6)
 	if m.in_type != nil {
 		edges = append(edges, device.EdgeInType)
+	}
+	if m.in_platform != nil {
+		edges = append(edges, device.EdgeInPlatform)
 	}
 	if m.interfaces != nil {
 		edges = append(edges, device.EdgeInterfaces)
 	}
 	if m.in_topology != nil {
 		edges = append(edges, device.EdgeInTopology)
+	}
+	if m.store_vlans != nil {
+		edges = append(edges, device.EdgeStoreVlans)
+	}
+	if m.deleted_vlans != nil {
+		edges = append(edges, device.EdgeDeletedVlans)
 	}
 	return edges
 }
@@ -1211,6 +1825,10 @@ func (m *DeviceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case device.EdgeInType:
 		if id := m.in_type; id != nil {
+			return []ent.Value{*id}
+		}
+	case device.EdgeInPlatform:
+		if id := m.in_platform; id != nil {
 			return []ent.Value{*id}
 		}
 	case device.EdgeInterfaces:
@@ -1225,18 +1843,36 @@ func (m *DeviceMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case device.EdgeStoreVlans:
+		ids := make([]ent.Value, 0, len(m.store_vlans))
+		for id := range m.store_vlans {
+			ids = append(ids, id)
+		}
+		return ids
+	case device.EdgeDeletedVlans:
+		ids := make([]ent.Value, 0, len(m.deleted_vlans))
+		for id := range m.deleted_vlans {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DeviceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 6)
 	if m.removedinterfaces != nil {
 		edges = append(edges, device.EdgeInterfaces)
 	}
 	if m.removedin_topology != nil {
 		edges = append(edges, device.EdgeInTopology)
+	}
+	if m.removedstore_vlans != nil {
+		edges = append(edges, device.EdgeStoreVlans)
+	}
+	if m.removeddeleted_vlans != nil {
+		edges = append(edges, device.EdgeDeletedVlans)
 	}
 	return edges
 }
@@ -1257,21 +1893,42 @@ func (m *DeviceMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case device.EdgeStoreVlans:
+		ids := make([]ent.Value, 0, len(m.removedstore_vlans))
+		for id := range m.removedstore_vlans {
+			ids = append(ids, id)
+		}
+		return ids
+	case device.EdgeDeletedVlans:
+		ids := make([]ent.Value, 0, len(m.removeddeleted_vlans))
+		for id := range m.removeddeleted_vlans {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DeviceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 6)
 	if m.clearedin_type {
 		edges = append(edges, device.EdgeInType)
+	}
+	if m.clearedin_platform {
+		edges = append(edges, device.EdgeInPlatform)
 	}
 	if m.clearedinterfaces {
 		edges = append(edges, device.EdgeInterfaces)
 	}
 	if m.clearedin_topology {
 		edges = append(edges, device.EdgeInTopology)
+	}
+	if m.clearedstore_vlans {
+		edges = append(edges, device.EdgeStoreVlans)
+	}
+	if m.cleareddeleted_vlans {
+		edges = append(edges, device.EdgeDeletedVlans)
 	}
 	return edges
 }
@@ -1282,10 +1939,16 @@ func (m *DeviceMutation) EdgeCleared(name string) bool {
 	switch name {
 	case device.EdgeInType:
 		return m.clearedin_type
+	case device.EdgeInPlatform:
+		return m.clearedin_platform
 	case device.EdgeInterfaces:
 		return m.clearedinterfaces
 	case device.EdgeInTopology:
 		return m.clearedin_topology
+	case device.EdgeStoreVlans:
+		return m.clearedstore_vlans
+	case device.EdgeDeletedVlans:
+		return m.cleareddeleted_vlans
 	}
 	return false
 }
@@ -1296,6 +1959,9 @@ func (m *DeviceMutation) ClearEdge(name string) error {
 	switch name {
 	case device.EdgeInType:
 		m.ClearInType()
+		return nil
+	case device.EdgeInPlatform:
+		m.ClearInPlatform()
 		return nil
 	}
 	return fmt.Errorf("unknown Device unique edge %s", name)
@@ -1308,14 +1974,402 @@ func (m *DeviceMutation) ResetEdge(name string) error {
 	case device.EdgeInType:
 		m.ResetInType()
 		return nil
+	case device.EdgeInPlatform:
+		m.ResetInPlatform()
+		return nil
 	case device.EdgeInterfaces:
 		m.ResetInterfaces()
 		return nil
 	case device.EdgeInTopology:
 		m.ResetInTopology()
 		return nil
+	case device.EdgeStoreVlans:
+		m.ResetStoreVlans()
+		return nil
+	case device.EdgeDeletedVlans:
+		m.ResetDeletedVlans()
+		return nil
 	}
 	return fmt.Errorf("unknown Device edge %s", name)
+}
+
+// DevicePlatformMutation represents an operation that mutates the DevicePlatform nodes in the graph.
+type DevicePlatformMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int
+	device_platform_name *string
+	clearedFields        map[string]struct{}
+	platforms            map[int]struct{}
+	removedplatforms     map[int]struct{}
+	clearedplatforms     bool
+	done                 bool
+	oldValue             func(context.Context) (*DevicePlatform, error)
+	predicates           []predicate.DevicePlatform
+}
+
+var _ ent.Mutation = (*DevicePlatformMutation)(nil)
+
+// deviceplatformOption allows management of the mutation configuration using functional options.
+type deviceplatformOption func(*DevicePlatformMutation)
+
+// newDevicePlatformMutation creates new mutation for the DevicePlatform entity.
+func newDevicePlatformMutation(c config, op Op, opts ...deviceplatformOption) *DevicePlatformMutation {
+	m := &DevicePlatformMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDevicePlatform,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDevicePlatformID sets the ID field of the mutation.
+func withDevicePlatformID(id int) deviceplatformOption {
+	return func(m *DevicePlatformMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DevicePlatform
+		)
+		m.oldValue = func(ctx context.Context) (*DevicePlatform, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DevicePlatform.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDevicePlatform sets the old DevicePlatform of the mutation.
+func withDevicePlatform(node *DevicePlatform) deviceplatformOption {
+	return func(m *DevicePlatformMutation) {
+		m.oldValue = func(context.Context) (*DevicePlatform, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DevicePlatformMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DevicePlatformMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *DevicePlatformMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetDevicePlatformName sets the "device_platform_name" field.
+func (m *DevicePlatformMutation) SetDevicePlatformName(s string) {
+	m.device_platform_name = &s
+}
+
+// DevicePlatformName returns the value of the "device_platform_name" field in the mutation.
+func (m *DevicePlatformMutation) DevicePlatformName() (r string, exists bool) {
+	v := m.device_platform_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDevicePlatformName returns the old "device_platform_name" field's value of the DevicePlatform entity.
+// If the DevicePlatform object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DevicePlatformMutation) OldDevicePlatformName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDevicePlatformName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDevicePlatformName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDevicePlatformName: %w", err)
+	}
+	return oldValue.DevicePlatformName, nil
+}
+
+// ResetDevicePlatformName resets all changes to the "device_platform_name" field.
+func (m *DevicePlatformMutation) ResetDevicePlatformName() {
+	m.device_platform_name = nil
+}
+
+// AddPlatformIDs adds the "platforms" edge to the Device entity by ids.
+func (m *DevicePlatformMutation) AddPlatformIDs(ids ...int) {
+	if m.platforms == nil {
+		m.platforms = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.platforms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPlatforms clears the "platforms" edge to the Device entity.
+func (m *DevicePlatformMutation) ClearPlatforms() {
+	m.clearedplatforms = true
+}
+
+// PlatformsCleared reports if the "platforms" edge to the Device entity was cleared.
+func (m *DevicePlatformMutation) PlatformsCleared() bool {
+	return m.clearedplatforms
+}
+
+// RemovePlatformIDs removes the "platforms" edge to the Device entity by IDs.
+func (m *DevicePlatformMutation) RemovePlatformIDs(ids ...int) {
+	if m.removedplatforms == nil {
+		m.removedplatforms = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedplatforms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPlatforms returns the removed IDs of the "platforms" edge to the Device entity.
+func (m *DevicePlatformMutation) RemovedPlatformsIDs() (ids []int) {
+	for id := range m.removedplatforms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PlatformsIDs returns the "platforms" edge IDs in the mutation.
+func (m *DevicePlatformMutation) PlatformsIDs() (ids []int) {
+	for id := range m.platforms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPlatforms resets all changes to the "platforms" edge.
+func (m *DevicePlatformMutation) ResetPlatforms() {
+	m.platforms = nil
+	m.clearedplatforms = false
+	m.removedplatforms = nil
+}
+
+// Op returns the operation name.
+func (m *DevicePlatformMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (DevicePlatform).
+func (m *DevicePlatformMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DevicePlatformMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.device_platform_name != nil {
+		fields = append(fields, deviceplatform.FieldDevicePlatformName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DevicePlatformMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case deviceplatform.FieldDevicePlatformName:
+		return m.DevicePlatformName()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DevicePlatformMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case deviceplatform.FieldDevicePlatformName:
+		return m.OldDevicePlatformName(ctx)
+	}
+	return nil, fmt.Errorf("unknown DevicePlatform field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DevicePlatformMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case deviceplatform.FieldDevicePlatformName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDevicePlatformName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DevicePlatform field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DevicePlatformMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DevicePlatformMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DevicePlatformMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DevicePlatform numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DevicePlatformMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DevicePlatformMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DevicePlatformMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DevicePlatform nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DevicePlatformMutation) ResetField(name string) error {
+	switch name {
+	case deviceplatform.FieldDevicePlatformName:
+		m.ResetDevicePlatformName()
+		return nil
+	}
+	return fmt.Errorf("unknown DevicePlatform field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DevicePlatformMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.platforms != nil {
+		edges = append(edges, deviceplatform.EdgePlatforms)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DevicePlatformMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case deviceplatform.EdgePlatforms:
+		ids := make([]ent.Value, 0, len(m.platforms))
+		for id := range m.platforms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DevicePlatformMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedplatforms != nil {
+		edges = append(edges, deviceplatform.EdgePlatforms)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DevicePlatformMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case deviceplatform.EdgePlatforms:
+		ids := make([]ent.Value, 0, len(m.removedplatforms))
+		for id := range m.removedplatforms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DevicePlatformMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedplatforms {
+		edges = append(edges, deviceplatform.EdgePlatforms)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DevicePlatformMutation) EdgeCleared(name string) bool {
+	switch name {
+	case deviceplatform.EdgePlatforms:
+		return m.clearedplatforms
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DevicePlatformMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DevicePlatform unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DevicePlatformMutation) ResetEdge(name string) error {
+	switch name {
+	case deviceplatform.EdgePlatforms:
+		m.ResetPlatforms()
+		return nil
+	}
+	return fmt.Errorf("unknown DevicePlatform edge %s", name)
 }
 
 // DeviceTypeMutation represents an operation that mutates the DeviceType nodes in the graph.
@@ -1704,13 +2758,17 @@ type NetInterfaceMutation struct {
 	typ                   string
 	id                    *int
 	interface_name        *string
-	interface_vlan        *string
-	interface_native_vlan *string
+	interface_shutdown    *bool
 	clearedFields         map[string]struct{}
 	on_device             *int
 	clearedon_device      bool
 	mode                  *int
 	clearedmode           bool
+	have_vlans            map[int]struct{}
+	removedhave_vlans     map[int]struct{}
+	clearedhave_vlans     bool
+	native_on_vlan        *int
+	clearednative_on_vlan bool
 	done                  bool
 	oldValue              func(context.Context) (*NetInterface, error)
 	predicates            []predicate.NetInterface
@@ -1831,76 +2889,40 @@ func (m *NetInterfaceMutation) ResetInterfaceName() {
 	m.interface_name = nil
 }
 
-// SetInterfaceVlan sets the "interface_vlan" field.
-func (m *NetInterfaceMutation) SetInterfaceVlan(s string) {
-	m.interface_vlan = &s
+// SetInterfaceShutdown sets the "interface_shutdown" field.
+func (m *NetInterfaceMutation) SetInterfaceShutdown(b bool) {
+	m.interface_shutdown = &b
 }
 
-// InterfaceVlan returns the value of the "interface_vlan" field in the mutation.
-func (m *NetInterfaceMutation) InterfaceVlan() (r string, exists bool) {
-	v := m.interface_vlan
+// InterfaceShutdown returns the value of the "interface_shutdown" field in the mutation.
+func (m *NetInterfaceMutation) InterfaceShutdown() (r bool, exists bool) {
+	v := m.interface_shutdown
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldInterfaceVlan returns the old "interface_vlan" field's value of the NetInterface entity.
+// OldInterfaceShutdown returns the old "interface_shutdown" field's value of the NetInterface entity.
 // If the NetInterface object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NetInterfaceMutation) OldInterfaceVlan(ctx context.Context) (v string, err error) {
+func (m *NetInterfaceMutation) OldInterfaceShutdown(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldInterfaceVlan is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldInterfaceShutdown is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldInterfaceVlan requires an ID field in the mutation")
+		return v, fmt.Errorf("OldInterfaceShutdown requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInterfaceVlan: %w", err)
+		return v, fmt.Errorf("querying old value for OldInterfaceShutdown: %w", err)
 	}
-	return oldValue.InterfaceVlan, nil
+	return oldValue.InterfaceShutdown, nil
 }
 
-// ResetInterfaceVlan resets all changes to the "interface_vlan" field.
-func (m *NetInterfaceMutation) ResetInterfaceVlan() {
-	m.interface_vlan = nil
-}
-
-// SetInterfaceNativeVlan sets the "interface_native_vlan" field.
-func (m *NetInterfaceMutation) SetInterfaceNativeVlan(s string) {
-	m.interface_native_vlan = &s
-}
-
-// InterfaceNativeVlan returns the value of the "interface_native_vlan" field in the mutation.
-func (m *NetInterfaceMutation) InterfaceNativeVlan() (r string, exists bool) {
-	v := m.interface_native_vlan
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldInterfaceNativeVlan returns the old "interface_native_vlan" field's value of the NetInterface entity.
-// If the NetInterface object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NetInterfaceMutation) OldInterfaceNativeVlan(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldInterfaceNativeVlan is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldInterfaceNativeVlan requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInterfaceNativeVlan: %w", err)
-	}
-	return oldValue.InterfaceNativeVlan, nil
-}
-
-// ResetInterfaceNativeVlan resets all changes to the "interface_native_vlan" field.
-func (m *NetInterfaceMutation) ResetInterfaceNativeVlan() {
-	m.interface_native_vlan = nil
+// ResetInterfaceShutdown resets all changes to the "interface_shutdown" field.
+func (m *NetInterfaceMutation) ResetInterfaceShutdown() {
+	m.interface_shutdown = nil
 }
 
 // SetOnDeviceID sets the "on_device" edge to the Device entity by id.
@@ -1981,6 +3003,98 @@ func (m *NetInterfaceMutation) ResetMode() {
 	m.clearedmode = false
 }
 
+// AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by ids.
+func (m *NetInterfaceMutation) AddHaveVlanIDs(ids ...int) {
+	if m.have_vlans == nil {
+		m.have_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.have_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHaveVlans clears the "have_vlans" edge to the Vlan entity.
+func (m *NetInterfaceMutation) ClearHaveVlans() {
+	m.clearedhave_vlans = true
+}
+
+// HaveVlansCleared reports if the "have_vlans" edge to the Vlan entity was cleared.
+func (m *NetInterfaceMutation) HaveVlansCleared() bool {
+	return m.clearedhave_vlans
+}
+
+// RemoveHaveVlanIDs removes the "have_vlans" edge to the Vlan entity by IDs.
+func (m *NetInterfaceMutation) RemoveHaveVlanIDs(ids ...int) {
+	if m.removedhave_vlans == nil {
+		m.removedhave_vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedhave_vlans[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHaveVlans returns the removed IDs of the "have_vlans" edge to the Vlan entity.
+func (m *NetInterfaceMutation) RemovedHaveVlansIDs() (ids []int) {
+	for id := range m.removedhave_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HaveVlansIDs returns the "have_vlans" edge IDs in the mutation.
+func (m *NetInterfaceMutation) HaveVlansIDs() (ids []int) {
+	for id := range m.have_vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHaveVlans resets all changes to the "have_vlans" edge.
+func (m *NetInterfaceMutation) ResetHaveVlans() {
+	m.have_vlans = nil
+	m.clearedhave_vlans = false
+	m.removedhave_vlans = nil
+}
+
+// SetNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by id.
+func (m *NetInterfaceMutation) SetNativeOnVlanID(id int) {
+	m.native_on_vlan = &id
+}
+
+// ClearNativeOnVlan clears the "native_on_vlan" edge to the Vlan entity.
+func (m *NetInterfaceMutation) ClearNativeOnVlan() {
+	m.clearednative_on_vlan = true
+}
+
+// NativeOnVlanCleared reports if the "native_on_vlan" edge to the Vlan entity was cleared.
+func (m *NetInterfaceMutation) NativeOnVlanCleared() bool {
+	return m.clearednative_on_vlan
+}
+
+// NativeOnVlanID returns the "native_on_vlan" edge ID in the mutation.
+func (m *NetInterfaceMutation) NativeOnVlanID() (id int, exists bool) {
+	if m.native_on_vlan != nil {
+		return *m.native_on_vlan, true
+	}
+	return
+}
+
+// NativeOnVlanIDs returns the "native_on_vlan" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NativeOnVlanID instead. It exists only for internal usage by the builders.
+func (m *NetInterfaceMutation) NativeOnVlanIDs() (ids []int) {
+	if id := m.native_on_vlan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNativeOnVlan resets all changes to the "native_on_vlan" edge.
+func (m *NetInterfaceMutation) ResetNativeOnVlan() {
+	m.native_on_vlan = nil
+	m.clearednative_on_vlan = false
+}
+
 // Op returns the operation name.
 func (m *NetInterfaceMutation) Op() Op {
 	return m.op
@@ -1995,15 +3109,12 @@ func (m *NetInterfaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NetInterfaceMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 2)
 	if m.interface_name != nil {
 		fields = append(fields, netinterface.FieldInterfaceName)
 	}
-	if m.interface_vlan != nil {
-		fields = append(fields, netinterface.FieldInterfaceVlan)
-	}
-	if m.interface_native_vlan != nil {
-		fields = append(fields, netinterface.FieldInterfaceNativeVlan)
+	if m.interface_shutdown != nil {
+		fields = append(fields, netinterface.FieldInterfaceShutdown)
 	}
 	return fields
 }
@@ -2015,10 +3126,8 @@ func (m *NetInterfaceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case netinterface.FieldInterfaceName:
 		return m.InterfaceName()
-	case netinterface.FieldInterfaceVlan:
-		return m.InterfaceVlan()
-	case netinterface.FieldInterfaceNativeVlan:
-		return m.InterfaceNativeVlan()
+	case netinterface.FieldInterfaceShutdown:
+		return m.InterfaceShutdown()
 	}
 	return nil, false
 }
@@ -2030,10 +3139,8 @@ func (m *NetInterfaceMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case netinterface.FieldInterfaceName:
 		return m.OldInterfaceName(ctx)
-	case netinterface.FieldInterfaceVlan:
-		return m.OldInterfaceVlan(ctx)
-	case netinterface.FieldInterfaceNativeVlan:
-		return m.OldInterfaceNativeVlan(ctx)
+	case netinterface.FieldInterfaceShutdown:
+		return m.OldInterfaceShutdown(ctx)
 	}
 	return nil, fmt.Errorf("unknown NetInterface field %s", name)
 }
@@ -2050,19 +3157,12 @@ func (m *NetInterfaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetInterfaceName(v)
 		return nil
-	case netinterface.FieldInterfaceVlan:
-		v, ok := value.(string)
+	case netinterface.FieldInterfaceShutdown:
+		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetInterfaceVlan(v)
-		return nil
-	case netinterface.FieldInterfaceNativeVlan:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetInterfaceNativeVlan(v)
+		m.SetInterfaceShutdown(v)
 		return nil
 	}
 	return fmt.Errorf("unknown NetInterface field %s", name)
@@ -2116,11 +3216,8 @@ func (m *NetInterfaceMutation) ResetField(name string) error {
 	case netinterface.FieldInterfaceName:
 		m.ResetInterfaceName()
 		return nil
-	case netinterface.FieldInterfaceVlan:
-		m.ResetInterfaceVlan()
-		return nil
-	case netinterface.FieldInterfaceNativeVlan:
-		m.ResetInterfaceNativeVlan()
+	case netinterface.FieldInterfaceShutdown:
+		m.ResetInterfaceShutdown()
 		return nil
 	}
 	return fmt.Errorf("unknown NetInterface field %s", name)
@@ -2128,12 +3225,18 @@ func (m *NetInterfaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NetInterfaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.on_device != nil {
 		edges = append(edges, netinterface.EdgeOnDevice)
 	}
 	if m.mode != nil {
 		edges = append(edges, netinterface.EdgeMode)
+	}
+	if m.have_vlans != nil {
+		edges = append(edges, netinterface.EdgeHaveVlans)
+	}
+	if m.native_on_vlan != nil {
+		edges = append(edges, netinterface.EdgeNativeOnVlan)
 	}
 	return edges
 }
@@ -2150,13 +3253,26 @@ func (m *NetInterfaceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.mode; id != nil {
 			return []ent.Value{*id}
 		}
+	case netinterface.EdgeHaveVlans:
+		ids := make([]ent.Value, 0, len(m.have_vlans))
+		for id := range m.have_vlans {
+			ids = append(ids, id)
+		}
+		return ids
+	case netinterface.EdgeNativeOnVlan:
+		if id := m.native_on_vlan; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NetInterfaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
+	if m.removedhave_vlans != nil {
+		edges = append(edges, netinterface.EdgeHaveVlans)
+	}
 	return edges
 }
 
@@ -2164,18 +3280,30 @@ func (m *NetInterfaceMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *NetInterfaceMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case netinterface.EdgeHaveVlans:
+		ids := make([]ent.Value, 0, len(m.removedhave_vlans))
+		for id := range m.removedhave_vlans {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NetInterfaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedon_device {
 		edges = append(edges, netinterface.EdgeOnDevice)
 	}
 	if m.clearedmode {
 		edges = append(edges, netinterface.EdgeMode)
+	}
+	if m.clearedhave_vlans {
+		edges = append(edges, netinterface.EdgeHaveVlans)
+	}
+	if m.clearednative_on_vlan {
+		edges = append(edges, netinterface.EdgeNativeOnVlan)
 	}
 	return edges
 }
@@ -2188,6 +3316,10 @@ func (m *NetInterfaceMutation) EdgeCleared(name string) bool {
 		return m.clearedon_device
 	case netinterface.EdgeMode:
 		return m.clearedmode
+	case netinterface.EdgeHaveVlans:
+		return m.clearedhave_vlans
+	case netinterface.EdgeNativeOnVlan:
+		return m.clearednative_on_vlan
 	}
 	return false
 }
@@ -2202,6 +3334,9 @@ func (m *NetInterfaceMutation) ClearEdge(name string) error {
 	case netinterface.EdgeMode:
 		m.ClearMode()
 		return nil
+	case netinterface.EdgeNativeOnVlan:
+		m.ClearNativeOnVlan()
+		return nil
 	}
 	return fmt.Errorf("unknown NetInterface unique edge %s", name)
 }
@@ -2215,6 +3350,12 @@ func (m *NetInterfaceMutation) ResetEdge(name string) error {
 		return nil
 	case netinterface.EdgeMode:
 		m.ResetMode()
+		return nil
+	case netinterface.EdgeHaveVlans:
+		m.ResetHaveVlans()
+		return nil
+	case netinterface.EdgeNativeOnVlan:
+		m.ResetNativeOnVlan()
 		return nil
 	}
 	return fmt.Errorf("unknown NetInterface edge %s", name)
@@ -3650,4 +4791,583 @@ func (m *NetTopologyDeviceMapMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown NetTopologyDeviceMap edge %s", name)
+}
+
+// VlanMutation represents an operation that mutates the Vlan nodes in the graph.
+type VlanMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	vlan_id            *int
+	addvlan_id         *int
+	clearedFields      map[string]struct{}
+	vlans              map[int]struct{}
+	removedvlans       map[int]struct{}
+	clearedvlans       bool
+	native_vlan        map[int]struct{}
+	removednative_vlan map[int]struct{}
+	clearednative_vlan bool
+	on_device          map[int]struct{}
+	removedon_device   map[int]struct{}
+	clearedon_device   bool
+	done               bool
+	oldValue           func(context.Context) (*Vlan, error)
+	predicates         []predicate.Vlan
+}
+
+var _ ent.Mutation = (*VlanMutation)(nil)
+
+// vlanOption allows management of the mutation configuration using functional options.
+type vlanOption func(*VlanMutation)
+
+// newVlanMutation creates new mutation for the Vlan entity.
+func newVlanMutation(c config, op Op, opts ...vlanOption) *VlanMutation {
+	m := &VlanMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVlan,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVlanID sets the ID field of the mutation.
+func withVlanID(id int) vlanOption {
+	return func(m *VlanMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Vlan
+		)
+		m.oldValue = func(ctx context.Context) (*Vlan, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Vlan.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVlan sets the old Vlan of the mutation.
+func withVlan(node *Vlan) vlanOption {
+	return func(m *VlanMutation) {
+		m.oldValue = func(context.Context) (*Vlan, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VlanMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VlanMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *VlanMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetVlanID sets the "vlan_id" field.
+func (m *VlanMutation) SetVlanID(i int) {
+	m.vlan_id = &i
+	m.addvlan_id = nil
+}
+
+// VlanID returns the value of the "vlan_id" field in the mutation.
+func (m *VlanMutation) VlanID() (r int, exists bool) {
+	v := m.vlan_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVlanID returns the old "vlan_id" field's value of the Vlan entity.
+// If the Vlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VlanMutation) OldVlanID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldVlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldVlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVlanID: %w", err)
+	}
+	return oldValue.VlanID, nil
+}
+
+// AddVlanID adds i to the "vlan_id" field.
+func (m *VlanMutation) AddVlanID(i int) {
+	if m.addvlan_id != nil {
+		*m.addvlan_id += i
+	} else {
+		m.addvlan_id = &i
+	}
+}
+
+// AddedVlanID returns the value that was added to the "vlan_id" field in this mutation.
+func (m *VlanMutation) AddedVlanID() (r int, exists bool) {
+	v := m.addvlan_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVlanID resets all changes to the "vlan_id" field.
+func (m *VlanMutation) ResetVlanID() {
+	m.vlan_id = nil
+	m.addvlan_id = nil
+}
+
+// AddVlanIDs adds the "vlans" edge to the NetInterface entity by ids.
+func (m *VlanMutation) AddVlanIDs(ids ...int) {
+	if m.vlans == nil {
+		m.vlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.vlans[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVlans clears the "vlans" edge to the NetInterface entity.
+func (m *VlanMutation) ClearVlans() {
+	m.clearedvlans = true
+}
+
+// VlansCleared reports if the "vlans" edge to the NetInterface entity was cleared.
+func (m *VlanMutation) VlansCleared() bool {
+	return m.clearedvlans
+}
+
+// RemoveVlanIDs removes the "vlans" edge to the NetInterface entity by IDs.
+func (m *VlanMutation) RemoveVlanIDs(ids ...int) {
+	if m.removedvlans == nil {
+		m.removedvlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedvlans[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVlans returns the removed IDs of the "vlans" edge to the NetInterface entity.
+func (m *VlanMutation) RemovedVlansIDs() (ids []int) {
+	for id := range m.removedvlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VlansIDs returns the "vlans" edge IDs in the mutation.
+func (m *VlanMutation) VlansIDs() (ids []int) {
+	for id := range m.vlans {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVlans resets all changes to the "vlans" edge.
+func (m *VlanMutation) ResetVlans() {
+	m.vlans = nil
+	m.clearedvlans = false
+	m.removedvlans = nil
+}
+
+// AddNativeVlanIDs adds the "native_vlan" edge to the NetInterface entity by ids.
+func (m *VlanMutation) AddNativeVlanIDs(ids ...int) {
+	if m.native_vlan == nil {
+		m.native_vlan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_vlan[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeVlan clears the "native_vlan" edge to the NetInterface entity.
+func (m *VlanMutation) ClearNativeVlan() {
+	m.clearednative_vlan = true
+}
+
+// NativeVlanCleared reports if the "native_vlan" edge to the NetInterface entity was cleared.
+func (m *VlanMutation) NativeVlanCleared() bool {
+	return m.clearednative_vlan
+}
+
+// RemoveNativeVlanIDs removes the "native_vlan" edge to the NetInterface entity by IDs.
+func (m *VlanMutation) RemoveNativeVlanIDs(ids ...int) {
+	if m.removednative_vlan == nil {
+		m.removednative_vlan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removednative_vlan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeVlan returns the removed IDs of the "native_vlan" edge to the NetInterface entity.
+func (m *VlanMutation) RemovedNativeVlanIDs() (ids []int) {
+	for id := range m.removednative_vlan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeVlanIDs returns the "native_vlan" edge IDs in the mutation.
+func (m *VlanMutation) NativeVlanIDs() (ids []int) {
+	for id := range m.native_vlan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeVlan resets all changes to the "native_vlan" edge.
+func (m *VlanMutation) ResetNativeVlan() {
+	m.native_vlan = nil
+	m.clearednative_vlan = false
+	m.removednative_vlan = nil
+}
+
+// AddOnDeviceIDs adds the "on_device" edge to the Device entity by ids.
+func (m *VlanMutation) AddOnDeviceIDs(ids ...int) {
+	if m.on_device == nil {
+		m.on_device = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.on_device[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOnDevice clears the "on_device" edge to the Device entity.
+func (m *VlanMutation) ClearOnDevice() {
+	m.clearedon_device = true
+}
+
+// OnDeviceCleared reports if the "on_device" edge to the Device entity was cleared.
+func (m *VlanMutation) OnDeviceCleared() bool {
+	return m.clearedon_device
+}
+
+// RemoveOnDeviceIDs removes the "on_device" edge to the Device entity by IDs.
+func (m *VlanMutation) RemoveOnDeviceIDs(ids ...int) {
+	if m.removedon_device == nil {
+		m.removedon_device = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedon_device[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOnDevice returns the removed IDs of the "on_device" edge to the Device entity.
+func (m *VlanMutation) RemovedOnDeviceIDs() (ids []int) {
+	for id := range m.removedon_device {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OnDeviceIDs returns the "on_device" edge IDs in the mutation.
+func (m *VlanMutation) OnDeviceIDs() (ids []int) {
+	for id := range m.on_device {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOnDevice resets all changes to the "on_device" edge.
+func (m *VlanMutation) ResetOnDevice() {
+	m.on_device = nil
+	m.clearedon_device = false
+	m.removedon_device = nil
+}
+
+// Op returns the operation name.
+func (m *VlanMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Vlan).
+func (m *VlanMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VlanMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.vlan_id != nil {
+		fields = append(fields, vlan.FieldVlanID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VlanMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case vlan.FieldVlanID:
+		return m.VlanID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VlanMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case vlan.FieldVlanID:
+		return m.OldVlanID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Vlan field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VlanMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case vlan.FieldVlanID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVlanID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Vlan field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VlanMutation) AddedFields() []string {
+	var fields []string
+	if m.addvlan_id != nil {
+		fields = append(fields, vlan.FieldVlanID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VlanMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case vlan.FieldVlanID:
+		return m.AddedVlanID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VlanMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case vlan.FieldVlanID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVlanID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Vlan numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VlanMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VlanMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VlanMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Vlan nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VlanMutation) ResetField(name string) error {
+	switch name {
+	case vlan.FieldVlanID:
+		m.ResetVlanID()
+		return nil
+	}
+	return fmt.Errorf("unknown Vlan field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VlanMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.vlans != nil {
+		edges = append(edges, vlan.EdgeVlans)
+	}
+	if m.native_vlan != nil {
+		edges = append(edges, vlan.EdgeNativeVlan)
+	}
+	if m.on_device != nil {
+		edges = append(edges, vlan.EdgeOnDevice)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VlanMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case vlan.EdgeVlans:
+		ids := make([]ent.Value, 0, len(m.vlans))
+		for id := range m.vlans {
+			ids = append(ids, id)
+		}
+		return ids
+	case vlan.EdgeNativeVlan:
+		ids := make([]ent.Value, 0, len(m.native_vlan))
+		for id := range m.native_vlan {
+			ids = append(ids, id)
+		}
+		return ids
+	case vlan.EdgeOnDevice:
+		ids := make([]ent.Value, 0, len(m.on_device))
+		for id := range m.on_device {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VlanMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedvlans != nil {
+		edges = append(edges, vlan.EdgeVlans)
+	}
+	if m.removednative_vlan != nil {
+		edges = append(edges, vlan.EdgeNativeVlan)
+	}
+	if m.removedon_device != nil {
+		edges = append(edges, vlan.EdgeOnDevice)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VlanMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case vlan.EdgeVlans:
+		ids := make([]ent.Value, 0, len(m.removedvlans))
+		for id := range m.removedvlans {
+			ids = append(ids, id)
+		}
+		return ids
+	case vlan.EdgeNativeVlan:
+		ids := make([]ent.Value, 0, len(m.removednative_vlan))
+		for id := range m.removednative_vlan {
+			ids = append(ids, id)
+		}
+		return ids
+	case vlan.EdgeOnDevice:
+		ids := make([]ent.Value, 0, len(m.removedon_device))
+		for id := range m.removedon_device {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VlanMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedvlans {
+		edges = append(edges, vlan.EdgeVlans)
+	}
+	if m.clearednative_vlan {
+		edges = append(edges, vlan.EdgeNativeVlan)
+	}
+	if m.clearedon_device {
+		edges = append(edges, vlan.EdgeOnDevice)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VlanMutation) EdgeCleared(name string) bool {
+	switch name {
+	case vlan.EdgeVlans:
+		return m.clearedvlans
+	case vlan.EdgeNativeVlan:
+		return m.clearednative_vlan
+	case vlan.EdgeOnDevice:
+		return m.clearedon_device
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VlanMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Vlan unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VlanMutation) ResetEdge(name string) error {
+	switch name {
+	case vlan.EdgeVlans:
+		m.ResetVlans()
+		return nil
+	case vlan.EdgeNativeVlan:
+		m.ResetNativeVlan()
+		return nil
+	case vlan.EdgeOnDevice:
+		m.ResetOnDevice()
+		return nil
+	}
+	return fmt.Errorf("unknown Vlan edge %s", name)
 }

@@ -9,10 +9,13 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // DeviceCreate is the builder for creating a Device entity.
@@ -123,6 +126,25 @@ func (dc *DeviceCreate) SetInType(d *DeviceType) *DeviceCreate {
 	return dc.SetInTypeID(d.ID)
 }
 
+// SetInPlatformID sets the "in_platform" edge to the DevicePlatform entity by ID.
+func (dc *DeviceCreate) SetInPlatformID(id int) *DeviceCreate {
+	dc.mutation.SetInPlatformID(id)
+	return dc
+}
+
+// SetNillableInPlatformID sets the "in_platform" edge to the DevicePlatform entity by ID if the given value is not nil.
+func (dc *DeviceCreate) SetNillableInPlatformID(id *int) *DeviceCreate {
+	if id != nil {
+		dc = dc.SetInPlatformID(*id)
+	}
+	return dc
+}
+
+// SetInPlatform sets the "in_platform" edge to the DevicePlatform entity.
+func (dc *DeviceCreate) SetInPlatform(d *DevicePlatform) *DeviceCreate {
+	return dc.SetInPlatformID(d.ID)
+}
+
 // AddInterfaceIDs adds the "interfaces" edge to the NetInterface entity by IDs.
 func (dc *DeviceCreate) AddInterfaceIDs(ids ...int) *DeviceCreate {
 	dc.mutation.AddInterfaceIDs(ids...)
@@ -151,6 +173,36 @@ func (dc *DeviceCreate) AddInTopology(n ...*NetTopologyDeviceMap) *DeviceCreate 
 		ids[i] = n[i].ID
 	}
 	return dc.AddInTopologyIDs(ids...)
+}
+
+// AddStoreVlanIDs adds the "store_vlans" edge to the Vlan entity by IDs.
+func (dc *DeviceCreate) AddStoreVlanIDs(ids ...int) *DeviceCreate {
+	dc.mutation.AddStoreVlanIDs(ids...)
+	return dc
+}
+
+// AddStoreVlans adds the "store_vlans" edges to the Vlan entity.
+func (dc *DeviceCreate) AddStoreVlans(v ...*Vlan) *DeviceCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return dc.AddStoreVlanIDs(ids...)
+}
+
+// AddDeletedVlanIDs adds the "deleted_vlans" edge to the DeletedVlanLog entity by IDs.
+func (dc *DeviceCreate) AddDeletedVlanIDs(ids ...int) *DeviceCreate {
+	dc.mutation.AddDeletedVlanIDs(ids...)
+	return dc
+}
+
+// AddDeletedVlans adds the "deleted_vlans" edges to the DeletedVlanLog entity.
+func (dc *DeviceCreate) AddDeletedVlans(d ...*DeletedVlanLog) *DeviceCreate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return dc.AddDeletedVlanIDs(ids...)
 }
 
 // Mutation returns the DeviceMutation object of the builder.
@@ -351,6 +403,26 @@ func (dc *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 		_node.device_type_types = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := dc.mutation.InPlatformIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   device.InPlatformTable,
+			Columns: []string{device.InPlatformColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: deviceplatform.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.device_platform_platforms = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := dc.mutation.InterfacesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -381,6 +453,44 @@ func (dc *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: nettopologydevicemap.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.StoreVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   device.StoreVlansTable,
+			Columns: device.StoreVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.DeletedVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.DeletedVlansTable,
+			Columns: []string{device.DeletedVlansColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: deletedvlanlog.FieldID,
 				},
 			},
 		}

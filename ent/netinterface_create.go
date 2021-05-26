@@ -12,6 +12,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // NetInterfaceCreate is the builder for creating a NetInterface entity.
@@ -27,30 +28,16 @@ func (nic *NetInterfaceCreate) SetInterfaceName(s string) *NetInterfaceCreate {
 	return nic
 }
 
-// SetInterfaceVlan sets the "interface_vlan" field.
-func (nic *NetInterfaceCreate) SetInterfaceVlan(s string) *NetInterfaceCreate {
-	nic.mutation.SetInterfaceVlan(s)
+// SetInterfaceShutdown sets the "interface_shutdown" field.
+func (nic *NetInterfaceCreate) SetInterfaceShutdown(b bool) *NetInterfaceCreate {
+	nic.mutation.SetInterfaceShutdown(b)
 	return nic
 }
 
-// SetNillableInterfaceVlan sets the "interface_vlan" field if the given value is not nil.
-func (nic *NetInterfaceCreate) SetNillableInterfaceVlan(s *string) *NetInterfaceCreate {
-	if s != nil {
-		nic.SetInterfaceVlan(*s)
-	}
-	return nic
-}
-
-// SetInterfaceNativeVlan sets the "interface_native_vlan" field.
-func (nic *NetInterfaceCreate) SetInterfaceNativeVlan(s string) *NetInterfaceCreate {
-	nic.mutation.SetInterfaceNativeVlan(s)
-	return nic
-}
-
-// SetNillableInterfaceNativeVlan sets the "interface_native_vlan" field if the given value is not nil.
-func (nic *NetInterfaceCreate) SetNillableInterfaceNativeVlan(s *string) *NetInterfaceCreate {
-	if s != nil {
-		nic.SetInterfaceNativeVlan(*s)
+// SetNillableInterfaceShutdown sets the "interface_shutdown" field if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableInterfaceShutdown(b *bool) *NetInterfaceCreate {
+	if b != nil {
+		nic.SetInterfaceShutdown(*b)
 	}
 	return nic
 }
@@ -91,6 +78,40 @@ func (nic *NetInterfaceCreate) SetNillableModeID(id *int) *NetInterfaceCreate {
 // SetMode sets the "mode" edge to the NetInterfaceMode entity.
 func (nic *NetInterfaceCreate) SetMode(n *NetInterfaceMode) *NetInterfaceCreate {
 	return nic.SetModeID(n.ID)
+}
+
+// AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
+func (nic *NetInterfaceCreate) AddHaveVlanIDs(ids ...int) *NetInterfaceCreate {
+	nic.mutation.AddHaveVlanIDs(ids...)
+	return nic
+}
+
+// AddHaveVlans adds the "have_vlans" edges to the Vlan entity.
+func (nic *NetInterfaceCreate) AddHaveVlans(v ...*Vlan) *NetInterfaceCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return nic.AddHaveVlanIDs(ids...)
+}
+
+// SetNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID.
+func (nic *NetInterfaceCreate) SetNativeOnVlanID(id int) *NetInterfaceCreate {
+	nic.mutation.SetNativeOnVlanID(id)
+	return nic
+}
+
+// SetNillableNativeOnVlanID sets the "native_on_vlan" edge to the Vlan entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableNativeOnVlanID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetNativeOnVlanID(*id)
+	}
+	return nic
+}
+
+// SetNativeOnVlan sets the "native_on_vlan" edge to the Vlan entity.
+func (nic *NetInterfaceCreate) SetNativeOnVlan(v *Vlan) *NetInterfaceCreate {
+	return nic.SetNativeOnVlanID(v.ID)
 }
 
 // Mutation returns the NetInterfaceMutation object of the builder.
@@ -145,13 +166,9 @@ func (nic *NetInterfaceCreate) SaveX(ctx context.Context) *NetInterface {
 
 // defaults sets the default values of the builder before save.
 func (nic *NetInterfaceCreate) defaults() {
-	if _, ok := nic.mutation.InterfaceVlan(); !ok {
-		v := netinterface.DefaultInterfaceVlan
-		nic.mutation.SetInterfaceVlan(v)
-	}
-	if _, ok := nic.mutation.InterfaceNativeVlan(); !ok {
-		v := netinterface.DefaultInterfaceNativeVlan
-		nic.mutation.SetInterfaceNativeVlan(v)
+	if _, ok := nic.mutation.InterfaceShutdown(); !ok {
+		v := netinterface.DefaultInterfaceShutdown
+		nic.mutation.SetInterfaceShutdown(v)
 	}
 }
 
@@ -165,11 +182,8 @@ func (nic *NetInterfaceCreate) check() error {
 			return &ValidationError{Name: "interface_name", err: fmt.Errorf("ent: validator failed for field \"interface_name\": %w", err)}
 		}
 	}
-	if _, ok := nic.mutation.InterfaceVlan(); !ok {
-		return &ValidationError{Name: "interface_vlan", err: errors.New("ent: missing required field \"interface_vlan\"")}
-	}
-	if _, ok := nic.mutation.InterfaceNativeVlan(); !ok {
-		return &ValidationError{Name: "interface_native_vlan", err: errors.New("ent: missing required field \"interface_native_vlan\"")}
+	if _, ok := nic.mutation.InterfaceShutdown(); !ok {
+		return &ValidationError{Name: "interface_shutdown", err: errors.New("ent: missing required field \"interface_shutdown\"")}
 	}
 	return nil
 }
@@ -206,21 +220,13 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 		})
 		_node.InterfaceName = value
 	}
-	if value, ok := nic.mutation.InterfaceVlan(); ok {
+	if value, ok := nic.mutation.InterfaceShutdown(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
-			Column: netinterface.FieldInterfaceVlan,
+			Column: netinterface.FieldInterfaceShutdown,
 		})
-		_node.InterfaceVlan = value
-	}
-	if value, ok := nic.mutation.InterfaceNativeVlan(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: netinterface.FieldInterfaceNativeVlan,
-		})
-		_node.InterfaceNativeVlan = value
+		_node.InterfaceShutdown = value
 	}
 	if nodes := nic.mutation.OnDeviceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -260,6 +266,45 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.net_interface_mode_modes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.HaveVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   netinterface.HaveVlansTable,
+			Columns: netinterface.HaveVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.NativeOnVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.NativeOnVlanTable,
+			Columns: []string{netinterface.NativeOnVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: vlan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.vlan_native_vlan = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

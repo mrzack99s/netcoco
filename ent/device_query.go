@@ -12,11 +12,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/predicate"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // DeviceQuery is the builder for querying Device entities.
@@ -29,10 +32,13 @@ type DeviceQuery struct {
 	fields     []string
 	predicates []predicate.Device
 	// eager-loading edges.
-	withInType     *DeviceTypeQuery
-	withInterfaces *NetInterfaceQuery
-	withInTopology *NetTopologyDeviceMapQuery
-	withFKs        bool
+	withInType       *DeviceTypeQuery
+	withInPlatform   *DevicePlatformQuery
+	withInterfaces   *NetInterfaceQuery
+	withInTopology   *NetTopologyDeviceMapQuery
+	withStoreVlans   *VlanQuery
+	withDeletedVlans *DeletedVlanLogQuery
+	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -91,6 +97,28 @@ func (dq *DeviceQuery) QueryInType() *DeviceTypeQuery {
 	return query
 }
 
+// QueryInPlatform chains the current query on the "in_platform" edge.
+func (dq *DeviceQuery) QueryInPlatform() *DevicePlatformQuery {
+	query := &DevicePlatformQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(deviceplatform.Table, deviceplatform.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, device.InPlatformTable, device.InPlatformColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryInterfaces chains the current query on the "interfaces" edge.
 func (dq *DeviceQuery) QueryInterfaces() *NetInterfaceQuery {
 	query := &NetInterfaceQuery{config: dq.config}
@@ -128,6 +156,50 @@ func (dq *DeviceQuery) QueryInTopology() *NetTopologyDeviceMapQuery {
 			sqlgraph.From(device.Table, device.FieldID, selector),
 			sqlgraph.To(nettopologydevicemap.Table, nettopologydevicemap.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, device.InTopologyTable, device.InTopologyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStoreVlans chains the current query on the "store_vlans" edge.
+func (dq *DeviceQuery) QueryStoreVlans() *VlanQuery {
+	query := &VlanQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, device.StoreVlansTable, device.StoreVlansPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDeletedVlans chains the current query on the "deleted_vlans" edge.
+func (dq *DeviceQuery) QueryDeletedVlans() *DeletedVlanLogQuery {
+	query := &DeletedVlanLogQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(deletedvlanlog.Table, deletedvlanlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.DeletedVlansTable, device.DeletedVlansColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -311,14 +383,17 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 		return nil
 	}
 	return &DeviceQuery{
-		config:         dq.config,
-		limit:          dq.limit,
-		offset:         dq.offset,
-		order:          append([]OrderFunc{}, dq.order...),
-		predicates:     append([]predicate.Device{}, dq.predicates...),
-		withInType:     dq.withInType.Clone(),
-		withInterfaces: dq.withInterfaces.Clone(),
-		withInTopology: dq.withInTopology.Clone(),
+		config:           dq.config,
+		limit:            dq.limit,
+		offset:           dq.offset,
+		order:            append([]OrderFunc{}, dq.order...),
+		predicates:       append([]predicate.Device{}, dq.predicates...),
+		withInType:       dq.withInType.Clone(),
+		withInPlatform:   dq.withInPlatform.Clone(),
+		withInterfaces:   dq.withInterfaces.Clone(),
+		withInTopology:   dq.withInTopology.Clone(),
+		withStoreVlans:   dq.withStoreVlans.Clone(),
+		withDeletedVlans: dq.withDeletedVlans.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
@@ -333,6 +408,17 @@ func (dq *DeviceQuery) WithInType(opts ...func(*DeviceTypeQuery)) *DeviceQuery {
 		opt(query)
 	}
 	dq.withInType = query
+	return dq
+}
+
+// WithInPlatform tells the query-builder to eager-load the nodes that are connected to
+// the "in_platform" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithInPlatform(opts ...func(*DevicePlatformQuery)) *DeviceQuery {
+	query := &DevicePlatformQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withInPlatform = query
 	return dq
 }
 
@@ -355,6 +441,28 @@ func (dq *DeviceQuery) WithInTopology(opts ...func(*NetTopologyDeviceMapQuery)) 
 		opt(query)
 	}
 	dq.withInTopology = query
+	return dq
+}
+
+// WithStoreVlans tells the query-builder to eager-load the nodes that are connected to
+// the "store_vlans" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithStoreVlans(opts ...func(*VlanQuery)) *DeviceQuery {
+	query := &VlanQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withStoreVlans = query
+	return dq
+}
+
+// WithDeletedVlans tells the query-builder to eager-load the nodes that are connected to
+// the "deleted_vlans" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithDeletedVlans(opts ...func(*DeletedVlanLogQuery)) *DeviceQuery {
+	query := &DeletedVlanLogQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withDeletedVlans = query
 	return dq
 }
 
@@ -424,13 +532,16 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 		nodes       = []*Device{}
 		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [6]bool{
 			dq.withInType != nil,
+			dq.withInPlatform != nil,
 			dq.withInterfaces != nil,
 			dq.withInTopology != nil,
+			dq.withStoreVlans != nil,
+			dq.withDeletedVlans != nil,
 		}
 	)
-	if dq.withInType != nil {
+	if dq.withInType != nil || dq.withInPlatform != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -481,6 +592,35 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.InType = n
+			}
+		}
+	}
+
+	if query := dq.withInPlatform; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Device)
+		for i := range nodes {
+			if nodes[i].device_platform_platforms == nil {
+				continue
+			}
+			fk := *nodes[i].device_platform_platforms
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(deviceplatform.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "device_platform_platforms" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.InPlatform = n
 			}
 		}
 	}
@@ -540,6 +680,100 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "device_in_topology" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.InTopology = append(node.Edges.InTopology, n)
+		}
+	}
+
+	if query := dq.withStoreVlans; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Device, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.StoreVlans = []*Vlan{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Device)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   device.StoreVlansTable,
+				Columns: device.StoreVlansPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(device.StoreVlansPrimaryKey[0], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, dq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "store_vlans": %w`, err)
+		}
+		query.Where(vlan.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "store_vlans" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.StoreVlans = append(nodes[i].Edges.StoreVlans, n)
+			}
+		}
+	}
+
+	if query := dq.withDeletedVlans; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Device)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.DeletedVlans = []*DeletedVlanLog{}
+		}
+		query.withFKs = true
+		query.Where(predicate.DeletedVlanLog(func(s *sql.Selector) {
+			s.Where(sql.InValues(device.DeletedVlansColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.device_deleted_vlans
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "device_deleted_vlans" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "device_deleted_vlans" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.DeletedVlans = append(node.Edges.DeletedVlans, n)
 		}
 	}
 

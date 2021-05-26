@@ -11,12 +11,15 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mrzack99s/netcoco/ent/administrator"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -38,12 +41,15 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		administrator.Table:        administrator.ValidColumn,
+		deletedvlanlog.Table:       deletedvlanlog.ValidColumn,
 		device.Table:               device.ValidColumn,
+		deviceplatform.Table:       deviceplatform.ValidColumn,
 		devicetype.Table:           devicetype.ValidColumn,
 		netinterface.Table:         netinterface.ValidColumn,
 		netinterfacemode.Table:     netinterfacemode.ValidColumn,
 		nettopology.Table:          nettopology.ValidColumn,
 		nettopologydevicemap.Table: nettopologydevicemap.ValidColumn,
+		vlan.Table:                 vlan.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

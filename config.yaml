@@ -1,10 +1,9 @@
 mrz_sw_auto:
-  version: v1beta
   db:
     sql:
-      hostname: <URL>:3306
+      hostname: 172.20.0.13:3306
       username: mrz_swauto
-      password: <DB_PASSWD>
+      password: CFU2wV8MRGPJ816c
       db_name: mrz_switch_automation
   security:
-    salt: 3d2aad1a95556247eeaf554008607b24
+    salt: 0d25ad0a9885624feeff524008607b24

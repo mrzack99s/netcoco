@@ -9,14 +9,16 @@ const (
 	FieldID = "id"
 	// FieldInterfaceName holds the string denoting the interface_name field in the database.
 	FieldInterfaceName = "interface_name"
-	// FieldInterfaceVlan holds the string denoting the interface_vlan field in the database.
-	FieldInterfaceVlan = "interface_vlan"
-	// FieldInterfaceNativeVlan holds the string denoting the interface_native_vlan field in the database.
-	FieldInterfaceNativeVlan = "interface_native_vlan"
+	// FieldInterfaceShutdown holds the string denoting the interface_shutdown field in the database.
+	FieldInterfaceShutdown = "interface_shutdown"
 	// EdgeOnDevice holds the string denoting the on_device edge name in mutations.
 	EdgeOnDevice = "on_device"
 	// EdgeMode holds the string denoting the mode edge name in mutations.
 	EdgeMode = "mode"
+	// EdgeHaveVlans holds the string denoting the have_vlans edge name in mutations.
+	EdgeHaveVlans = "have_vlans"
+	// EdgeNativeOnVlan holds the string denoting the native_on_vlan edge name in mutations.
+	EdgeNativeOnVlan = "native_on_vlan"
 	// Table holds the table name of the netinterface in the database.
 	Table = "net_interfaces"
 	// OnDeviceTable is the table the holds the on_device relation/edge.
@@ -33,14 +35,25 @@ const (
 	ModeInverseTable = "net_interface_modes"
 	// ModeColumn is the table column denoting the mode relation/edge.
 	ModeColumn = "net_interface_mode_modes"
+	// HaveVlansTable is the table the holds the have_vlans relation/edge. The primary key declared below.
+	HaveVlansTable = "vlan_vlans"
+	// HaveVlansInverseTable is the table name for the Vlan entity.
+	// It exists in this package in order to avoid circular dependency with the "vlan" package.
+	HaveVlansInverseTable = "vlans"
+	// NativeOnVlanTable is the table the holds the native_on_vlan relation/edge.
+	NativeOnVlanTable = "net_interfaces"
+	// NativeOnVlanInverseTable is the table name for the Vlan entity.
+	// It exists in this package in order to avoid circular dependency with the "vlan" package.
+	NativeOnVlanInverseTable = "vlans"
+	// NativeOnVlanColumn is the table column denoting the native_on_vlan relation/edge.
+	NativeOnVlanColumn = "vlan_native_vlan"
 )
 
 // Columns holds all SQL columns for netinterface fields.
 var Columns = []string{
 	FieldID,
 	FieldInterfaceName,
-	FieldInterfaceVlan,
-	FieldInterfaceNativeVlan,
+	FieldInterfaceShutdown,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "net_interfaces"
@@ -48,7 +61,14 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"device_interfaces",
 	"net_interface_mode_modes",
+	"vlan_native_vlan",
 }
+
+var (
+	// HaveVlansPrimaryKey and HaveVlansColumn2 are the table columns denoting the
+	// primary key for the have_vlans relation (M2M).
+	HaveVlansPrimaryKey = []string{"vlan_id", "net_interface_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -68,8 +88,6 @@ func ValidColumn(column string) bool {
 var (
 	// InterfaceNameValidator is a validator for the "interface_name" field. It is called by the builders before save.
 	InterfaceNameValidator func(string) error
-	// DefaultInterfaceVlan holds the default value on creation for the "interface_vlan" field.
-	DefaultInterfaceVlan string
-	// DefaultInterfaceNativeVlan holds the default value on creation for the "interface_native_vlan" field.
-	DefaultInterfaceNativeVlan string
+	// DefaultInterfaceShutdown holds the default value on creation for the "interface_shutdown" field.
+	DefaultInterfaceShutdown bool
 )

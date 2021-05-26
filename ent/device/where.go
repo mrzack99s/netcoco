@@ -855,6 +855,34 @@ func HasInTypeWith(preds ...predicate.DeviceType) predicate.Device {
 	})
 }
 
+// HasInPlatform applies the HasEdge predicate on the "in_platform" edge.
+func HasInPlatform() predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InPlatformTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, InPlatformTable, InPlatformColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInPlatformWith applies the HasEdge predicate on the "in_platform" edge with a given conditions (other predicates).
+func HasInPlatformWith(preds ...predicate.DevicePlatform) predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InPlatformInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, InPlatformTable, InPlatformColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasInterfaces applies the HasEdge predicate on the "interfaces" edge.
 func HasInterfaces() predicate.Device {
 	return predicate.Device(func(s *sql.Selector) {
@@ -902,6 +930,62 @@ func HasInTopologyWith(preds ...predicate.NetTopologyDeviceMap) predicate.Device
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(InTopologyInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, InTopologyTable, InTopologyColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStoreVlans applies the HasEdge predicate on the "store_vlans" edge.
+func HasStoreVlans() predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(StoreVlansTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, StoreVlansTable, StoreVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStoreVlansWith applies the HasEdge predicate on the "store_vlans" edge with a given conditions (other predicates).
+func HasStoreVlansWith(preds ...predicate.Vlan) predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(StoreVlansInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, StoreVlansTable, StoreVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDeletedVlans applies the HasEdge predicate on the "deleted_vlans" edge.
+func HasDeletedVlans() predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DeletedVlansTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DeletedVlansTable, DeletedVlansColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDeletedVlansWith applies the HasEdge predicate on the "deleted_vlans" edge with a given conditions (other predicates).
+func HasDeletedVlansWith(preds ...predicate.DeletedVlanLog) predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DeletedVlansInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DeletedVlansTable, DeletedVlansColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

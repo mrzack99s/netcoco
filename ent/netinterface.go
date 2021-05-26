@@ -10,6 +10,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // NetInterface is the model entity for the NetInterface schema.
@@ -19,15 +20,14 @@ type NetInterface struct {
 	ID int `json:"id,omitempty"`
 	// InterfaceName holds the value of the "interface_name" field.
 	InterfaceName string `json:"interface_name,omitempty"`
-	// InterfaceVlan holds the value of the "interface_vlan" field.
-	InterfaceVlan string `json:"interface_vlan,omitempty"`
-	// InterfaceNativeVlan holds the value of the "interface_native_vlan" field.
-	InterfaceNativeVlan string `json:"interface_native_vlan,omitempty"`
+	// InterfaceShutdown holds the value of the "interface_shutdown" field.
+	InterfaceShutdown bool `json:"interface_shutdown,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NetInterfaceQuery when eager-loading is set.
 	Edges                    NetInterfaceEdges `json:"edges"`
 	device_interfaces        *int
 	net_interface_mode_modes *int
+	vlan_native_vlan         *int
 }
 
 // NetInterfaceEdges holds the relations/edges for other nodes in the graph.
@@ -36,9 +36,13 @@ type NetInterfaceEdges struct {
 	OnDevice *Device `json:"on_device,omitempty"`
 	// Mode holds the value of the mode edge.
 	Mode *NetInterfaceMode `json:"mode,omitempty"`
+	// HaveVlans holds the value of the have_vlans edge.
+	HaveVlans []*Vlan `json:"have_vlans,omitempty"`
+	// NativeOnVlan holds the value of the native_on_vlan edge.
+	NativeOnVlan *Vlan `json:"native_on_vlan,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // OnDeviceOrErr returns the OnDevice value or an error if the edge
@@ -69,18 +73,45 @@ func (e NetInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
 	return nil, &NotLoadedError{edge: "mode"}
 }
 
+// HaveVlansOrErr returns the HaveVlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e NetInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
+	if e.loadedTypes[2] {
+		return e.HaveVlans, nil
+	}
+	return nil, &NotLoadedError{edge: "have_vlans"}
+}
+
+// NativeOnVlanOrErr returns the NativeOnVlan value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NetInterfaceEdges) NativeOnVlanOrErr() (*Vlan, error) {
+	if e.loadedTypes[3] {
+		if e.NativeOnVlan == nil {
+			// The edge native_on_vlan was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: vlan.Label}
+		}
+		return e.NativeOnVlan, nil
+	}
+	return nil, &NotLoadedError{edge: "native_on_vlan"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*NetInterface) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case netinterface.FieldInterfaceShutdown:
+			values[i] = new(sql.NullBool)
 		case netinterface.FieldID:
 			values[i] = new(sql.NullInt64)
-		case netinterface.FieldInterfaceName, netinterface.FieldInterfaceVlan, netinterface.FieldInterfaceNativeVlan:
+		case netinterface.FieldInterfaceName:
 			values[i] = new(sql.NullString)
 		case netinterface.ForeignKeys[0]: // device_interfaces
 			values[i] = new(sql.NullInt64)
 		case netinterface.ForeignKeys[1]: // net_interface_mode_modes
+			values[i] = new(sql.NullInt64)
+		case netinterface.ForeignKeys[2]: // vlan_native_vlan
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type NetInterface", columns[i])
@@ -109,17 +140,11 @@ func (ni *NetInterface) assignValues(columns []string, values []interface{}) err
 			} else if value.Valid {
 				ni.InterfaceName = value.String
 			}
-		case netinterface.FieldInterfaceVlan:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field interface_vlan", values[i])
+		case netinterface.FieldInterfaceShutdown:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field interface_shutdown", values[i])
 			} else if value.Valid {
-				ni.InterfaceVlan = value.String
-			}
-		case netinterface.FieldInterfaceNativeVlan:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field interface_native_vlan", values[i])
-			} else if value.Valid {
-				ni.InterfaceNativeVlan = value.String
+				ni.InterfaceShutdown = value.Bool
 			}
 		case netinterface.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -135,6 +160,13 @@ func (ni *NetInterface) assignValues(columns []string, values []interface{}) err
 				ni.net_interface_mode_modes = new(int)
 				*ni.net_interface_mode_modes = int(value.Int64)
 			}
+		case netinterface.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field vlan_native_vlan", value)
+			} else if value.Valid {
+				ni.vlan_native_vlan = new(int)
+				*ni.vlan_native_vlan = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -148,6 +180,16 @@ func (ni *NetInterface) QueryOnDevice() *DeviceQuery {
 // QueryMode queries the "mode" edge of the NetInterface entity.
 func (ni *NetInterface) QueryMode() *NetInterfaceModeQuery {
 	return (&NetInterfaceClient{config: ni.config}).QueryMode(ni)
+}
+
+// QueryHaveVlans queries the "have_vlans" edge of the NetInterface entity.
+func (ni *NetInterface) QueryHaveVlans() *VlanQuery {
+	return (&NetInterfaceClient{config: ni.config}).QueryHaveVlans(ni)
+}
+
+// QueryNativeOnVlan queries the "native_on_vlan" edge of the NetInterface entity.
+func (ni *NetInterface) QueryNativeOnVlan() *VlanQuery {
+	return (&NetInterfaceClient{config: ni.config}).QueryNativeOnVlan(ni)
 }
 
 // Update returns a builder for updating this NetInterface.
@@ -175,10 +217,8 @@ func (ni *NetInterface) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", ni.ID))
 	builder.WriteString(", interface_name=")
 	builder.WriteString(ni.InterfaceName)
-	builder.WriteString(", interface_vlan=")
-	builder.WriteString(ni.InterfaceVlan)
-	builder.WriteString(", interface_native_vlan=")
-	builder.WriteString(ni.InterfaceNativeVlan)
+	builder.WriteString(", interface_shutdown=")
+	builder.WriteString(fmt.Sprintf("%v", ni.InterfaceShutdown))
 	builder.WriteByte(')')
 	return builder.String()
 }

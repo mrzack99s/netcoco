@@ -1,7 +1,7 @@
 package templates
 
 var (
-	RootPath = "pkgs/templates/"
+	RootPath = "templates/"
 	HtmlPath = "html/"
 )
 

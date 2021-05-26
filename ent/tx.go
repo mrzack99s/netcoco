@@ -14,8 +14,12 @@ type Tx struct {
 	config
 	// Administrator is the client for interacting with the Administrator builders.
 	Administrator *AdministratorClient
+	// DeletedVlanLog is the client for interacting with the DeletedVlanLog builders.
+	DeletedVlanLog *DeletedVlanLogClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
+	// DevicePlatform is the client for interacting with the DevicePlatform builders.
+	DevicePlatform *DevicePlatformClient
 	// DeviceType is the client for interacting with the DeviceType builders.
 	DeviceType *DeviceTypeClient
 	// NetInterface is the client for interacting with the NetInterface builders.
@@ -26,6 +30,8 @@ type Tx struct {
 	NetTopology *NetTopologyClient
 	// NetTopologyDeviceMap is the client for interacting with the NetTopologyDeviceMap builders.
 	NetTopologyDeviceMap *NetTopologyDeviceMapClient
+	// Vlan is the client for interacting with the Vlan builders.
+	Vlan *VlanClient
 
 	// lazily loaded.
 	client     *Client
@@ -162,12 +168,15 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Administrator = NewAdministratorClient(tx.config)
+	tx.DeletedVlanLog = NewDeletedVlanLogClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)
+	tx.DevicePlatform = NewDevicePlatformClient(tx.config)
 	tx.DeviceType = NewDeviceTypeClient(tx.config)
 	tx.NetInterface = NewNetInterfaceClient(tx.config)
 	tx.NetInterfaceMode = NewNetInterfaceModeClient(tx.config)
 	tx.NetTopology = NewNetTopologyClient(tx.config)
 	tx.NetTopologyDeviceMap = NewNetTopologyDeviceMapClient(tx.config)
+	tx.Vlan = NewVlanClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

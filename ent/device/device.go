@@ -23,10 +23,16 @@ const (
 	FieldDeviceCommitConfig = "device_commit_config"
 	// EdgeInType holds the string denoting the in_type edge name in mutations.
 	EdgeInType = "in_type"
+	// EdgeInPlatform holds the string denoting the in_platform edge name in mutations.
+	EdgeInPlatform = "in_platform"
 	// EdgeInterfaces holds the string denoting the interfaces edge name in mutations.
 	EdgeInterfaces = "interfaces"
 	// EdgeInTopology holds the string denoting the in_topology edge name in mutations.
 	EdgeInTopology = "in_topology"
+	// EdgeStoreVlans holds the string denoting the store_vlans edge name in mutations.
+	EdgeStoreVlans = "store_vlans"
+	// EdgeDeletedVlans holds the string denoting the deleted_vlans edge name in mutations.
+	EdgeDeletedVlans = "deleted_vlans"
 	// Table holds the table name of the device in the database.
 	Table = "devices"
 	// InTypeTable is the table the holds the in_type relation/edge.
@@ -36,6 +42,13 @@ const (
 	InTypeInverseTable = "device_types"
 	// InTypeColumn is the table column denoting the in_type relation/edge.
 	InTypeColumn = "device_type_types"
+	// InPlatformTable is the table the holds the in_platform relation/edge.
+	InPlatformTable = "devices"
+	// InPlatformInverseTable is the table name for the DevicePlatform entity.
+	// It exists in this package in order to avoid circular dependency with the "deviceplatform" package.
+	InPlatformInverseTable = "device_platforms"
+	// InPlatformColumn is the table column denoting the in_platform relation/edge.
+	InPlatformColumn = "device_platform_platforms"
 	// InterfacesTable is the table the holds the interfaces relation/edge.
 	InterfacesTable = "net_interfaces"
 	// InterfacesInverseTable is the table name for the NetInterface entity.
@@ -50,6 +63,18 @@ const (
 	InTopologyInverseTable = "net_topology_device_maps"
 	// InTopologyColumn is the table column denoting the in_topology relation/edge.
 	InTopologyColumn = "device_in_topology"
+	// StoreVlansTable is the table the holds the store_vlans relation/edge. The primary key declared below.
+	StoreVlansTable = "device_store_vlans"
+	// StoreVlansInverseTable is the table name for the Vlan entity.
+	// It exists in this package in order to avoid circular dependency with the "vlan" package.
+	StoreVlansInverseTable = "vlans"
+	// DeletedVlansTable is the table the holds the deleted_vlans relation/edge.
+	DeletedVlansTable = "deleted_vlan_logs"
+	// DeletedVlansInverseTable is the table name for the DeletedVlanLog entity.
+	// It exists in this package in order to avoid circular dependency with the "deletedvlanlog" package.
+	DeletedVlansInverseTable = "deleted_vlan_logs"
+	// DeletedVlansColumn is the table column denoting the deleted_vlans relation/edge.
+	DeletedVlansColumn = "device_deleted_vlans"
 )
 
 // Columns holds all SQL columns for device fields.
@@ -67,8 +92,15 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "devices"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"device_platform_platforms",
 	"device_type_types",
 }
+
+var (
+	// StoreVlansPrimaryKey and StoreVlansColumn2 are the table columns denoting the
+	// primary key for the store_vlans relation (M2M).
+	StoreVlansPrimaryKey = []string{"device_id", "vlan_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

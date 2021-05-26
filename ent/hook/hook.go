@@ -22,6 +22,19 @@ func (f AdministratorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
+// The DeletedVlanLogFunc type is an adapter to allow the use of ordinary
+// function as DeletedVlanLog mutator.
+type DeletedVlanLogFunc func(context.Context, *ent.DeletedVlanLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeletedVlanLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.DeletedVlanLogMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeletedVlanLogMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The DeviceFunc type is an adapter to allow the use of ordinary
 // function as Device mutator.
 type DeviceFunc func(context.Context, *ent.DeviceMutation) (ent.Value, error)
@@ -31,6 +44,19 @@ func (f DeviceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	mv, ok := m.(*ent.DeviceMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The DevicePlatformFunc type is an adapter to allow the use of ordinary
+// function as DevicePlatform mutator.
+type DevicePlatformFunc func(context.Context, *ent.DevicePlatformMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DevicePlatformFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.DevicePlatformMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DevicePlatformMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -96,6 +122,19 @@ func (f NetTopologyDeviceMapFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	mv, ok := m.(*ent.NetTopologyDeviceMapMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NetTopologyDeviceMapMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The VlanFunc type is an adapter to allow the use of ordinary
+// function as Vlan mutator.
+type VlanFunc func(context.Context, *ent.VlanMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.VlanMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VlanMutation", m)
 	}
 	return f(ctx, mv)
 }

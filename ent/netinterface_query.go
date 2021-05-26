@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -15,6 +16,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/predicate"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // NetInterfaceQuery is the builder for querying NetInterface entities.
@@ -27,9 +29,11 @@ type NetInterfaceQuery struct {
 	fields     []string
 	predicates []predicate.NetInterface
 	// eager-loading edges.
-	withOnDevice *DeviceQuery
-	withMode     *NetInterfaceModeQuery
-	withFKs      bool
+	withOnDevice     *DeviceQuery
+	withMode         *NetInterfaceModeQuery
+	withHaveVlans    *VlanQuery
+	withNativeOnVlan *VlanQuery
+	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +107,50 @@ func (niq *NetInterfaceQuery) QueryMode() *NetInterfaceModeQuery {
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
 			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.ModeTable, netinterface.ModeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHaveVlans chains the current query on the "have_vlans" edge.
+func (niq *NetInterfaceQuery) QueryHaveVlans() *VlanQuery {
+	query := &VlanQuery{config: niq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := niq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := niq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, netinterface.HaveVlansTable, netinterface.HaveVlansPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNativeOnVlan chains the current query on the "native_on_vlan" edge.
+func (niq *NetInterfaceQuery) QueryNativeOnVlan() *VlanQuery {
+	query := &VlanQuery{config: niq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := niq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := niq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.NativeOnVlanTable, netinterface.NativeOnVlanColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,13 +334,15 @@ func (niq *NetInterfaceQuery) Clone() *NetInterfaceQuery {
 		return nil
 	}
 	return &NetInterfaceQuery{
-		config:       niq.config,
-		limit:        niq.limit,
-		offset:       niq.offset,
-		order:        append([]OrderFunc{}, niq.order...),
-		predicates:   append([]predicate.NetInterface{}, niq.predicates...),
-		withOnDevice: niq.withOnDevice.Clone(),
-		withMode:     niq.withMode.Clone(),
+		config:           niq.config,
+		limit:            niq.limit,
+		offset:           niq.offset,
+		order:            append([]OrderFunc{}, niq.order...),
+		predicates:       append([]predicate.NetInterface{}, niq.predicates...),
+		withOnDevice:     niq.withOnDevice.Clone(),
+		withMode:         niq.withMode.Clone(),
+		withHaveVlans:    niq.withHaveVlans.Clone(),
+		withNativeOnVlan: niq.withNativeOnVlan.Clone(),
 		// clone intermediate query.
 		sql:  niq.sql.Clone(),
 		path: niq.path,
@@ -318,6 +368,28 @@ func (niq *NetInterfaceQuery) WithMode(opts ...func(*NetInterfaceModeQuery)) *Ne
 		opt(query)
 	}
 	niq.withMode = query
+	return niq
+}
+
+// WithHaveVlans tells the query-builder to eager-load the nodes that are connected to
+// the "have_vlans" edge. The optional arguments are used to configure the query builder of the edge.
+func (niq *NetInterfaceQuery) WithHaveVlans(opts ...func(*VlanQuery)) *NetInterfaceQuery {
+	query := &VlanQuery{config: niq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	niq.withHaveVlans = query
+	return niq
+}
+
+// WithNativeOnVlan tells the query-builder to eager-load the nodes that are connected to
+// the "native_on_vlan" edge. The optional arguments are used to configure the query builder of the edge.
+func (niq *NetInterfaceQuery) WithNativeOnVlan(opts ...func(*VlanQuery)) *NetInterfaceQuery {
+	query := &VlanQuery{config: niq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	niq.withNativeOnVlan = query
 	return niq
 }
 
@@ -387,12 +459,14 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 		nodes       = []*NetInterface{}
 		withFKs     = niq.withFKs
 		_spec       = niq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			niq.withOnDevice != nil,
 			niq.withMode != nil,
+			niq.withHaveVlans != nil,
+			niq.withNativeOnVlan != nil,
 		}
 	)
-	if niq.withOnDevice != nil || niq.withMode != nil {
+	if niq.withOnDevice != nil || niq.withMode != nil || niq.withNativeOnVlan != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -472,6 +546,100 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 			}
 			for i := range nodes {
 				nodes[i].Edges.Mode = n
+			}
+		}
+	}
+
+	if query := niq.withHaveVlans; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*NetInterface, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.HaveVlans = []*Vlan{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*NetInterface)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   netinterface.HaveVlansTable,
+				Columns: netinterface.HaveVlansPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(netinterface.HaveVlansPrimaryKey[1], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, niq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "have_vlans": %w`, err)
+		}
+		query.Where(vlan.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "have_vlans" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.HaveVlans = append(nodes[i].Edges.HaveVlans, n)
+			}
+		}
+	}
+
+	if query := niq.withNativeOnVlan; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*NetInterface)
+		for i := range nodes {
+			if nodes[i].vlan_native_vlan == nil {
+				continue
+			}
+			fk := *nodes[i].vlan_native_vlan
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(vlan.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "vlan_native_vlan" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.NativeOnVlan = n
 			}
 		}
 	}

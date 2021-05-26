@@ -98,17 +98,10 @@ func InterfaceName(v string) predicate.NetInterface {
 	})
 }
 
-// InterfaceVlan applies equality check predicate on the "interface_vlan" field. It's identical to InterfaceVlanEQ.
-func InterfaceVlan(v string) predicate.NetInterface {
+// InterfaceShutdown applies equality check predicate on the "interface_shutdown" field. It's identical to InterfaceShutdownEQ.
+func InterfaceShutdown(v bool) predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceNativeVlan applies equality check predicate on the "interface_native_vlan" field. It's identical to InterfaceNativeVlanEQ.
-func InterfaceNativeVlan(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterfaceNativeVlan), v))
+		s.Where(sql.EQ(s.C(FieldInterfaceShutdown), v))
 	})
 }
 
@@ -223,225 +216,17 @@ func InterfaceNameContainsFold(v string) predicate.NetInterface {
 	})
 }
 
-// InterfaceVlanEQ applies the EQ predicate on the "interface_vlan" field.
-func InterfaceVlanEQ(v string) predicate.NetInterface {
+// InterfaceShutdownEQ applies the EQ predicate on the "interface_shutdown" field.
+func InterfaceShutdownEQ(v bool) predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterfaceVlan), v))
+		s.Where(sql.EQ(s.C(FieldInterfaceShutdown), v))
 	})
 }
 
-// InterfaceVlanNEQ applies the NEQ predicate on the "interface_vlan" field.
-func InterfaceVlanNEQ(v string) predicate.NetInterface {
+// InterfaceShutdownNEQ applies the NEQ predicate on the "interface_shutdown" field.
+func InterfaceShutdownNEQ(v bool) predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanIn applies the In predicate on the "interface_vlan" field.
-func InterfaceVlanIn(vs ...string) predicate.NetInterface {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.NetInterface(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldInterfaceVlan), v...))
-	})
-}
-
-// InterfaceVlanNotIn applies the NotIn predicate on the "interface_vlan" field.
-func InterfaceVlanNotIn(vs ...string) predicate.NetInterface {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.NetInterface(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldInterfaceVlan), v...))
-	})
-}
-
-// InterfaceVlanGT applies the GT predicate on the "interface_vlan" field.
-func InterfaceVlanGT(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanGTE applies the GTE predicate on the "interface_vlan" field.
-func InterfaceVlanGTE(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanLT applies the LT predicate on the "interface_vlan" field.
-func InterfaceVlanLT(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanLTE applies the LTE predicate on the "interface_vlan" field.
-func InterfaceVlanLTE(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanContains applies the Contains predicate on the "interface_vlan" field.
-func InterfaceVlanContains(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanHasPrefix applies the HasPrefix predicate on the "interface_vlan" field.
-func InterfaceVlanHasPrefix(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanHasSuffix applies the HasSuffix predicate on the "interface_vlan" field.
-func InterfaceVlanHasSuffix(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanEqualFold applies the EqualFold predicate on the "interface_vlan" field.
-func InterfaceVlanEqualFold(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceVlanContainsFold applies the ContainsFold predicate on the "interface_vlan" field.
-func InterfaceVlanContainsFold(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldInterfaceVlan), v))
-	})
-}
-
-// InterfaceNativeVlanEQ applies the EQ predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanEQ(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanNEQ applies the NEQ predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanNEQ(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanIn applies the In predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanIn(vs ...string) predicate.NetInterface {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.NetInterface(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldInterfaceNativeVlan), v...))
-	})
-}
-
-// InterfaceNativeVlanNotIn applies the NotIn predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanNotIn(vs ...string) predicate.NetInterface {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.NetInterface(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldInterfaceNativeVlan), v...))
-	})
-}
-
-// InterfaceNativeVlanGT applies the GT predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanGT(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanGTE applies the GTE predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanGTE(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanLT applies the LT predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanLT(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanLTE applies the LTE predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanLTE(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanContains applies the Contains predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanContains(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanHasPrefix applies the HasPrefix predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanHasPrefix(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanHasSuffix applies the HasSuffix predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanHasSuffix(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanEqualFold applies the EqualFold predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanEqualFold(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldInterfaceNativeVlan), v))
-	})
-}
-
-// InterfaceNativeVlanContainsFold applies the ContainsFold predicate on the "interface_native_vlan" field.
-func InterfaceNativeVlanContainsFold(v string) predicate.NetInterface {
-	return predicate.NetInterface(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldInterfaceNativeVlan), v))
+		s.Where(sql.NEQ(s.C(FieldInterfaceShutdown), v))
 	})
 }
 
@@ -492,6 +277,62 @@ func HasModeWith(preds ...predicate.NetInterfaceMode) predicate.NetInterface {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ModeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ModeTable, ModeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasHaveVlans applies the HasEdge predicate on the "have_vlans" edge.
+func HasHaveVlans() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HaveVlansTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, HaveVlansTable, HaveVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHaveVlansWith applies the HasEdge predicate on the "have_vlans" edge with a given conditions (other predicates).
+func HasHaveVlansWith(preds ...predicate.Vlan) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HaveVlansInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, HaveVlansTable, HaveVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNativeOnVlan applies the HasEdge predicate on the "native_on_vlan" edge.
+func HasNativeOnVlan() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(NativeOnVlanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, NativeOnVlanTable, NativeOnVlanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeOnVlanWith applies the HasEdge predicate on the "native_on_vlan" edge with a given conditions (other predicates).
+func HasNativeOnVlanWith(preds ...predicate.Vlan) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(NativeOnVlanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, NativeOnVlanTable, NativeOnVlanColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

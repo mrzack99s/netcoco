@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 )
 
@@ -32,21 +33,28 @@ type Device struct {
 	DeviceCommitConfig bool `json:"device_commit_config,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DeviceQuery when eager-loading is set.
-	Edges             DeviceEdges `json:"edges"`
-	device_type_types *int
+	Edges                     DeviceEdges `json:"edges"`
+	device_platform_platforms *int
+	device_type_types         *int
 }
 
 // DeviceEdges holds the relations/edges for other nodes in the graph.
 type DeviceEdges struct {
 	// InType holds the value of the in_type edge.
 	InType *DeviceType `json:"in_type,omitempty"`
+	// InPlatform holds the value of the in_platform edge.
+	InPlatform *DevicePlatform `json:"in_platform,omitempty"`
 	// Interfaces holds the value of the interfaces edge.
 	Interfaces []*NetInterface `json:"interfaces,omitempty"`
 	// InTopology holds the value of the in_topology edge.
 	InTopology []*NetTopologyDeviceMap `json:"in_topology,omitempty"`
+	// StoreVlans holds the value of the store_vlans edge.
+	StoreVlans []*Vlan `json:"store_vlans,omitempty"`
+	// DeletedVlans holds the value of the deleted_vlans edge.
+	DeletedVlans []*DeletedVlanLog `json:"deleted_vlans,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 }
 
 // InTypeOrErr returns the InType value or an error if the edge
@@ -63,10 +71,24 @@ func (e DeviceEdges) InTypeOrErr() (*DeviceType, error) {
 	return nil, &NotLoadedError{edge: "in_type"}
 }
 
+// InPlatformOrErr returns the InPlatform value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e DeviceEdges) InPlatformOrErr() (*DevicePlatform, error) {
+	if e.loadedTypes[1] {
+		if e.InPlatform == nil {
+			// The edge in_platform was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: deviceplatform.Label}
+		}
+		return e.InPlatform, nil
+	}
+	return nil, &NotLoadedError{edge: "in_platform"}
+}
+
 // InterfacesOrErr returns the Interfaces value or an error if the edge
 // was not loaded in eager-loading.
 func (e DeviceEdges) InterfacesOrErr() ([]*NetInterface, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Interfaces, nil
 	}
 	return nil, &NotLoadedError{edge: "interfaces"}
@@ -75,10 +97,28 @@ func (e DeviceEdges) InterfacesOrErr() ([]*NetInterface, error) {
 // InTopologyOrErr returns the InTopology value or an error if the edge
 // was not loaded in eager-loading.
 func (e DeviceEdges) InTopologyOrErr() ([]*NetTopologyDeviceMap, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.InTopology, nil
 	}
 	return nil, &NotLoadedError{edge: "in_topology"}
+}
+
+// StoreVlansOrErr returns the StoreVlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e DeviceEdges) StoreVlansOrErr() ([]*Vlan, error) {
+	if e.loadedTypes[4] {
+		return e.StoreVlans, nil
+	}
+	return nil, &NotLoadedError{edge: "store_vlans"}
+}
+
+// DeletedVlansOrErr returns the DeletedVlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e DeviceEdges) DeletedVlansOrErr() ([]*DeletedVlanLog, error) {
+	if e.loadedTypes[5] {
+		return e.DeletedVlans, nil
+	}
+	return nil, &NotLoadedError{edge: "deleted_vlans"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -92,7 +132,9 @@ func (*Device) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case device.FieldDeviceName, device.FieldDeviceHostname, device.FieldDeviceUsername, device.FieldDevicePassword, device.FieldDeviceSecret:
 			values[i] = new(sql.NullString)
-		case device.ForeignKeys[0]: // device_type_types
+		case device.ForeignKeys[0]: // device_platform_platforms
+			values[i] = new(sql.NullInt64)
+		case device.ForeignKeys[1]: // device_type_types
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Device", columns[i])
@@ -159,6 +201,13 @@ func (d *Device) assignValues(columns []string, values []interface{}) error {
 			}
 		case device.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field device_platform_platforms", value)
+			} else if value.Valid {
+				d.device_platform_platforms = new(int)
+				*d.device_platform_platforms = int(value.Int64)
+			}
+		case device.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field device_type_types", value)
 			} else if value.Valid {
 				d.device_type_types = new(int)
@@ -174,6 +223,11 @@ func (d *Device) QueryInType() *DeviceTypeQuery {
 	return (&DeviceClient{config: d.config}).QueryInType(d)
 }
 
+// QueryInPlatform queries the "in_platform" edge of the Device entity.
+func (d *Device) QueryInPlatform() *DevicePlatformQuery {
+	return (&DeviceClient{config: d.config}).QueryInPlatform(d)
+}
+
 // QueryInterfaces queries the "interfaces" edge of the Device entity.
 func (d *Device) QueryInterfaces() *NetInterfaceQuery {
 	return (&DeviceClient{config: d.config}).QueryInterfaces(d)
@@ -182,6 +236,16 @@ func (d *Device) QueryInterfaces() *NetInterfaceQuery {
 // QueryInTopology queries the "in_topology" edge of the Device entity.
 func (d *Device) QueryInTopology() *NetTopologyDeviceMapQuery {
 	return (&DeviceClient{config: d.config}).QueryInTopology(d)
+}
+
+// QueryStoreVlans queries the "store_vlans" edge of the Device entity.
+func (d *Device) QueryStoreVlans() *VlanQuery {
+	return (&DeviceClient{config: d.config}).QueryStoreVlans(d)
+}
+
+// QueryDeletedVlans queries the "deleted_vlans" edge of the Device entity.
+func (d *Device) QueryDeletedVlans() *DeletedVlanLogQuery {
+	return (&DeviceClient{config: d.config}).QueryDeletedVlans(d)
 }
 
 // Update returns a builder for updating this Device.

@@ -4,13 +4,16 @@ package ent
 
 import (
 	"github.com/mrzack99s/netcoco/ent/administrator"
+	"github.com/mrzack99s/netcoco/ent/deletedvlanlog"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/schema"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -27,6 +30,16 @@ func init() {
 	administratorDescPassword := administratorFields[1].Descriptor()
 	// administrator.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	administrator.PasswordValidator = administratorDescPassword.Validators[0].(func(string) error)
+	deletedvlanlogFields := schema.DeletedVlanLog{}.Fields()
+	_ = deletedvlanlogFields
+	// deletedvlanlogDescVlanID is the schema descriptor for vlan_id field.
+	deletedvlanlogDescVlanID := deletedvlanlogFields[0].Descriptor()
+	// deletedvlanlog.VlanIDValidator is a validator for the "vlan_id" field. It is called by the builders before save.
+	deletedvlanlog.VlanIDValidator = deletedvlanlogDescVlanID.Validators[0].(func(int) error)
+	// deletedvlanlogDescDeleted is the schema descriptor for deleted field.
+	deletedvlanlogDescDeleted := deletedvlanlogFields[1].Descriptor()
+	// deletedvlanlog.DefaultDeleted holds the default value on creation for the deleted field.
+	deletedvlanlog.DefaultDeleted = deletedvlanlogDescDeleted.Default.(bool)
 	deviceFields := schema.Device{}.Fields()
 	_ = deviceFields
 	// deviceDescDeviceName is the schema descriptor for device_name field.
@@ -51,6 +64,12 @@ func init() {
 	deviceDescDeviceCommitConfig := deviceFields[6].Descriptor()
 	// device.DefaultDeviceCommitConfig holds the default value on creation for the device_commit_config field.
 	device.DefaultDeviceCommitConfig = deviceDescDeviceCommitConfig.Default.(bool)
+	deviceplatformFields := schema.DevicePlatform{}.Fields()
+	_ = deviceplatformFields
+	// deviceplatformDescDevicePlatformName is the schema descriptor for device_platform_name field.
+	deviceplatformDescDevicePlatformName := deviceplatformFields[0].Descriptor()
+	// deviceplatform.DevicePlatformNameValidator is a validator for the "device_platform_name" field. It is called by the builders before save.
+	deviceplatform.DevicePlatformNameValidator = deviceplatformDescDevicePlatformName.Validators[0].(func(string) error)
 	devicetypeFields := schema.DeviceType{}.Fields()
 	_ = devicetypeFields
 	// devicetypeDescDeviceTypeName is the schema descriptor for device_type_name field.
@@ -63,14 +82,10 @@ func init() {
 	netinterfaceDescInterfaceName := netinterfaceFields[0].Descriptor()
 	// netinterface.InterfaceNameValidator is a validator for the "interface_name" field. It is called by the builders before save.
 	netinterface.InterfaceNameValidator = netinterfaceDescInterfaceName.Validators[0].(func(string) error)
-	// netinterfaceDescInterfaceVlan is the schema descriptor for interface_vlan field.
-	netinterfaceDescInterfaceVlan := netinterfaceFields[1].Descriptor()
-	// netinterface.DefaultInterfaceVlan holds the default value on creation for the interface_vlan field.
-	netinterface.DefaultInterfaceVlan = netinterfaceDescInterfaceVlan.Default.(string)
-	// netinterfaceDescInterfaceNativeVlan is the schema descriptor for interface_native_vlan field.
-	netinterfaceDescInterfaceNativeVlan := netinterfaceFields[2].Descriptor()
-	// netinterface.DefaultInterfaceNativeVlan holds the default value on creation for the interface_native_vlan field.
-	netinterface.DefaultInterfaceNativeVlan = netinterfaceDescInterfaceNativeVlan.Default.(string)
+	// netinterfaceDescInterfaceShutdown is the schema descriptor for interface_shutdown field.
+	netinterfaceDescInterfaceShutdown := netinterfaceFields[1].Descriptor()
+	// netinterface.DefaultInterfaceShutdown holds the default value on creation for the interface_shutdown field.
+	netinterface.DefaultInterfaceShutdown = netinterfaceDescInterfaceShutdown.Default.(bool)
 	netinterfacemodeFields := schema.NetInterfaceMode{}.Fields()
 	_ = netinterfacemodeFields
 	// netinterfacemodeDescInterfaceMode is the schema descriptor for interface_mode field.
@@ -97,4 +112,10 @@ func init() {
 	nettopologydevicemapDescPositionY := nettopologydevicemapFields[1].Descriptor()
 	// nettopologydevicemap.DefaultPositionY holds the default value on creation for the position_y field.
 	nettopologydevicemap.DefaultPositionY = nettopologydevicemapDescPositionY.Default.(int)
+	vlanFields := schema.Vlan{}.Fields()
+	_ = vlanFields
+	// vlanDescVlanID is the schema descriptor for vlan_id field.
+	vlanDescVlanID := vlanFields[0].Descriptor()
+	// vlan.VlanIDValidator is a validator for the "vlan_id" field. It is called by the builders before save.
+	vlan.VlanIDValidator = vlanDescVlanID.Validators[0].(func(int) error)
 }
