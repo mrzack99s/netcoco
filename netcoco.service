@@ -1,0 +1,12 @@
+[Unit]
+Description=NetCoCo - Network Automation Application
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/usr/share/netcoco
+ExecStart=/usr/share/netcoco/netcoco-linux-amd64
+
+[Install]
+WantedBy=multi-user.target
