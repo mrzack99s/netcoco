@@ -13,12 +13,12 @@ CALL :end
   del /s /q  .\bin\*.*
 
   set GOOS=windows
-  go build -ldflags %PROD_LDFLAGS% -o bin/netcoco.exe .\runtime
+  go build -ldflags %PROD_LDFLAGS% -o bin/netcoco-windows.exe .\runtime
   CALL :end
 
 :run
   del /s /q  .\bin\*.*
-  go build -ldflags %DEV_LDFLAGS% -o bin/netcoco.exe .\runtime
+  go build -ldflags %DEV_LDFLAGS% -o bin/netcoco-windows.exe .\runtime
   .\bin\netcoco.exe
 
 :end
