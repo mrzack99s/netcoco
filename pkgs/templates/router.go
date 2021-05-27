@@ -33,7 +33,7 @@ func NewHTMLController(ft bool) {
 			system.HttpRouter.HandleContext(c)
 		})
 
-		path := []string{"dashboard", "devices", "device-type", "topology"}
+		path := []string{"login", "device-setting", "dashboard", "devices", "device-type", "topology"}
 
 		for _, str := range path {
 			system.HttpRouter.Use(static.Serve(fmt.Sprintf("/%s/ui/%s", system.Version, str),
