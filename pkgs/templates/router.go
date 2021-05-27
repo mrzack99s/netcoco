@@ -26,6 +26,7 @@ func NewHTMLController(ft bool) {
 		system.HttpRouter.Static("/css", fmt.Sprintf("%sdist/css", GetRootPath()))
 		system.HttpRouter.Static("/img", fmt.Sprintf("%sdist/img", GetRootPath()))
 		system.HttpRouter.Static("/fonts", fmt.Sprintf("%sdist/fonts", GetRootPath()))
+		system.HttpRouter.Static("/images", fmt.Sprintf("%simages", GetRootPath()))
 		system.HttpRouter.Use(static.Serve(fmt.Sprintf("/%s/ui", system.Version),
 			static.LocalFile(fmt.Sprintf("%sdist", GetRootPath()), true)))
 		system.HttpRouter.GET("", func(c *gin.Context) {
