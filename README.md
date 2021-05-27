@@ -1,9 +1,5 @@
 # NetCoCo | Network Automation Application
 
-
->	Author: Chatdanai Phakaket <br>
->	Email: zchatdanai@gmail.com 
-
 NetCoCo is a network automation application for manage network device and config network device without CLI Configuration. NetCoCo can generate network audits with your freeform topology through the use of a Topology Builder.
 
 ## Feature
