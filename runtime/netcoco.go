@@ -19,11 +19,6 @@ import (
 	"github.com/mrzack99s/netcoco/pkgs/system"
 )
 
-var (
-	product_mode = "development"
-	version      = "v1beta"
-)
-
 func Open() (*ent.Client, error) {
 	db, err := sql.Open("mysql",
 		fmt.Sprintf("%s:%s@tcp(%s)/%s",
@@ -45,9 +40,8 @@ func Open() (*ent.Client, error) {
 }
 
 func SystemInitial(client *ent.Client) {
-	system.SystemVersion = version
 	mode := gin.DebugMode
-	if product_mode == "production" {
+	if system.Product_mode == "production" {
 		mode = gin.ReleaseMode
 	}
 
@@ -66,9 +60,9 @@ func SystemInitial(client *ent.Client) {
 	}))
 
 	//Unsecure API
-	system.UnsecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/unsecure/api", system.SystemVersion))
+	system.UnsecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/unsecure/api", system.Version))
 	//Secure API
-	system.SecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/api", system.SystemVersion), services.APIAuthentication)
+	system.SecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/api", system.Version), services.APIAuthentication)
 	apis.NewUnsecureController(system.UnsecureAPIGroup, client)
 
 	system.ApplicationListener = &http.Server{

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-ping/ping"
 	"github.com/mrzack99s/netcoco/ent"
+	"github.com/mrzack99s/netcoco/pkgs/system"
 )
 
 type PingResponseDeviceMap struct {
@@ -45,6 +46,9 @@ func getPing(obj *ent.Device, response chan *PingResponse) {
 		panic(err)
 	}
 	pinger.Count = 1
+	if system.Os == "windows" {
+		pinger.SetPrivileged(true)
+	}
 	pinger.Timeout = time.Second * 1
 	pinger.Run()
 	stats := pinger.Statistics()
@@ -61,7 +65,9 @@ func getPingTopology(obj *ent.NetTopologyDeviceMap, response chan *PingResponseD
 		panic(err)
 	}
 	pinger.Count = 1
-	pinger.SetPrivileged(true)
+	if system.Os == "windows" {
+		pinger.SetPrivileged(true)
+	}
 	pinger.Timeout = time.Second * 1
 	pinger.Run()
 	stats := pinger.Statistics()

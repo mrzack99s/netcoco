@@ -9,7 +9,6 @@ import (
 
 var (
 	SystemConfigVar SystemConfig
-	SystemVersion   string
 )
 
 type SystemConfig struct {
