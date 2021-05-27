@@ -4,7 +4,7 @@ NetCoCo is a network automation application for manage network device and config
 
 > For documentation and installation. Plase visit [netcoco-documentation](https://netcoco-io.gitbook.io/netcoco/)
 
-## Feature
+## Features
 
 * Topology Builder
 * Network Monitor
@@ -12,7 +12,7 @@ NetCoCo is a network automation application for manage network device and config
   * Vlan Setting
   * Interface setting
 
-## Support Device
+## Support Devices
 
 * Cisco IOS
 * Cisco SG300
