@@ -1,6 +1,6 @@
 ## Cisco IOS
 
-Preare for NetCoCo establish to network device 
+Prepare  for NetCoCo establish to network device 
 
 
 ### Config Script
