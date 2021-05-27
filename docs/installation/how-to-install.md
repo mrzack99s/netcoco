@@ -42,13 +42,27 @@
       ```
 
 5. Make **NetCoCo** directory and create sub-directory
+   - Linux
+   ```
+      |usr
+         |share
+            |netcoco
+               |templates
+                  |dist
+                  | .......
+               |config.yaml
+               |netcoco-linux-amd64
+   ```
+   > Make directory with <b>sudo mkdir /usr/share/netcoco</b>
+
+   - Windows
    ```
       |NetCoCo
          |templates
             |dist
             | .......
          |config.yaml
-         |netcoco-linux-amd64 or netcoco-windows.exe
+         |netcoco-windows.exe
    ```
 6. Download templates and executable file from [Github releases](https://github.com/mrzack99s/netcoco/releases) 
 7. Untar or unzip templates
@@ -66,5 +80,9 @@
          security:
              salt: <salt-in-hex-32digit>
     ```
-
-10. Run executable file.
+10. On Linux, must install the netcoco service
+      ```text
+         sudo mv <download-path>/netcoco.service /etc/systemd/system
+         sudo systemctl enable --now netcoco
+      ```
+11. On Windows, run executable file.
