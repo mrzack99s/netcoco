@@ -10,39 +10,50 @@
    ```
 
 2. Install dependency.
-3. Yarn \(Recommend\)
+   - Yarn \(Recommend\)
 
-   ```text
-   yarn install
-   ```
+      ```text
+      yarn install
+      ```
 
-4. NPM
+   - NPM
 
-   ```text
-   npm install
-   ```
+      ```text
+      npm install
+      ```
 
-5. Change base URL of API at file **.env.production**.
+3. Change base URL of API at file **.env.production**.
 
    ```text
     VUE_APP_ROOT_API=http://<Domain or Hostname>:8080
    ```
 
-6. Build NetCoCo-UI with production.
-7. Yarn \(Recommend\)
+4. Build NetCoCo-UI with production.
+   - Yarn \(Recommend\)
 
-   ```text
-   yarn build --mode production
+      ```text
+      yarn build --mode production
+      ```
+
+   - NPM
+
+      ```text
+      npm build --mode production
+      ```
+
+5. Make **NetCoCo** directory and create sub-directory
    ```
-
-8. NPM
-
-   ```text
-   npm build --mode production
+      |NetCoCo
+         |templates
+            |dist
+            | .......
+         |config.yaml
+         |netcoco-linux-amd64 or netcoco-windows.exe
    ```
-
-9. Copy **/dist** of NetCoCo-UI to **/templates** of NetCoCo.
-10. Create **config.yaml** in NetCoCo. with
+6. Download templates and executable file from [Github releases](https://github.com/mrzack99s/netcoco/releases) 
+7. Untar or unzip templates
+8. Copy **/dist** of NetCoCo-UI to **/templates** of NetCoCo.
+9. Create **config.yaml** in NetCoCo directory with executable file.
 
     ```text
      netcoco:
@@ -56,4 +67,4 @@
              salt: <salt-in-hex-32digit>
     ```
 
-11. Run executable file.
+10. Run executable file.
