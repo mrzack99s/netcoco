@@ -1,11 +1,10 @@
-## Cisco IOS
+# Cisco IOS
 
-Prepare for NetCoCo establish to network device 
+Prepare for NetCoCo establish to network device
 
+## Config Script
 
-### Config Script
-
-```
+```text
   # Create an account
   (config)# username <username> secret <secret>
 
@@ -22,5 +21,5 @@ Prepare for NetCoCo establish to network device
   (config)# line vty 0 4
   (config-line)# login local
   (config-line)# transport input ssh
-
 ```
+
