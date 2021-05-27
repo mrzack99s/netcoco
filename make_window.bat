@@ -1,7 +1,8 @@
 @ECHO OFF
 
-set PROD_LDFLAGS="-X 'main.product_mode=production' -X 'main.version=v1beta'"
-set DEV_LDFLAGS="-X 'main.product_mode=development' -X 'main.version=v1beta'"
+set VERSION="v1.0-alpha"
+set PROD_LDFLAGS="-X 'main.product_mode=production' -X 'main.version=%VERSION%'"
+set DEV_LDFLAGS="-X 'main.product_mode=development' -X 'main.version=%VERSION%'"
 
 if "%1" NEQ "" (
     CALL :%1
