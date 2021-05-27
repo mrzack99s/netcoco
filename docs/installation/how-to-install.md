@@ -81,8 +81,12 @@
              salt: <salt-in-hex-32digit>
     ```
 10. On Linux, must install the netcoco service
+      - Download service file
       ```text
-         sudo mv <download-path>/netcoco.service /etc/systemd/system
+         sudo curl -L https://raw.githubusercontent.com/mrzack99s/netcoco/main/netcoco.service -o /etc/systemd/system/netcoco.service
+      ```
+      - Enable and start service
+      ```text
          sudo systemctl enable --now netcoco
       ```
 11. On Windows, run executable file.
