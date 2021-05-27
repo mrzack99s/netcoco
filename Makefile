@@ -2,8 +2,8 @@ VERSION = v1beta
 DIR_PATH = bin/
 BINARY = ${DIR_PATH}netcoco-${VERSION}
 GOARCH = amd64
-LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.version=v1beta'"
-WIN_LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.version=v1beta' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
+LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=v1beta'"
+WIN_LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=v1beta' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
 # Build the project
 build: clean windows linux
 windows:
