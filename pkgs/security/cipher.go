@@ -13,7 +13,7 @@ import (
 
 func Encrypt(plaintext string) string {
 
-	block, err := aes.NewCipher([]byte(system.SystemConfigVar.MRZ_SW_AUTO.Security.Salt))
+	block, err := aes.NewCipher([]byte(system.SystemConfigVar.NetCoCo.Security.Salt))
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +47,7 @@ func Decrypt(cipherText []byte) string {
 		panic(err)
 	}
 
-	block, err := aes.NewCipher([]byte(system.SystemConfigVar.MRZ_SW_AUTO.Security.Salt))
+	block, err := aes.NewCipher([]byte(system.SystemConfigVar.NetCoCo.Security.Salt))
 	if err != nil {
 		panic(err)
 	}

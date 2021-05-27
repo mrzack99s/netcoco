@@ -45,7 +45,6 @@ func getPing(obj *ent.Device, response chan *PingResponse) {
 		panic(err)
 	}
 	pinger.Count = 1
-	pinger.SetPrivileged(true)
 	pinger.Timeout = time.Second * 1
 	pinger.Run()
 	stats := pinger.Statistics()

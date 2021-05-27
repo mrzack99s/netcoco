@@ -21,5 +21,5 @@ func TestParseConfig(t *testing.T) {
 		panic(err)
 	}
 
-	assert.NotNil(t, SystemConfigVar.MRZ_SW_AUTO)
+	assert.NotNil(t, SystemConfigVar.NetCoCo)
 }

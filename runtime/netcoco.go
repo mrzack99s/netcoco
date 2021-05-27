@@ -27,10 +27,10 @@ var (
 func Open() (*ent.Client, error) {
 	db, err := sql.Open("mysql",
 		fmt.Sprintf("%s:%s@tcp(%s)/%s",
-			system.SystemConfigVar.MRZ_SW_AUTO.DB.SQL.Username,
-			system.SystemConfigVar.MRZ_SW_AUTO.DB.SQL.Password,
-			system.SystemConfigVar.MRZ_SW_AUTO.DB.SQL.Hostname,
-			system.SystemConfigVar.MRZ_SW_AUTO.DB.SQL.DBName,
+			system.SystemConfigVar.NetCoCo.DB.SQL.Username,
+			system.SystemConfigVar.NetCoCo.DB.SQL.Password,
+			system.SystemConfigVar.NetCoCo.DB.SQL.Hostname,
+			system.SystemConfigVar.NetCoCo.DB.SQL.DBName,
 		),
 	)
 	if err != nil {

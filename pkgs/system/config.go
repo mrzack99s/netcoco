@@ -13,7 +13,7 @@ var (
 )
 
 type SystemConfig struct {
-	MRZ_SW_AUTO struct {
+	NetCoCo struct {
 		DB struct {
 			SQL struct {
 				Hostname string `yaml:"hostname"`
@@ -29,7 +29,7 @@ type SystemConfig struct {
 				Password string `yaml:"password"`
 			} `yaml:"http_auth_users"`
 		} `yaml:"security"`
-	} `yaml:"mrz_sw_auto"`
+	} `yaml:"netcoco"`
 }
 
 func ParseSystemConfig(path string) {

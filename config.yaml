@@ -1,9 +1,9 @@
-mrz_sw_auto:
+netcoco:
   db:
     sql:
-      hostname: 172.20.0.13:3306
-      username: mrz_swauto
-      password: CFU2wV8MRGPJ816c
-      db_name: mrz_switch_automation
+      hostname: <db-hostname>:<db-port>
+      username: <db-username>
+      password: <db-password>
+      db_name: <db-name>
   security:
-    salt: 0d25ad0a9885624feeff524008607b24
+    salt: <salt-in-hex-32digit>
