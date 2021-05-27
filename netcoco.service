@@ -6,6 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/usr/share/netcoco
+ExecStartPre=sysctl -w net.ipv4.ping_group_range="0 2147483647"
 ExecStart=/usr/share/netcoco/netcoco-linux-amd64
 
 [Install]
