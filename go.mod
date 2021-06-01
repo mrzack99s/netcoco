@@ -1,6 +1,6 @@
 module github.com/mrzack99s/netcoco
 
-go 1.16
+go 1.13
 
 replace github.com/networklore/netrasp => github.com/mrzack99s/netrasp v0.0.0-20210526183230-e70c547ff869
 

@@ -1,8 +1,10 @@
 @ECHO OFF
 
 set VERSION="v1.0-alpha"
-set PROD_LDFLAGS="-X 'main.product_mode=production' -X 'main.version=%VERSION%'"
-set DEV_LDFLAGS="-X 'main.product_mode=development' -X 'main.version=%VERSION%'"
+set BIN_PATH=bin
+set WIN_PROD_LDFLAGS="-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=%VERSION%' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
+set LINUX_PROD_LDFLAGS="-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=%VERSION%'"
+set DEV_LDFLAGS="-X 'github.com/mrzack99s/netcoco/pkgs/system.Version=%VERSION%' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
 
 if "%1" NEQ "" (
     CALL :%1
@@ -11,16 +13,22 @@ if "%1" NEQ "" (
 CALL :end
 
 :build
-  del /s /q  .\bin\*.*
+  del /s /q  .\%BIN_PATH%\netcoco-*
 
   set GOOS=windows
-  go build -ldflags %PROD_LDFLAGS% -o bin/netcoco-windows.exe .\runtime
+  go build -ldflags %WIN_PROD_LDFLAGS% -o %BIN_PATH%/netcoco-windows.exe .\runtime
+
+  set GOOS=linux
+  go build -ldflags %LINUX_PROD_LDFLAGS% -o %BIN_PATH%/netcoco-linux-amd64 .\runtime
+
   CALL :end
 
 :run
-  del /s /q  .\bin\*.*
-  go build -ldflags %DEV_LDFLAGS% -o bin/netcoco-windows.exe .\runtime
-  .\bin\netcoco.exe
+  del /s /q  .\%BIN_PATH%\netcoco-*
+  go build -ldflags %DEV_LDFLAGS% -o %BIN_PATH%/netcoco-windows.exe .\runtime
+
+  cd %BIN_PATH%
+  .\netcoco-windows.exe
 
 :end
    exit

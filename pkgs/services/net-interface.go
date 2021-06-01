@@ -8,6 +8,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
 func GetInterface(client *ent.Client, id int) (response *ent.NetInterface, err error) {
@@ -63,11 +64,18 @@ func CreateInterface(client *ent.Client, obj ent.NetInterface) (response *ent.Ne
 }
 
 func CreateRangeInterface(client *ent.Client, obj []ent.NetInterface) (response []*ent.NetInterface, err error) {
+	vlan1, err := client.Vlan.Query().Where(vlan.VlanIDEQ(1)).Only(context.Background())
+	if err != nil {
+		vlan1, _ = client.Vlan.Create().SetVlanID(1).Save(context.Background())
+	}
+
 	for _, item := range obj {
 		r, e := client.NetInterface.Create().
 			SetInterfaceName(item.InterfaceName).
 			SetOnDevice(item.Edges.OnDevice).
+			SetNativeOnVlan(vlan1).
 			SetMode(item.Edges.Mode).
+			AddHaveVlans(vlan1).
 			Save(context.Background())
 		if e != nil {
 			err = e
@@ -76,9 +84,10 @@ func CreateRangeInterface(client *ent.Client, obj []ent.NetInterface) (response 
 			response = append(response, r)
 		}
 	}
-	obj[0].Edges.OnDevice = obj[0].QueryOnDevice().OnlyX(context.Background())
-	if obj[0].Edges.OnDevice.DeviceCommitConfig {
-		obj[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+
+	response[0].Edges.OnDevice = response[0].QueryOnDevice().OnlyX(context.Background())
+	if response[0].Edges.OnDevice.DeviceCommitConfig {
+		response[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
 	}
 
 	return
