@@ -71,6 +71,7 @@
 
     ```text
      netcoco:
+         port: <port-number> (default: 8080)
          db:
              sql:
              hostname: <db-hostname>:<db-port>
