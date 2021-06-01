@@ -2,6 +2,6 @@ package system
 
 var (
 	Product_mode = "development"
-	Version      = "v1beta"
+	Version      = "v1.0-alpha"
 	Os           = "linux"
 )

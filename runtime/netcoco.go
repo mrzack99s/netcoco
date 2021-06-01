@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -39,7 +41,7 @@ func Open() (*ent.Client, error) {
 	return ent.NewClient(ent.Driver(drv)), nil
 }
 
-func SystemInitial(client *ent.Client) {
+func SystemInitial(client *ent.Client, port int) {
 	mode := gin.DebugMode
 	if system.Product_mode == "production" {
 		mode = gin.ReleaseMode
@@ -66,13 +68,23 @@ func SystemInitial(client *ent.Client) {
 	apis.NewUnsecureController(system.UnsecureAPIGroup, client)
 
 	system.ApplicationListener = &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: system.HttpRouter,
 	}
 }
 
 func main() {
-	system.ParseSystemConfig("./config.yaml")
+
+	port := flag.Int("port", 8080, "serve port")
+	filename := flag.String("file", "", "config file path")
+	flag.Parse()
+
+	if *filename == "" {
+		fmt.Println("Please enter config file")
+		fmt.Println("   [With flag] -file=?")
+		os.Exit(0)
+	}
+	system.ParseSystemConfig(*filename)
 
 	client, err := Open()
 	if err != nil {
@@ -105,7 +117,7 @@ func main() {
 
 	}
 
-	SystemInitial(client)
+	SystemInitial(client, *port)
 
 	// API Initial
 	count := services.CheckNilAdministrator(client)
@@ -132,7 +144,7 @@ func main() {
 			}
 		}
 
-		SystemInitial(client)
+		SystemInitial(client, *port)
 		apis.DefaultSystem(client)
 		system.ApplicationListener.ListenAndServe()
 

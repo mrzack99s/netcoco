@@ -21,6 +21,7 @@ func (host *Host) GetDriver() (device netrasp.Platform, err error) {
 			netrasp.WithDriver("ios"),
 			netrasp.WithUsernamePasswordEnableSecret(host.Username, host.Password, host.EnableSecret),
 			netrasp.WithSSHKeyExchange("diffie-hellman-group-exchange-sha1"),
+			netrasp.WithInsecureIgnoreHostKey(),
 			netrasp.WithSSHCipher("aes256-ctr"),
 		)
 		if err != nil {
@@ -32,6 +33,7 @@ func (host *Host) GetDriver() (device netrasp.Platform, err error) {
 			netrasp.WithUsernamePasswordEnableSecret(host.Username, host.Password, host.EnableSecret),
 			netrasp.WithSSHKeyExchange("diffie-hellman-group-exchange-sha1"),
 			netrasp.WithSSHCipher("aes128-cbc"),
+			netrasp.WithInsecureIgnoreHostKey(),
 		)
 		if err != nil {
 			return
@@ -42,6 +44,7 @@ func (host *Host) GetDriver() (device netrasp.Platform, err error) {
 			netrasp.WithUsernamePasswordEnableSecret(host.Username, host.Password, host.EnableSecret),
 			netrasp.WithSSHKeyExchange("diffie-hellman-group-exchange-sha1"),
 			netrasp.WithSSHCipher("aes256-ctr"),
+			netrasp.WithInsecureIgnoreHostKey(),
 		)
 		if err != nil {
 			return

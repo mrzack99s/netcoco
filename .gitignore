@@ -7,6 +7,7 @@ bin/*
 
 # Config file
 config.yaml
+dev_config.yaml
 
 # Editor directories and files
 .idea

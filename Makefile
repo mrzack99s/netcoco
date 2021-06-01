@@ -1,4 +1,4 @@
-VERSION = v1.0-alpla
+VERSION = v1.0-alpha
 DIR_PATH = bin/
 WIN_BINARY = ${DIR_PATH}netcoco-windows.exe
 LINUX_BINARY = ${DIR_PATH}netcoco-linux-amd64
