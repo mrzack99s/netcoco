@@ -85,6 +85,10 @@ func main() {
 	}
 	system.ParseSystemConfig(*filename)
 
+	if system.SystemConfigVar.NetCoCo.Port == 0 {
+		system.SystemConfigVar.NetCoCo.Port = 8080
+	}
+
 	client, err := Open()
 	if err != nil {
 		log.Fatal(err)
