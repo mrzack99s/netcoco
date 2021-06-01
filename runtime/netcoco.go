@@ -41,7 +41,7 @@ func Open() (*ent.Client, error) {
 	return ent.NewClient(ent.Driver(drv)), nil
 }
 
-func SystemInitial(client *ent.Client, port int) {
+func SystemInitial(client *ent.Client) {
 	mode := gin.DebugMode
 	if system.Product_mode == "production" {
 		mode = gin.ReleaseMode
@@ -68,14 +68,13 @@ func SystemInitial(client *ent.Client, port int) {
 	apis.NewUnsecureController(system.UnsecureAPIGroup, client)
 
 	system.ApplicationListener = &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", system.SystemConfigVar.NetCoCo.Port),
 		Handler: system.HttpRouter,
 	}
 }
 
 func main() {
 
-	port := flag.Int("port", 8080, "serve port")
 	filename := flag.String("file", "", "config file path")
 	flag.Parse()
 
@@ -117,7 +116,7 @@ func main() {
 
 	}
 
-	SystemInitial(client, *port)
+	SystemInitial(client)
 
 	// API Initial
 	count := services.CheckNilAdministrator(client)
@@ -144,7 +143,7 @@ func main() {
 			}
 		}
 
-		SystemInitial(client, *port)
+		SystemInitial(client)
 		apis.DefaultSystem(client)
 		system.ApplicationListener.ListenAndServe()
 

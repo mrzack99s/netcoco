@@ -13,7 +13,8 @@ var (
 
 type SystemConfig struct {
 	NetCoCo struct {
-		DB struct {
+		Port int `yaml:"port"`
+		DB   struct {
 			SQL struct {
 				Hostname string `yaml:"hostname"`
 				Username string `yaml:"username"`
