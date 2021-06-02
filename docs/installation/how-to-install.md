@@ -67,7 +67,7 @@
 6. Download templates and executable file from [Github releases](https://github.com/mrzack99s/netcoco/releases) 
 7. Untar or unzip templates
 8. Copy **/dist** of NetCoCo-UI to **/templates** of NetCoCo.
-9. Create **config.yaml** in NetCoCo directory with executable file.
+9. Create **config.yaml** in NetCoCo directory with executable file. (In linux: /usr/share/netcoco)
 
     ```text
      netcoco:
@@ -81,7 +81,13 @@
          security:
              salt: <salt-in-hex-32digit>
     ```
-10. On Linux, must install the netcoco service
+10. Edit **main.js** in NetCoCo directory. (In linux: /usr/share/netcoco/templates/js)
+
+    ```text
+      const BASE_API_URL = 'http://<Hostname or Domain name>:<port>/v1.0-alpha/secure/api';
+    ```
+
+11. On Linux, must install the netcoco service
       - Download service file
       ```text
          sudo curl -L https://raw.githubusercontent.com/mrzack99s/netcoco/main/netcoco.service -o /etc/systemd/system/netcoco.service
@@ -90,4 +96,4 @@
       ```text
          sudo systemctl enable --now netcoco
       ```
-11. On Windows, run executable file.
+12. On Windows, run executable file.
