@@ -76,6 +76,7 @@ exit`
 switchport mode trunk
 no switchport access vlan
 switchport trunk allowed vlan add %s
+switchport trunk allowed vlan %s
 switchport trunk native vlan %s
 no shutdown
 exit`
