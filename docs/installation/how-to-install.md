@@ -25,6 +25,7 @@
 3. Change base URL of API at file **.env.production**.
 
    ```text
+    VUE_APP_VERSION=<NetCoCo-version>
     VUE_APP_ROOT_API=http://<Domain or Hostname>:8080
    ```
 
