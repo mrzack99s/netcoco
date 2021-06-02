@@ -37,6 +37,11 @@ func SendConfig(task *types.Task) (err error) {
 	if err != nil {
 		return
 	}
+
+	_, err = device.Run(ctx, "write")
+	if err != nil {
+		return err
+	}
 	device.Close(context.Background())
 
 	err = nil

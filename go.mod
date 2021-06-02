@@ -2,8 +2,6 @@ module github.com/mrzack99s/netcoco
 
 go 1.13
 
-replace github.com/networklore/netrasp => github.com/mrzack99s/netrasp v0.0.0-20210526183230-e70c547ff869
-
 require (
 	entgo.io/ent v0.8.0
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
@@ -18,3 +16,5 @@ require (
 	golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
+
+replace github.com/networklore/netrasp => github.com/mrzack99s/netrasp v0.0.0-20210602121603-57088ea36b56

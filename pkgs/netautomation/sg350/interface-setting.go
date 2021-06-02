@@ -30,14 +30,15 @@ exit`
 			var rawCmd string = `interface %s
 switchport mode trunk
 no switchport access vlan
-switchport trunk allowed vlan add %s
-switchport trunk native vlan add %s
+switchport trunk allowed vlan %s
+switchport trunk native vlan %s
 shutdown
 exit`
 			if o.NativeVLAN == "1" {
 				rawCmd = `interface %s
 switchport mode trunk
 no switchport access vlan
+no switchport trunk native vlan
 switchport trunk allowed vlan add %s
 shutdown
 exit`
@@ -53,6 +54,7 @@ exit`
 no switchport mode
 no switchport access vlan
 no switchport trunk native vlan
+no sw trunk allowed vlan
 shutdown
 exit`
 			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName)
@@ -75,7 +77,6 @@ exit`
 			var rawCmd string = `interface %s
 switchport mode trunk
 no switchport access vlan
-switchport trunk allowed vlan add %s
 switchport trunk allowed vlan %s
 switchport trunk native vlan %s
 no shutdown
@@ -85,6 +86,7 @@ exit`
 switchport mode trunk
 no switchport access vlan
 switchport trunk allowed vlan %s
+no switchport trunk native vlan
 no shutdown
 exit`
 				replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.VLANs)
@@ -99,6 +101,7 @@ exit`
 no switchport mode
 no switchport access vlan
 no switchport trunk native vlan
+no sw trunk allowed vlan
 no shutdown
 exit`
 			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName)

@@ -2,6 +2,7 @@ package sg350
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/mrzack99s/netcoco/pkgs/netautomation/types"
 )
@@ -31,8 +32,17 @@ func SendConfig(task *types.Task) (err error) {
 	if err != nil {
 		return
 	}
-	device.Close(context.Background())
 
+	_, err = device.RunUntil(ctx, "write", regexp.MustCompile(`^[Oo]verwrite file`))
+	if err != nil {
+		return err
+	}
+	_, err = device.Run(ctx, "Y")
+	if err != nil {
+		return err
+	}
+
+	device.Close(context.Background())
 	err = nil
 	return
 }
