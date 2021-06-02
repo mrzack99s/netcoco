@@ -78,11 +78,17 @@ func main() {
 	filename := flag.String("file", "", "config file path")
 	flag.Parse()
 
-	if *filename == "" {
+	if *filename == "" && system.Os == "windows" {
+		fmt.Print("Enter your config file path: ")
+		fmt.Scan(filename)
+	}
+
+	if *filename == "" && system.Os != "windows" {
 		fmt.Println("Please enter config file")
 		fmt.Println("   [With flag] -file=?")
 		os.Exit(0)
 	}
+
 	system.ParseSystemConfig(*filename)
 
 	if system.SystemConfigVar.NetCoCo.Port == 0 {

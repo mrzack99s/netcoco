@@ -11,7 +11,7 @@ windows:
 	CGO_ENABLED=1 CXX=x86_64-w64-mingw32-g++ CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=${GOARCH} go build -ldflags ${WIN_LDFLAGS} -v -o ${WIN_BINARY} ./runtime ;
 	-chmod +x ${WIN_BINARY}
 linux:
-	GOOS=linux GOARCH=${GOARCH} go build -ldflags ${LDFLAGS} -v -o ${LINUX_BINARY} ./runtime ;
+	CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -ldflags ${LDFLAGS} -v -o ${LINUX_BINARY} ./runtime ;
 	-chmod +x ${LINUX_BINARY}
 
 clean:
