@@ -22,7 +22,7 @@ RUN git checkout ${COCO_VERSION}
 RUN make build
 
 # Production stage
-FROM ubuntu:20.04 as production
+FROM alpine:3.13 as production
 
 RUN mkdir -p /netcoco/templates
 RUN mkdir -p /netcoco/templates/dist
