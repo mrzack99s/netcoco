@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/device"
@@ -56,7 +57,10 @@ func CreateInterface(client *ent.Client, obj ent.NetInterface) (response *ent.Ne
 	}
 
 	if obj.Edges.OnDevice.DeviceCommitConfig {
-		obj.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err = obj.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return
@@ -86,7 +90,10 @@ func CreateRangeInterface(client *ent.Client, obj []ent.NetInterface) (response 
 
 	response[0].Edges.OnDevice = response[0].QueryOnDevice().OnlyX(context.Background())
 	if response[0].Edges.OnDevice.DeviceCommitConfig {
-		response[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err = response[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return
@@ -150,7 +157,7 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 		}
 
 		if response.Edges.OnDevice.DeviceCommitConfig {
-			response.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+			_, err = response.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
 		}
 		return
 
@@ -164,5 +171,8 @@ func DeleteInterface(client *ent.Client, id int) (err error) {
 
 func CleanInterface(client *ent.Client, id int) (err error) {
 	_, err = client.NetInterface.Delete().Where(netinterface.HasOnDeviceWith(device.IDEQ(id))).Exec(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	return
 }

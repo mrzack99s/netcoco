@@ -108,26 +108,37 @@ func main() {
 	if i, _ := client.DeviceType.Query().Count(context.Background()); i == 0 {
 		temp := []string{"router", "l3switch", "l2switch", "firewall", "storage", "server"}
 		for _, item := range temp {
-			client.DeviceType.Create().SetDeviceTypeName(item).Save(context.Background())
+			_, err = client.DeviceType.Create().SetDeviceTypeName(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if i, _ := client.NetInterfaceMode.Query().Count(context.Background()); i == 0 {
 		temp := []string{"Access", "Trunking", "None"}
 		for _, item := range temp {
-			client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
+			_, err = client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if i, _ := client.DevicePlatform.Query().Count(context.Background()); i == 0 {
 		temp := []string{"ios", "sg300", "sg350"}
 		for _, item := range temp {
-			client.DevicePlatform.Create().SetDevicePlatformName(item).Save(context.Background())
+			_, err = client.DevicePlatform.Create().SetDevicePlatformName(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 	if i, _ := client.Vlan.Query().Count(context.Background()); i == 0 {
-		client.Vlan.Create().SetVlanID(1).Save(context.Background())
-
+		_, err = client.Vlan.Create().SetVlanID(1).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	SystemInitial(client)

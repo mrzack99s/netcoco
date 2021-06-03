@@ -84,7 +84,10 @@ func AddDeviceVlan(client *ent.Client, obj ent.Device) (response *ent.Device, er
 	}
 
 	if response.DeviceCommitConfig {
-		response.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err := response.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	err = nil
@@ -121,7 +124,10 @@ func DeleteDeviceVlan(client *ent.Client, id, vid int) error {
 	}
 
 	// Create log
-	client.DeletedVlanLog.Create().SetVlanID(vlan.VlanID).SetOnDevice(device).Save(context.Background())
+	_, err = client.DeletedVlanLog.Create().SetVlanID(vlan.VlanID).SetOnDevice(device).Save(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	response, err := client.Device.UpdateOneID(id).
 		RemoveStoreVlans(vlan).
@@ -132,7 +138,10 @@ func DeleteDeviceVlan(client *ent.Client, id, vid int) error {
 	}
 
 	if response.DeviceCommitConfig {
-		response.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err = response.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return nil

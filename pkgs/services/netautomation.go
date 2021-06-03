@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrzack99s/netcoco/ent"
@@ -74,7 +75,10 @@ func Commit(client *ent.Client, device_id int) (status interface{}, err error) {
 		return
 	}
 
-	d.Update().SetDeviceCommitConfig(true).Save(context.Background())
+	_, err = d.Update().SetDeviceCommitConfig(true).Save(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return
 }

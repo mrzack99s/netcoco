@@ -3,6 +3,7 @@ package sg300
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/mrzack99s/netcoco/ent"
@@ -66,9 +67,15 @@ func GetCommitVlanConfig(device *ent.Device) (config []string) {
 
 		allDeleteVlan := device.QueryDeletedVlans().AllX(context.Background())
 		for _, dd := range allDeleteVlan {
-			dd.Update().SetDeleted(true).Save(context.Background())
+			_, err := dd.Update().SetDeleted(true).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
-		device.Update().ClearDeletedVlans().Save(context.Background())
+		_, err := device.Update().ClearDeletedVlans().Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return
