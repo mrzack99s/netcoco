@@ -50,13 +50,16 @@ func getPing(obj *ent.Device, response chan *PingResponse) {
 		pinger.SetPrivileged(true)
 	}
 	pinger.Timeout = time.Second * 1
-	pinger.Run()
-	stats := pinger.Statistics()
-	response <- &PingResponse{
-		Map:     obj,
-		IsAlive: !(int(math.Ceil(stats.PacketLoss)) > 0),
-		AvgRtt:  stats.AvgRtt.String(),
+	err = pinger.Run()
+	if err == nil {
+		stats := pinger.Statistics()
+		response <- &PingResponse{
+			Map:     obj,
+			IsAlive: !(int(math.Ceil(stats.PacketLoss)) > 0),
+			AvgRtt:  stats.AvgRtt.String(),
+		}
 	}
+
 }
 
 func getPingTopology(obj *ent.NetTopologyDeviceMap, response chan *PingResponseDeviceMap) {
@@ -69,11 +72,14 @@ func getPingTopology(obj *ent.NetTopologyDeviceMap, response chan *PingResponseD
 		pinger.SetPrivileged(true)
 	}
 	pinger.Timeout = time.Second * 1
-	pinger.Run()
-	stats := pinger.Statistics()
-	response <- &PingResponseDeviceMap{
-		Map:     obj,
-		IsAlive: !(int(math.Ceil(stats.PacketLoss)) > 0),
-		AvgRtt:  stats.AvgRtt.String(),
+	err = pinger.Run()
+	if err == nil {
+		stats := pinger.Statistics()
+		response <- &PingResponseDeviceMap{
+			Map:     obj,
+			IsAlive: !(int(math.Ceil(stats.PacketLoss)) > 0),
+			AvgRtt:  stats.AvgRtt.String(),
+		}
 	}
+
 }

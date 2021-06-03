@@ -33,7 +33,7 @@ func FindLoggedSession(username string) (session *LoggedSession, err error) {
 		session = v
 		return
 	}
-	err = errors.New("Not found session")
+	err = errors.New("not found session")
 	return
 }
 
@@ -54,13 +54,13 @@ func Logout(session *LoggedSession) {
 func CheckSessionWithUsernameAndAPISecret(obj ent.Administrator) (auth *LoggedSession, e error) {
 	session, err := FindLoggedSession(obj.Username)
 	if err != nil {
-		e = errors.New("Not found this session ")
+		e = errors.New("not found this session ")
 		return
 	} else {
 		if session.APISecret == obj.Password {
 			auth = session
 		} else {
-			e = errors.New("API Secret not match!")
+			e = errors.New("api secret not match")
 		}
 	}
 	return
@@ -86,7 +86,7 @@ func GetAuthentication(client *ent.Client, obj ent.Administrator) (auth *LoggedS
 				LoggedSessionVar[response.Username] = auth
 			}
 		} else {
-			e = errors.New("Password is not correct!")
+			e = errors.New("password is not correct")
 			return
 		}
 

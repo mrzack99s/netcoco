@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/mrzack99s/netcoco/ent"
@@ -33,7 +32,7 @@ func EditVlanDetail(client *ent.Client, obj ent.Vlan) (response *ent.Vlan, e err
 		Only(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found %s", obj.VlanID))
+		e = fmt.Errorf("not found %d", obj.VlanID)
 		return
 
 	} else {

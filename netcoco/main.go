@@ -100,7 +100,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client.Schema.Create(context.Background())
+	err = client.Schema.Create(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if i, _ := client.DeviceType.Query().Count(context.Background()); i == 0 {
 		temp := []string{"router", "l3switch", "l2switch", "firewall", "storage", "server"}
 		for _, item := range temp {
@@ -139,7 +143,10 @@ func main() {
 				case <-ctx.Done():
 					return
 				default:
-					system.ApplicationListener.ListenAndServe()
+					err = system.ApplicationListener.ListenAndServe()
+					if err != nil {
+						log.Panic(err)
+					}
 				}
 			}
 		}()
@@ -148,17 +155,26 @@ func main() {
 			if !services.CheckNilAdministrator(client) {
 				cancelCtx()
 				system.HttpRouter = nil
-				system.ApplicationListener.Shutdown(context.Background())
+				err = system.ApplicationListener.Shutdown(context.Background())
+				if err != nil {
+					log.Panic(err)
+				}
 				break
 			}
 		}
 
 		SystemInitial(client)
 		apis.DefaultSystem(client)
-		system.ApplicationListener.ListenAndServe()
+		err = system.ApplicationListener.ListenAndServe()
+		if err != nil {
+			log.Panic(err)
+		}
 
 	} else {
 		apis.DefaultSystem(client)
-		system.ApplicationListener.ListenAndServe()
+		err = system.ApplicationListener.ListenAndServe()
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 }

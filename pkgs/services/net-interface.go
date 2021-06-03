@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/device"
@@ -93,14 +92,14 @@ func CreateRangeInterface(client *ent.Client, obj []ent.NetInterface) (response 
 	return
 }
 
-func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *ent.NetInterface, e error) {
+func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *ent.NetInterface, err error) {
 	usr, err := client.NetInterface.
 		Query().Where(netinterface.IDEQ(obj.ID)).
 		Only(context.Background())
 	usr.Edges.OnDevice = usr.QueryOnDevice().OnlyX(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found interface %s", obj.InterfaceName))
+		err = errors.New("not found interface " + obj.InterfaceName)
 		return
 
 	} else {
@@ -145,15 +144,14 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 
 		}
 
-		if e != nil {
+		if err != nil {
 			response = nil
 			return
 		}
 
-		if usr.Edges.OnDevice.DeviceCommitConfig {
-			usr.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if response.Edges.OnDevice.DeviceCommitConfig {
+			response.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
 		}
-		response = usr
 		return
 
 	}

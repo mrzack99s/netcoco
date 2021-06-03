@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/device"
@@ -93,8 +93,11 @@ func AddDeviceVlan(client *ent.Client, obj ent.Device) (response *ent.Device, er
 
 }
 
-func DeleteDeviceVlan(client *ent.Client, id, vid int) (err error) {
+func DeleteDeviceVlan(client *ent.Client, id, vid int) error {
 	device, err := GetDevice(client, id)
+	if err != nil {
+		log.Fatal(err)
+	}
 	device.Edges.Interfaces = device.QueryInterfaces().AllX(context.Background())
 
 	for _, d := range device.Edges.Interfaces {
@@ -102,19 +105,20 @@ func DeleteDeviceVlan(client *ent.Client, id, vid int) (err error) {
 		d.Edges.NativeOnVlan = d.QueryNativeOnVlan().OnlyX(context.Background())
 
 		if d.Edges.NativeOnVlan.VlanID == vid {
-			err = errors.New("Vlan used!")
-			return
+			return errors.New("vlan used")
 		}
 
 		for _, v := range d.Edges.HaveVlans {
 			if v.VlanID == vid {
-				err = errors.New("Vlan used!")
-				return
+				return errors.New("vlan used")
 			}
 		}
 	}
 
 	vlan, err := client.Vlan.Query().Where(vlan.VlanIDEQ(vid)).Only(context.Background())
+	if err != nil {
+		return err
+	}
 
 	// Create log
 	client.DeletedVlanLog.Create().SetVlanID(vlan.VlanID).SetOnDevice(device).Save(context.Background())
@@ -124,14 +128,14 @@ func DeleteDeviceVlan(client *ent.Client, id, vid int) (err error) {
 		Save(context.Background())
 
 	if err != nil {
-		return
+		return err
 	}
 
 	if response.DeviceCommitConfig {
 		response.Update().SetDeviceCommitConfig(false).Save(context.Background())
 	}
 
-	return
+	return nil
 
 }
 
@@ -142,7 +146,7 @@ func EditDeviceDetail(client *ent.Client, obj ent.Device) (response *ent.Device,
 
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found device %s", obj.DeviceName))
+		e = errors.New("not found device " + obj.DeviceName)
 		return
 
 	} else {
