@@ -1,7 +1,10 @@
 name: build-netcoco-image
 on:
-  release: 
-    types: [created, published]
+  workflow_run:
+    workflows:
+      - release
+    types: 
+      - completed
 jobs:
   build:
     runs-on: ubuntu-latest
