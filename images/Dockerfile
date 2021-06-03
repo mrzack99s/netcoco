@@ -1,5 +1,5 @@
 # Build stage
-FROM node:14-alpine3.13 as build
+FROM node:14-alpine3.13 as build_node
 
 # Install
 RUN apk add git yarn
@@ -9,21 +9,29 @@ RUN yarn install
 RUN sed -i "s,<Domain Name or Hostname>,localhost,g" .env.production
 RUN yarn build --mode production
 
+FROM golang:1.16.4-alpine3.13 as build_go
+
+ARG COCO_VERSION
+# Install
+RUN apk add git make
+RUN git clone https://github.com/mrzack99s/netcoco /netcoco
+
+WORKDIR /netcoco
+RUN ls
+RUN git checkout ${COCO_VERSION}
+RUN make build
+
 # Production stage
 FROM ubuntu:20.04 as production
 
-ARG version
-ENV NETCOCO_VERSION=$version
-
-RUN apt-get update && \
-    apt-get install -y curl
-RUN mkdir -p /netcoco
-RUN curl -LO https://github.com/mrzack99s/netcoco/releases/download/v${NETCOCO_VERSION}/netcoco-linux-amd64.tar.gz && \
-    tar -zxf netcoco-linux-amd64.tar.gz && mv ./netcoco/templates /netcoco 
-RUN sed -i "s,<Hostname or Domain name>:<port>,localhost:8080,g" /netcoco/templates/js/main.js 
+RUN mkdir -p /netcoco/templates
 RUN mkdir -p /netcoco/templates/dist
-COPY --from=build /netcoco-ui/dist /netcoco/templates/dist
-RUN curl -L https://github.com/mrzack99s/netcoco/releases/download/v${NETCOCO_VERSION}/netcoco-linux-amd64 -o /netcoco/netcoco-linux-amd64
+
+COPY --from=build_go /netcoco/templates /netcoco/templates
+RUN sed -i "s,<Hostname or Domain name>:<port>,localhost:8080,g" /netcoco/templates/js/main.js 
+
+COPY --from=build_node /netcoco-ui/dist /netcoco/templates/dist
+COPY --from=build_go /netcoco/netcoco-linux-amd64 /netcoco
 
 ## Execution
 WORKDIR /netcoco

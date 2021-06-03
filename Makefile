@@ -18,5 +18,3 @@ windows:
 linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -ldflags ${LDFLAGS} -v -o ${LINUX_BINARY} ./netcoco ;
 	-chmod +x ${LINUX_BINARY}
-	tar -czf templates.tar.gz ./templates
-	zip templates.zip ./templates

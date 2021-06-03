@@ -1,10 +1,8 @@
 name: build-netcoco-image
 on:
-  workflow_run:
-    workflows:
-      - release
-    types: 
-      - completed
+  push:
+    tags:
+      - "v*"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,25 +16,25 @@ jobs:
       - name: build netcoco
         shell: bash
         env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
+          VERSION: ${{ steps.vars.outputs.tag }}
         run: |
           cd images
-          docker build --build-arg version=$VERSION -t mrzack/netcoco:$VERSION .
+          docker build --build-arg COCO_VERSION=${VERSION} -t mrzack/netcoco:${VERSION} .
       - name: security scan
         shell: bash
         env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
+          VERSION: ${{ steps.vars.outputs.tag }}
         run: |
           cd images
 
           wget https://github.com/anchore/grype/releases/download/v0.6.1/grype_0.6.1_linux_amd64.deb
           sudo apt install -y ./grype_0.6.1_linux_amd64.deb
 
-          grype -f negligible mrzack/netcoco:$VERSION
+          grype -f negligible mrzack/netcoco:${VERSION}
       - name: push
         shell: bash
         env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
+          VERSION: ${{ steps.vars.outputs.tag }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
@@ -44,6 +42,6 @@ jobs:
 
           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-          docker push mrzack/netcoco:$VERSION
+          docker push mrzack/netcoco:${VERSION}
 
           docker logout
