@@ -1,8 +1,7 @@
 name: build-netcoco-image
 on:
-  release:
-    types:
-      - created
+  release: 
+    types: [created, published]
 jobs:
   build:
     runs-on: ubuntu-latest
