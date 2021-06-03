@@ -1,7 +1,7 @@
 name: build-netcoco-image
 on:
   release:
-    types: [published]
+    types: [released]
     paths:
       - 'images/**'
 jobs:
