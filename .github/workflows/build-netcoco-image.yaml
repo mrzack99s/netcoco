@@ -1,49 +1,40 @@
 name: build-netcoco-image
 on:
-  workflow_run:
-    workflows:
-      - release
-    types: 
-      - completed
+  push:
+    tags:
+      - "v*"
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: check out
         uses: actions/checkout@v2
-      - name: setup go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '^1.16.3'
       - name: build netcoco
         shell: bash
-        env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           cd images
-          docker build --build-arg version=$VERSION -t mrzack/netcoco:$VERSION .
+          TAG=$(cat VERSION)
+          docker build --build-arg COCO_VERSION=$TAG -t quay.io/netcoco-io/netcoco:$TAG .
       - name: security scan
         shell: bash
-        env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           cd images
+          TAG=$(cat VERSION)
 
           wget https://github.com/anchore/grype/releases/download/v0.6.1/grype_0.6.1_linux_amd64.deb
           sudo apt install -y ./grype_0.6.1_linux_amd64.deb
 
-          grype -f negligible mrzack/netcoco:$VERSION
-      - name: push
+          grype -f negligible quay.io/netcoco-io/netcoco:$TAG
+      - name: login to quay.io registry
         shell: bash
         env: 
-          VERSION: ${{ env.RELEASE_VERSION }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: docker login quay.io -u $QUAY_USERNAME -p $QUAY_PASSWORD
+      - name: push
+        shell: bash
         run: |
           cd images
-
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-
-          docker push mrzack/netcoco:$VERSION
-
-          docker logout
+          TAG=$(cat VERSION)
+          docker push quay.io/netcoco-io/netcoco:$TAG
+          docker logout quay.io
