@@ -62,9 +62,9 @@ func SystemInitial(client *ent.Client) {
 	}))
 
 	//Unsecure API
-	system.UnsecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/unsecure/api", system.Version))
+	system.UnsecureAPIGroup = system.HttpRouter.Group("/unsecure/api")
 	//Secure API
-	system.SecureAPIGroup = system.HttpRouter.Group(fmt.Sprintf("/%s/api", system.Version), services.APIAuthentication)
+	system.SecureAPIGroup = system.HttpRouter.Group("/api", services.APIAuthentication)
 	apis.NewUnsecureController(system.UnsecureAPIGroup, client)
 
 	system.ApplicationListener = &http.Server{

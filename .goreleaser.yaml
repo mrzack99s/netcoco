@@ -1,0 +1,51 @@
+project_name: ekz
+
+release:
+  prerelease: auto
+  draft: false
+  name_template: "NetCoCo {{ .Version }}"
+
+builds:
+  - <<: &build_defaults
+      binary: netcoco
+      main: ./netcoco
+      ldflags:
+        - -X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production'
+      env:
+        - CGO_ENABLED=0
+    id: linux
+    goos:
+      - linux
+    goarch:
+      - amd64
+  - <<: *build_defaults
+    id: windows
+    ldflags:
+      - -X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production'
+      - -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'
+    goos:
+      - windows
+
+archives:
+  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+    id: linux_binary
+    builds: [linux]
+    format: binary
+
+  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+    id: windows_binary
+    builds: [windows]
+    format: binary
+
+  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+    id: unix
+    builds: [linux]
+    format: tar.gz
+    files:
+      - none*
+  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+    id: windows
+    builds: [windows]
+    format: zip
+    files:
+      - none*

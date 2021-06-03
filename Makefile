@@ -1,21 +1,22 @@
-VERSION = v1.0.0-alpha
-DIR_PATH = bin/
-WIN_BINARY = ${DIR_PATH}netcoco-windows.exe
-LINUX_BINARY = ${DIR_PATH}netcoco-linux-amd64
+WIN_BINARY = netcoco-windows.exe
+LINUX_BINARY = netcoco-linux-amd64
 GOARCH = amd64
-LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=${VERSION}'"
-WIN_LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Version=${VERSION}' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
-# Build the project
-build: clean windows linux
+
+LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production'"
+WIN_LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
+
+# Build binary
+build: install tidy windows linux
+
+install:
+	go install ./netcoco
+tidy:
+	go mod tidy
 windows:
-	CGO_ENABLED=1 CXX=x86_64-w64-mingw32-g++ CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=${GOARCH} go build -ldflags ${WIN_LDFLAGS} -v -o ${WIN_BINARY} ./runtime ;
+	CGO_ENABLED=1 CXX=x86_64-w64-mingw32-g++ CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=${GOARCH} go build -ldflags ${WIN_LDFLAGS} -v -o ${WIN_BINARY} ./netcoco ;
 	-chmod +x ${WIN_BINARY}
 linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -ldflags ${LDFLAGS} -v -o ${LINUX_BINARY} ./runtime ;
+	CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -ldflags ${LDFLAGS} -v -o ${LINUX_BINARY} ./netcoco ;
 	-chmod +x ${LINUX_BINARY}
-	tar -czf ${DIR_PATH}/templates.tar.gz ./templates
-	zip ${DIR_PATH}/templates.zip ./templates
-
-clean:
-	-rm -f ${DIR_PATH}netcoco-*
-	-rm -f ${DIR_PATH}templates*
+	tar -czf templates.tar.gz ./templates
+	zip templates.zip ./templates

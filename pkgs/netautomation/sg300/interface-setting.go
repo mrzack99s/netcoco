@@ -18,6 +18,7 @@ func getInterfaceConfig(o *types.InterfaceSetting) (config []string) {
 		switch o.Mode {
 		case constants.MODE_ACCESS:
 			var rawCmd string = `interface %s
+sw trunk allowed vlan remove all
 switchport mode access
 no switchport trunk native vlan
 switchport access vlan %s
@@ -62,6 +63,7 @@ exit`
 		switch o.Mode {
 		case constants.MODE_ACCESS:
 			var rawCmd string = `interface %s
+sw trunk allowed vlan remove all
 switchport mode access
 no switchport trunk native vlan
 switchport access vlan %s
