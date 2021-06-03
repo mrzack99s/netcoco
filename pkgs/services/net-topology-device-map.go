@@ -40,7 +40,7 @@ func CreateDeviceMap(client *ent.Client, obj DeviceMapStruct) (response *ent.Net
 }
 
 func CreateEdge(client *ent.Client, obj EdgeStruct) (response *ent.NetTopologyDeviceMap, err error) {
-	client.NetTopologyDeviceMap.UpdateOneID(obj.MapID).AddEdgeIDs(obj.ToNodeID).Save(context.Background())
+	response, err = client.NetTopologyDeviceMap.UpdateOneID(obj.MapID).AddEdgeIDs(obj.ToNodeID).Save(context.Background())
 	return
 }
 

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/administrator"
@@ -36,13 +35,13 @@ func ChangePasswordAdministrator(client *ent.Client, obj ChangeAdminPassword) (r
 		Only(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found username %s", obj.Username))
+		e = errors.New("not found username" + obj.Username)
 		return
 
 	} else {
 		if obj.OldPassword != security.Decrypt([]byte(usr.Password)) {
 			response = nil
-			e = errors.New("Password not match!")
+			e = errors.New("password not match")
 			return
 
 		} else {

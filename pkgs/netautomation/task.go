@@ -16,11 +16,11 @@ func (task *Task) SendConfig() (err error) {
 
 	switch task.Host.Platform {
 	case "ios":
-		ios.SendConfig((*types.Task)(task))
+		err = ios.SendConfig((*types.Task)(task))
 	case "sg300":
-		sg300.SendConfig((*types.Task)(task))
+		err = sg300.SendConfig((*types.Task)(task))
 	case "sg350":
-		sg350.SendConfig((*types.Task)(task))
+		err = sg350.SendConfig((*types.Task)(task))
 	}
 	return
 }

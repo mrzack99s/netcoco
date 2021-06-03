@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/device"
@@ -57,7 +57,10 @@ func CreateInterface(client *ent.Client, obj ent.NetInterface) (response *ent.Ne
 	}
 
 	if obj.Edges.OnDevice.DeviceCommitConfig {
-		obj.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err = obj.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return
@@ -87,20 +90,23 @@ func CreateRangeInterface(client *ent.Client, obj []ent.NetInterface) (response 
 
 	response[0].Edges.OnDevice = response[0].QueryOnDevice().OnlyX(context.Background())
 	if response[0].Edges.OnDevice.DeviceCommitConfig {
-		response[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		_, err = response[0].Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return
 }
 
-func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *ent.NetInterface, e error) {
+func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *ent.NetInterface, err error) {
 	usr, err := client.NetInterface.
 		Query().Where(netinterface.IDEQ(obj.ID)).
 		Only(context.Background())
 	usr.Edges.OnDevice = usr.QueryOnDevice().OnlyX(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found interface %s", obj.InterfaceName))
+		err = errors.New("not found interface " + obj.InterfaceName)
 		return
 
 	} else {
@@ -145,15 +151,14 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 
 		}
 
-		if e != nil {
+		if err != nil {
 			response = nil
 			return
 		}
 
-		if usr.Edges.OnDevice.DeviceCommitConfig {
-			usr.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if response.Edges.OnDevice.DeviceCommitConfig {
+			_, err = response.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
 		}
-		response = usr
 		return
 
 	}
@@ -166,5 +171,8 @@ func DeleteInterface(client *ent.Client, id int) (err error) {
 
 func CleanInterface(client *ent.Client, id int) (err error) {
 	_, err = client.NetInterface.Delete().Where(netinterface.HasOnDeviceWith(device.IDEQ(id))).Exec(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	return
 }

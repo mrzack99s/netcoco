@@ -11,7 +11,6 @@ type Host struct {
 	EnableSecret string
 	SSHPort      int
 	Platform     string
-	device       netrasp.Platform
 }
 
 func (host *Host) GetDriver() (device netrasp.Platform, err error) {

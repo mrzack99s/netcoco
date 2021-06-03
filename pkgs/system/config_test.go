@@ -15,6 +15,9 @@ func TestParseConfig(t *testing.T) {
 	var SystemConfigVar system.SystemConfig
 	filename, _ := filepath.Abs("../../config.yaml")
 	yamlFile, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
 
 	err = yaml.Unmarshal(yamlFile, &SystemConfigVar)
 	if err != nil {

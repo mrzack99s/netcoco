@@ -100,30 +100,45 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client.Schema.Create(context.Background())
+	err = client.Schema.Create(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if i, _ := client.DeviceType.Query().Count(context.Background()); i == 0 {
 		temp := []string{"router", "l3switch", "l2switch", "firewall", "storage", "server"}
 		for _, item := range temp {
-			client.DeviceType.Create().SetDeviceTypeName(item).Save(context.Background())
+			_, err = client.DeviceType.Create().SetDeviceTypeName(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if i, _ := client.NetInterfaceMode.Query().Count(context.Background()); i == 0 {
 		temp := []string{"Access", "Trunking", "None"}
 		for _, item := range temp {
-			client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
+			_, err = client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if i, _ := client.DevicePlatform.Query().Count(context.Background()); i == 0 {
 		temp := []string{"ios", "sg300", "sg350"}
 		for _, item := range temp {
-			client.DevicePlatform.Create().SetDevicePlatformName(item).Save(context.Background())
+			_, err = client.DevicePlatform.Create().SetDevicePlatformName(item).Save(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 	if i, _ := client.Vlan.Query().Count(context.Background()); i == 0 {
-		client.Vlan.Create().SetVlanID(1).Save(context.Background())
-
+		_, err = client.Vlan.Create().SetVlanID(1).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	SystemInitial(client)
@@ -139,7 +154,10 @@ func main() {
 				case <-ctx.Done():
 					return
 				default:
-					system.ApplicationListener.ListenAndServe()
+					err = system.ApplicationListener.ListenAndServe()
+					if err != nil {
+						log.Panic(err)
+					}
 				}
 			}
 		}()
@@ -148,17 +166,26 @@ func main() {
 			if !services.CheckNilAdministrator(client) {
 				cancelCtx()
 				system.HttpRouter = nil
-				system.ApplicationListener.Shutdown(context.Background())
+				err = system.ApplicationListener.Shutdown(context.Background())
+				if err != nil {
+					log.Panic(err)
+				}
 				break
 			}
 		}
 
 		SystemInitial(client)
 		apis.DefaultSystem(client)
-		system.ApplicationListener.ListenAndServe()
+		err = system.ApplicationListener.ListenAndServe()
+		if err != nil {
+			log.Panic(err)
+		}
 
 	} else {
 		apis.DefaultSystem(client)
-		system.ApplicationListener.ListenAndServe()
+		err = system.ApplicationListener.ListenAndServe()
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 }

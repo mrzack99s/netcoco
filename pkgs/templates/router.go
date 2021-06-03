@@ -17,7 +17,7 @@ func NewHTMLController(ft bool) {
 		system.HttpRouter.Static("/images", fmt.Sprintf("%simages", GetRootPath()))
 		system.HtmlGroup.GET("initial", GetInitialPage)
 		system.HttpRouter.GET("", func(c *gin.Context) {
-			c.Request.URL.Path = fmt.Sprintf("/ui/initial")
+			c.Request.URL.Path = "/ui/initial"
 			system.HttpRouter.HandleContext(c)
 		})
 	} else {

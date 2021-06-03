@@ -35,6 +35,9 @@ type SystemConfig struct {
 func ParseSystemConfig(path string) {
 	filename, _ := filepath.Abs(path)
 	yamlFile, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
 
 	err = yaml.Unmarshal(yamlFile, &SystemConfigVar)
 	if err != nil {

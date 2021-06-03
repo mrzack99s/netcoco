@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
@@ -39,7 +38,7 @@ func EditTopologyDetail(client *ent.Client, obj ent.NetTopology) (response *ent.
 		Only(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found interface %s", obj.TopologyName))
+		e = errors.New("not found interface " + obj.TopologyName)
 		return
 
 	} else {

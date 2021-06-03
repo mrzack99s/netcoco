@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/mrzack99s/netcoco/ent"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
@@ -33,7 +32,7 @@ func EditDeviceTypeDetail(client *ent.Client, obj ent.DeviceType) (response *ent
 		Only(context.Background())
 	if err != nil {
 		response = nil
-		e = errors.New(fmt.Sprintf("Not found device %s", obj.DeviceTypeName))
+		e = errors.New("not found device " + obj.DeviceTypeName)
 		return
 
 	} else {
