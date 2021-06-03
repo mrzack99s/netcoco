@@ -1,8 +1,7 @@
 name: build-netcoco-image
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
     paths:
       - 'images/**'
 jobs:
@@ -37,7 +36,6 @@ jobs:
         shell: bash
         env: 
           VERSION: ${{ env.RELEASE_VERSION }}
-        env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
