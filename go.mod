@@ -1,6 +1,6 @@
 module github.com/mrzack99s/netcoco
 
-go 1.13
+go 1.16
 
 require (
 	entgo.io/ent v0.8.0
