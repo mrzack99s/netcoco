@@ -24,6 +24,8 @@ RUN make build
 # Production stage
 FROM alpine:3.13 as production
 
+RUN apk add --no-cache bash
+
 RUN mkdir -p /netcoco/templates
 RUN mkdir -p /netcoco/templates/dist
 
@@ -39,4 +41,3 @@ COPY entrypoint.sh .
 RUN chmod +x netcoco-linux-amd64
 RUN chmod +x entrypoint.sh
 ENTRYPOINT [ "./entrypoint.sh" ]
-
