@@ -18,8 +18,8 @@ ENV NETCOCO_VERSION=$version
 RUN apt-get update && \
     apt-get install -y curl
 RUN mkdir -p /netcoco
-RUN curl -LO https://github.com/mrzack99s/netcoco/releases/download/v${NETCOCO_VERSION}/templates.tar.gz && \
-    tar -zxf templates.tar.gz && mv templates /netcoco 
+RUN curl -LO https://github.com/mrzack99s/netcoco/releases/download/v${NETCOCO_VERSION}/netcoco-linux-amd64.tar.gz && \
+    tar -zxf netcoco-linux-amd64.tar.gz && mv ./netcoco/templates /netcoco 
 RUN sed -i "s,<Hostname or Domain name>:<port>,localhost:8080,g" /netcoco/templates/js/main.js 
 RUN mkdir -p /netcoco/templates/dist
 COPY --from=build /netcoco-ui/dist /netcoco/templates/dist
