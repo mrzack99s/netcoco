@@ -2,6 +2,7 @@ package sg350
 
 import (
 	"context"
+	"log"
 	"regexp"
 
 	"github.com/mrzack99s/netcoco/pkgs/netautomation/types"
@@ -42,7 +43,10 @@ func SendConfig(task *types.Task) (err error) {
 		return err
 	}
 
-	device.Close(context.Background())
+	err = device.Close(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = nil
 	return
 }

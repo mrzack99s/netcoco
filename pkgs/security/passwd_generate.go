@@ -1,26 +1,24 @@
 package security
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"log"
+	"math/big"
 )
 
+var charset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$@")
+
 func GeneratePasswordString(length int) (str string) {
-	rand.Seed(time.Now().UnixNano())
-	digits := "0123456789"
-	specials := "$@"
-	all := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-		"abcdefghijklmnopqrstuvwxyz" +
-		digits + specials
-	buf := make([]byte, length)
-	buf[0] = digits[rand.Intn(len(digits))]
-	buf[1] = specials[rand.Intn(len(specials))]
-	for i := 2; i < length; i++ {
-		buf[i] = all[rand.Intn(len(all))]
+
+	s := make([]rune, length)
+	for i := range s {
+		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			log.Fatal(err)
+		}
+		s[i] = charset[idx.Int64()]
 	}
-	rand.Shuffle(len(buf), func(i, j int) {
-		buf[i], buf[j] = buf[j], buf[i]
-	})
-	str = string(buf)
+	str = string(s)
+
 	return
 }

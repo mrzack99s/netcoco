@@ -80,7 +80,10 @@ func main() {
 
 	if *filename == "" && system.Os == "windows" {
 		fmt.Print("Enter your config file path: ")
-		fmt.Scan(filename)
+		_, err := fmt.Scanln(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if *filename == "" && system.Os != "windows" {
