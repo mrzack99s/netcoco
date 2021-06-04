@@ -1,3 +1,4 @@
+
 name: build-netcoco-image
 on:
   push:
@@ -22,10 +23,8 @@ jobs:
         run: |
           cd images
           TAG=$(cat VERSION)
-
           wget https://github.com/anchore/grype/releases/download/v0.6.1/grype_0.6.1_linux_amd64.deb
           sudo apt install -y ./grype_0.6.1_linux_amd64.deb
-
           grype -f negligible quay.io/netcoco-io/netcoco:$TAG
       - name: login to quay.io registry
         shell: bash
@@ -38,13 +37,10 @@ jobs:
         run: |
           cd images
           TAG=$(cat VERSION)
-
           regex="^v[0-9].[0-9].[0-9]+$"
           if [[ $TAG =~ $regex ]]; then
               docker tag quay.io/netcoco-io/netcoco:$TAG quay.io/netcoco-io/netcoco:latest
               docker push quay.io/netcoco-io/netcoco:latest
           fi
-
           docker push quay.io/netcoco-io/netcoco:$TAG
-
           docker logout quay.io
