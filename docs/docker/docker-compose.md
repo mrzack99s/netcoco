@@ -1,11 +1,10 @@
 # Docker Compose
 
-> Docker compose file **docker-compose.yaml** 
+> Docker compose file **docker-compose.yaml**
 
 ```yaml
-
 version: '3'
- 
+
 services:
   netcoco:
     image: quay.io/netcoco-io/netcoco
@@ -19,17 +18,19 @@ services:
       - "8080:8080"
     volumes:
       - ./config.yaml:/netcoco/config.yaml
-
 ```
 
-### Requirements
-*   Docker verison >= 19.03.xx
-*   Docker-compose
+## Requirements
 
-### How to use
+* Docker verison &gt;= 19.03.xx
+* Docker-compose
 
-1.  Create file docker-compose.yaml
-2.  Run docker compose
-    ```bash
-        docker-compose up -d
-    ```
+## How to use
+
+1. Create file docker-compose.yaml
+2. Run docker compose
+
+   ```bash
+       docker-compose up -d
+   ```
+
