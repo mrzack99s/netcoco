@@ -13,6 +13,5 @@
     * [Docker Run](docs/docker/docker-run.md)
     * [Docker Compose](docs/docker/docker-compose.md)
   * [Kubernetes](docs/kubernetes/README.md)
-    * [Requirements](docs/kubernetes/requirements.md)
-    * [Installation](docs/kubernetes/installation.md)
+    * [Manifest installation](docs/kubernetes/manifest-installation.md)
 
