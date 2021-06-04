@@ -16,10 +16,6 @@ jobs:
           TAG=$(cat VERSION)
           regex="^v[0-9].[0-9].[0-9]+$"
           docker build --build-arg COCO_VERSION=$TAG -t quay.io/netcoco-io/netcoco:$TAG .
-
-          if [[ $TAG =~ $regex ]]; then
-              docker tag quay.io/netcoco-io/netcoco:$TAG quay.io/netcoco-io/netcoco:latest .
-          fi
           
       - name: security scan
         shell: bash
@@ -42,11 +38,13 @@ jobs:
         run: |
           cd images
           TAG=$(cat VERSION)
-          docker push quay.io/netcoco-io/netcoco:$TAG
 
           regex="^v[0-9].[0-9].[0-9]+$"
           if [[ $TAG =~ $regex ]]; then
-              docker push quay.io/netcoco-io/netcoco:latest .
+              docker tag quay.io/netcoco-io/netcoco:$TAG quay.io/netcoco-io/netcoco:latest
+              docker push quay.io/netcoco-io/netcoco:latest
           fi
+
+          docker push quay.io/netcoco-io/netcoco:$TAG
 
           docker logout quay.io
