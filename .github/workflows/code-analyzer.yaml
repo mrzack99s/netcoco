@@ -3,10 +3,13 @@ name: code-analyzer
 on:
   push:
     branches:
+      - main
       - develop
   pull_request:
     branches:
       - main
+    types:
+      - closed
     
 
 jobs:
