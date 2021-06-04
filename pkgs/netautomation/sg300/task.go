@@ -41,7 +41,7 @@ func SendConfig(task *types.Task) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = device.Run(ctx, "Y")
+	_, err = device.Run(ctx, "Y\n")
 	if err != nil {
 		return err
 	}

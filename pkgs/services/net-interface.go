@@ -156,8 +156,8 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 			return
 		}
 
-		if response.Edges.OnDevice.DeviceCommitConfig {
-			_, err = response.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if usr.Edges.OnDevice.DeviceCommitConfig {
+			_, err = usr.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
 		}
 		return
 
