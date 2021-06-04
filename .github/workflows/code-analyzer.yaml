@@ -3,11 +3,8 @@ name: code-analyzer
 on:
   push:
     branches:
-      - develop
-  pull_request:
-    branches:
       - main
-    
+      - develop    
 
 jobs:
   CodeQL-Scanning:
