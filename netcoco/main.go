@@ -76,23 +76,27 @@ func SystemInitial(client *ent.Client) {
 func main() {
 
 	filename := flag.String("file", "", "config file path")
+	haveEnvironment := flag.Bool("e", false, "Have environments")
 	flag.Parse()
 
-	if *filename == "" && system.Os == "windows" {
-		fmt.Print("Enter your config file path: ")
-		_, err := fmt.Scanln(filename)
-		if err != nil {
-			log.Fatal(err)
+	if *haveEnvironment {
+		system.SetConfigFromEnvironment()
+	} else {
+		if *filename == "" && system.Os == "windows" {
+			fmt.Print("Enter your config file path: ")
+			_, err := fmt.Scanln(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
-	}
 
-	if *filename == "" && system.Os != "windows" {
-		fmt.Println("Please enter config file")
-		fmt.Println("   [With flag] -file=?")
-		os.Exit(0)
+		if *filename == "" && system.Os != "windows" {
+			fmt.Println("Please enter config file")
+			fmt.Println("   [With flag] -file=?")
+			os.Exit(0)
+		}
+		system.ParseSystemConfig(*filename)
 	}
-
-	system.ParseSystemConfig(*filename)
 
 	if system.SystemConfigVar.NetCoCo.Port == 0 {
 		system.SystemConfigVar.NetCoCo.Port = 8080
