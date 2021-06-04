@@ -4,6 +4,8 @@ netcoco-*
 # Config file
 config.yaml
 dev_config.yaml
+Dockerfile.dev
+test_manifest.yaml
 
 # Editor directories and files
 .idea
