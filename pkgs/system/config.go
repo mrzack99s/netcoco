@@ -33,7 +33,7 @@ type SystemConfig struct {
 }
 
 func ParseSystemConfig(path string) {
-	filename, _ := filepath.Abs(path)
+	filename := filepath.Clean(path)
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
