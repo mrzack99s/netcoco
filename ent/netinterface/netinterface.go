@@ -13,6 +13,8 @@ const (
 	FieldInterfaceShutdown = "interface_shutdown"
 	// EdgeOnDevice holds the string denoting the on_device edge name in mutations.
 	EdgeOnDevice = "on_device"
+	// EdgeOnPoInterface holds the string denoting the on_po_interface edge name in mutations.
+	EdgeOnPoInterface = "on_po_interface"
 	// EdgeMode holds the string denoting the mode edge name in mutations.
 	EdgeMode = "mode"
 	// EdgeHaveVlans holds the string denoting the have_vlans edge name in mutations.
@@ -28,6 +30,13 @@ const (
 	OnDeviceInverseTable = "devices"
 	// OnDeviceColumn is the table column denoting the on_device relation/edge.
 	OnDeviceColumn = "device_interfaces"
+	// OnPoInterfaceTable is the table the holds the on_po_interface relation/edge.
+	OnPoInterfaceTable = "net_interfaces"
+	// OnPoInterfaceInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	OnPoInterfaceInverseTable = "port_channel_interfaces"
+	// OnPoInterfaceColumn is the table column denoting the on_po_interface relation/edge.
+	OnPoInterfaceColumn = "port_channel_interface_interfaces"
 	// ModeTable is the table the holds the mode relation/edge.
 	ModeTable = "net_interfaces"
 	// ModeInverseTable is the table name for the NetInterfaceMode entity.
@@ -61,6 +70,7 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"device_interfaces",
 	"net_interface_mode_modes",
+	"port_channel_interface_interfaces",
 	"vlan_native_vlan",
 }
 

@@ -25,8 +25,18 @@ func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
 	response.Edges.Interfaces = response.QueryInterfaces().AllX(context.Background())
 	for _, dd := range response.Edges.Interfaces {
 		dd.Edges.Mode = dd.QueryMode().OnlyX(context.Background())
-		dd.Edges.HaveVlans = dd.QueryHaveVlans().AllX(context.Background())
-		dd.Edges.NativeOnVlan = dd.QueryNativeOnVlan().OnlyX(context.Background())
+		if dd.Edges.Mode.InterfaceMode == "EtherChannel" {
+			dd.Edges.OnPoInterface = dd.QueryOnPoInterface().OnlyX(context.Background())
+		} else {
+			dd.Edges.HaveVlans = dd.QueryHaveVlans().AllX(context.Background())
+			dd.Edges.NativeOnVlan = dd.QueryNativeOnVlan().OnlyX(context.Background())
+		}
+	}
+	response.Edges.PoInterfaces = response.QueryPoInterfaces().AllX(context.Background())
+	for _, po := range response.Edges.PoInterfaces {
+		po.Edges.HaveVlans = po.QueryHaveVlans().AllX(context.Background())
+		po.Edges.NativeOnVlan = po.QueryNativeOnVlan().OnlyX(context.Background())
+		po.Edges.Mode = po.QueryMode().OnlyX(context.Background())
 	}
 	response.Edges.InType = response.QueryInType().OnlyX(context.Background())
 	response.Edges.InPlatform = response.QueryInPlatform().OnlyX(context.Background())
@@ -102,20 +112,41 @@ func DeleteDeviceVlan(client *ent.Client, id, vid int) error {
 		log.Fatal(err)
 	}
 	device.Edges.Interfaces = device.QueryInterfaces().AllX(context.Background())
+	device.Edges.PoInterfaces = device.QueryPoInterfaces().AllX(context.Background())
 
+	foundUsed := false
 	for _, d := range device.Edges.Interfaces {
 		d.Edges.HaveVlans = d.QueryHaveVlans().AllX(context.Background())
 		d.Edges.NativeOnVlan = d.QueryNativeOnVlan().OnlyX(context.Background())
 
 		if d.Edges.NativeOnVlan.VlanID == vid {
-			return errors.New("vlan used")
+			foundUsed = true
 		}
 
 		for _, v := range d.Edges.HaveVlans {
 			if v.VlanID == vid {
-				return errors.New("vlan used")
+				foundUsed = true
 			}
 		}
+	}
+
+	for _, d := range device.Edges.PoInterfaces {
+		d.Edges.HaveVlans = d.QueryHaveVlans().AllX(context.Background())
+		d.Edges.NativeOnVlan = d.QueryNativeOnVlan().OnlyX(context.Background())
+
+		if d.Edges.NativeOnVlan.VlanID == vid {
+			foundUsed = true
+		}
+
+		for _, v := range d.Edges.HaveVlans {
+			if v.VlanID == vid {
+				foundUsed = true
+			}
+		}
+	}
+
+	if foundUsed {
+		return errors.New("vlan used")
 	}
 
 	vlan, err := client.Vlan.Query().Where(vlan.VlanIDEQ(vid)).Only(context.Background())

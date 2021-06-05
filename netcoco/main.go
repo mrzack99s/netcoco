@@ -123,7 +123,7 @@ func main() {
 	}
 
 	if i, _ := client.NetInterfaceMode.Query().Count(context.Background()); i == 0 {
-		temp := []string{"Access", "Trunking", "None"}
+		temp := []string{"Access", "Trunking", "EtherChannel", "None"}
 		for _, item := range temp {
 			_, err = client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
 			if err != nil {

@@ -30,6 +30,8 @@ type Tx struct {
 	NetTopology *NetTopologyClient
 	// NetTopologyDeviceMap is the client for interacting with the NetTopologyDeviceMap builders.
 	NetTopologyDeviceMap *NetTopologyDeviceMapClient
+	// PortChannelInterface is the client for interacting with the PortChannelInterface builders.
+	PortChannelInterface *PortChannelInterfaceClient
 	// Vlan is the client for interacting with the Vlan builders.
 	Vlan *VlanClient
 
@@ -176,6 +178,7 @@ func (tx *Tx) init() {
 	tx.NetInterfaceMode = NewNetInterfaceModeClient(tx.config)
 	tx.NetTopology = NewNetTopologyClient(tx.config)
 	tx.NetTopologyDeviceMap = NewNetTopologyDeviceMapClient(tx.config)
+	tx.PortChannelInterface = NewPortChannelInterfaceClient(tx.config)
 	tx.Vlan = NewVlanClient(tx.config)
 }
 

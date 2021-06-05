@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -55,6 +56,36 @@ func (vc *VlanCreate) AddNativeVlan(n ...*NetInterface) *VlanCreate {
 		ids[i] = n[i].ID
 	}
 	return vc.AddNativeVlanIDs(ids...)
+}
+
+// AddPoVlanIDs adds the "po_vlans" edge to the PortChannelInterface entity by IDs.
+func (vc *VlanCreate) AddPoVlanIDs(ids ...int) *VlanCreate {
+	vc.mutation.AddPoVlanIDs(ids...)
+	return vc
+}
+
+// AddPoVlans adds the "po_vlans" edges to the PortChannelInterface entity.
+func (vc *VlanCreate) AddPoVlans(p ...*PortChannelInterface) *VlanCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vc.AddPoVlanIDs(ids...)
+}
+
+// AddPoNativeVlanIDs adds the "po_native_vlan" edge to the PortChannelInterface entity by IDs.
+func (vc *VlanCreate) AddPoNativeVlanIDs(ids ...int) *VlanCreate {
+	vc.mutation.AddPoNativeVlanIDs(ids...)
+	return vc
+}
+
+// AddPoNativeVlan adds the "po_native_vlan" edges to the PortChannelInterface entity.
+func (vc *VlanCreate) AddPoNativeVlan(p ...*PortChannelInterface) *VlanCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vc.AddPoNativeVlanIDs(ids...)
 }
 
 // AddOnDeviceIDs adds the "on_device" edge to the Device entity by IDs.
@@ -196,6 +227,44 @@ func (vc *VlanCreate) createSpec() (*Vlan, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := vc.mutation.PoVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := vc.mutation.PoNativeVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

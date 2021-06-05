@@ -258,6 +258,34 @@ func HasOnDeviceWith(preds ...predicate.Device) predicate.NetInterface {
 	})
 }
 
+// HasOnPoInterface applies the HasEdge predicate on the "on_po_interface" edge.
+func HasOnPoInterface() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnPoInterfaceTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnPoInterfaceTable, OnPoInterfaceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOnPoInterfaceWith applies the HasEdge predicate on the "on_po_interface" edge with a given conditions (other predicates).
+func HasOnPoInterfaceWith(preds ...predicate.PortChannelInterface) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnPoInterfaceInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnPoInterfaceTable, OnPoInterfaceColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMode applies the HasEdge predicate on the "mode" edge.
 func HasMode() predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {

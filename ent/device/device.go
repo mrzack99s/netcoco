@@ -27,6 +27,8 @@ const (
 	EdgeInPlatform = "in_platform"
 	// EdgeInterfaces holds the string denoting the interfaces edge name in mutations.
 	EdgeInterfaces = "interfaces"
+	// EdgePoInterfaces holds the string denoting the po_interfaces edge name in mutations.
+	EdgePoInterfaces = "po_interfaces"
 	// EdgeInTopology holds the string denoting the in_topology edge name in mutations.
 	EdgeInTopology = "in_topology"
 	// EdgeStoreVlans holds the string denoting the store_vlans edge name in mutations.
@@ -56,6 +58,13 @@ const (
 	InterfacesInverseTable = "net_interfaces"
 	// InterfacesColumn is the table column denoting the interfaces relation/edge.
 	InterfacesColumn = "device_interfaces"
+	// PoInterfacesTable is the table the holds the po_interfaces relation/edge.
+	PoInterfacesTable = "port_channel_interfaces"
+	// PoInterfacesInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	PoInterfacesInverseTable = "port_channel_interfaces"
+	// PoInterfacesColumn is the table column denoting the po_interfaces relation/edge.
+	PoInterfacesColumn = "device_po_interfaces"
 	// InTopologyTable is the table the holds the in_topology relation/edge.
 	InTopologyTable = "net_topology_device_maps"
 	// InTopologyInverseTable is the table name for the NetTopologyDeviceMap entity.

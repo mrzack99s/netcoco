@@ -12,6 +12,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -66,6 +67,25 @@ func (niu *NetInterfaceUpdate) SetNillableOnDeviceID(id *int) *NetInterfaceUpdat
 // SetOnDevice sets the "on_device" edge to the Device entity.
 func (niu *NetInterfaceUpdate) SetOnDevice(d *Device) *NetInterfaceUpdate {
 	return niu.SetOnDeviceID(d.ID)
+}
+
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (niu *NetInterfaceUpdate) SetOnPoInterfaceID(id int) *NetInterfaceUpdate {
+	niu.mutation.SetOnPoInterfaceID(id)
+	return niu
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableOnPoInterfaceID(id *int) *NetInterfaceUpdate {
+	if id != nil {
+		niu = niu.SetOnPoInterfaceID(*id)
+	}
+	return niu
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (niu *NetInterfaceUpdate) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceUpdate {
+	return niu.SetOnPoInterfaceID(p.ID)
 }
 
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
@@ -129,6 +149,12 @@ func (niu *NetInterfaceUpdate) Mutation() *NetInterfaceMutation {
 // ClearOnDevice clears the "on_device" edge to the Device entity.
 func (niu *NetInterfaceUpdate) ClearOnDevice() *NetInterfaceUpdate {
 	niu.mutation.ClearOnDevice()
+	return niu
+}
+
+// ClearOnPoInterface clears the "on_po_interface" edge to the PortChannelInterface entity.
+func (niu *NetInterfaceUpdate) ClearOnPoInterface() *NetInterfaceUpdate {
+	niu.mutation.ClearOnPoInterface()
 	return niu
 }
 
@@ -291,6 +317,41 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: device.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.OnPoInterfaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}
@@ -481,6 +542,25 @@ func (niuo *NetInterfaceUpdateOne) SetOnDevice(d *Device) *NetInterfaceUpdateOne
 	return niuo.SetOnDeviceID(d.ID)
 }
 
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (niuo *NetInterfaceUpdateOne) SetOnPoInterfaceID(id int) *NetInterfaceUpdateOne {
+	niuo.mutation.SetOnPoInterfaceID(id)
+	return niuo
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableOnPoInterfaceID(id *int) *NetInterfaceUpdateOne {
+	if id != nil {
+		niuo = niuo.SetOnPoInterfaceID(*id)
+	}
+	return niuo
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (niuo *NetInterfaceUpdateOne) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceUpdateOne {
+	return niuo.SetOnPoInterfaceID(p.ID)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (niuo *NetInterfaceUpdateOne) SetModeID(id int) *NetInterfaceUpdateOne {
 	niuo.mutation.SetModeID(id)
@@ -542,6 +622,12 @@ func (niuo *NetInterfaceUpdateOne) Mutation() *NetInterfaceMutation {
 // ClearOnDevice clears the "on_device" edge to the Device entity.
 func (niuo *NetInterfaceUpdateOne) ClearOnDevice() *NetInterfaceUpdateOne {
 	niuo.mutation.ClearOnDevice()
+	return niuo
+}
+
+// ClearOnPoInterface clears the "on_po_interface" edge to the PortChannelInterface entity.
+func (niuo *NetInterfaceUpdateOne) ClearOnPoInterface() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearOnPoInterface()
 	return niuo
 }
 
@@ -728,6 +814,41 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: device.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.OnPoInterfaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

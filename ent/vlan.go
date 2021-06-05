@@ -28,11 +28,15 @@ type VlanEdges struct {
 	Vlans []*NetInterface `json:"vlans,omitempty"`
 	// NativeVlan holds the value of the native_vlan edge.
 	NativeVlan []*NetInterface `json:"native_vlan,omitempty"`
+	// PoVlans holds the value of the po_vlans edge.
+	PoVlans []*PortChannelInterface `json:"po_vlans,omitempty"`
+	// PoNativeVlan holds the value of the po_native_vlan edge.
+	PoNativeVlan []*PortChannelInterface `json:"po_native_vlan,omitempty"`
 	// OnDevice holds the value of the on_device edge.
 	OnDevice []*Device `json:"on_device,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // VlansOrErr returns the Vlans value or an error if the edge
@@ -53,10 +57,28 @@ func (e VlanEdges) NativeVlanOrErr() ([]*NetInterface, error) {
 	return nil, &NotLoadedError{edge: "native_vlan"}
 }
 
+// PoVlansOrErr returns the PoVlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e VlanEdges) PoVlansOrErr() ([]*PortChannelInterface, error) {
+	if e.loadedTypes[2] {
+		return e.PoVlans, nil
+	}
+	return nil, &NotLoadedError{edge: "po_vlans"}
+}
+
+// PoNativeVlanOrErr returns the PoNativeVlan value or an error if the edge
+// was not loaded in eager-loading.
+func (e VlanEdges) PoNativeVlanOrErr() ([]*PortChannelInterface, error) {
+	if e.loadedTypes[3] {
+		return e.PoNativeVlan, nil
+	}
+	return nil, &NotLoadedError{edge: "po_native_vlan"}
+}
+
 // OnDeviceOrErr returns the OnDevice value or an error if the edge
 // was not loaded in eager-loading.
 func (e VlanEdges) OnDeviceOrErr() ([]*Device, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[4] {
 		return e.OnDevice, nil
 	}
 	return nil, &NotLoadedError{edge: "on_device"}
@@ -109,6 +131,16 @@ func (v *Vlan) QueryVlans() *NetInterfaceQuery {
 // QueryNativeVlan queries the "native_vlan" edge of the Vlan entity.
 func (v *Vlan) QueryNativeVlan() *NetInterfaceQuery {
 	return (&VlanClient{config: v.config}).QueryNativeVlan(v)
+}
+
+// QueryPoVlans queries the "po_vlans" edge of the Vlan entity.
+func (v *Vlan) QueryPoVlans() *PortChannelInterfaceQuery {
+	return (&VlanClient{config: v.config}).QueryPoVlans(v)
+}
+
+// QueryPoNativeVlan queries the "po_native_vlan" edge of the Vlan entity.
+func (v *Vlan) QueryPoNativeVlan() *PortChannelInterfaceQuery {
+	return (&VlanClient{config: v.config}).QueryPoNativeVlan(v)
 }
 
 // QueryOnDevice queries the "on_device" edge of the Vlan entity.

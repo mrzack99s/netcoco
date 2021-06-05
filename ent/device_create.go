@@ -15,6 +15,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -158,6 +159,21 @@ func (dc *DeviceCreate) AddInterfaces(n ...*NetInterface) *DeviceCreate {
 		ids[i] = n[i].ID
 	}
 	return dc.AddInterfaceIDs(ids...)
+}
+
+// AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
+func (dc *DeviceCreate) AddPoInterfaceIDs(ids ...int) *DeviceCreate {
+	dc.mutation.AddPoInterfaceIDs(ids...)
+	return dc
+}
+
+// AddPoInterfaces adds the "po_interfaces" edges to the PortChannelInterface entity.
+func (dc *DeviceCreate) AddPoInterfaces(p ...*PortChannelInterface) *DeviceCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return dc.AddPoInterfaceIDs(ids...)
 }
 
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
@@ -434,6 +450,25 @@ func (dc *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.PoInterfacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

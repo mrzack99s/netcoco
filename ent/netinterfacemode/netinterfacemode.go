@@ -11,6 +11,8 @@ const (
 	FieldInterfaceMode = "interface_mode"
 	// EdgeModes holds the string denoting the modes edge name in mutations.
 	EdgeModes = "modes"
+	// EdgePoModes holds the string denoting the po_modes edge name in mutations.
+	EdgePoModes = "po_modes"
 	// Table holds the table name of the netinterfacemode in the database.
 	Table = "net_interface_modes"
 	// ModesTable is the table the holds the modes relation/edge.
@@ -20,6 +22,13 @@ const (
 	ModesInverseTable = "net_interfaces"
 	// ModesColumn is the table column denoting the modes relation/edge.
 	ModesColumn = "net_interface_mode_modes"
+	// PoModesTable is the table the holds the po_modes relation/edge.
+	PoModesTable = "port_channel_interfaces"
+	// PoModesInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	PoModesInverseTable = "port_channel_interfaces"
+	// PoModesColumn is the table column denoting the po_modes relation/edge.
+	PoModesColumn = "net_interface_mode_po_modes"
 )
 
 // Columns holds all SQL columns for netinterfacemode fields.

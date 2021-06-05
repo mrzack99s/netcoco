@@ -18,6 +18,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -35,6 +36,7 @@ type DeviceQuery struct {
 	withInType       *DeviceTypeQuery
 	withInPlatform   *DevicePlatformQuery
 	withInterfaces   *NetInterfaceQuery
+	withPoInterfaces *PortChannelInterfaceQuery
 	withInTopology   *NetTopologyDeviceMapQuery
 	withStoreVlans   *VlanQuery
 	withDeletedVlans *DeletedVlanLogQuery
@@ -134,6 +136,28 @@ func (dq *DeviceQuery) QueryInterfaces() *NetInterfaceQuery {
 			sqlgraph.From(device.Table, device.FieldID, selector),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, device.InterfacesTable, device.InterfacesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPoInterfaces chains the current query on the "po_interfaces" edge.
+func (dq *DeviceQuery) QueryPoInterfaces() *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.PoInterfacesTable, device.PoInterfacesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -391,6 +415,7 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 		withInType:       dq.withInType.Clone(),
 		withInPlatform:   dq.withInPlatform.Clone(),
 		withInterfaces:   dq.withInterfaces.Clone(),
+		withPoInterfaces: dq.withPoInterfaces.Clone(),
 		withInTopology:   dq.withInTopology.Clone(),
 		withStoreVlans:   dq.withStoreVlans.Clone(),
 		withDeletedVlans: dq.withDeletedVlans.Clone(),
@@ -430,6 +455,17 @@ func (dq *DeviceQuery) WithInterfaces(opts ...func(*NetInterfaceQuery)) *DeviceQ
 		opt(query)
 	}
 	dq.withInterfaces = query
+	return dq
+}
+
+// WithPoInterfaces tells the query-builder to eager-load the nodes that are connected to
+// the "po_interfaces" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithPoInterfaces(opts ...func(*PortChannelInterfaceQuery)) *DeviceQuery {
+	query := &PortChannelInterfaceQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withPoInterfaces = query
 	return dq
 }
 
@@ -532,10 +568,11 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 		nodes       = []*Device{}
 		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			dq.withInType != nil,
 			dq.withInPlatform != nil,
 			dq.withInterfaces != nil,
+			dq.withPoInterfaces != nil,
 			dq.withInTopology != nil,
 			dq.withStoreVlans != nil,
 			dq.withDeletedVlans != nil,
@@ -651,6 +688,35 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "device_interfaces" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Interfaces = append(node.Edges.Interfaces, n)
+		}
+	}
+
+	if query := dq.withPoInterfaces; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Device)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.PoInterfaces = []*PortChannelInterface{}
+		}
+		query.withFKs = true
+		query.Where(predicate.PortChannelInterface(func(s *sql.Selector) {
+			s.Where(sql.InValues(device.PoInterfacesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.device_po_interfaces
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "device_po_interfaces" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "device_po_interfaces" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PoInterfaces = append(node.Edges.PoInterfaces, n)
 		}
 	}
 

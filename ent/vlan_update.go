@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -69,6 +70,36 @@ func (vu *VlanUpdate) AddNativeVlan(n ...*NetInterface) *VlanUpdate {
 		ids[i] = n[i].ID
 	}
 	return vu.AddNativeVlanIDs(ids...)
+}
+
+// AddPoVlanIDs adds the "po_vlans" edge to the PortChannelInterface entity by IDs.
+func (vu *VlanUpdate) AddPoVlanIDs(ids ...int) *VlanUpdate {
+	vu.mutation.AddPoVlanIDs(ids...)
+	return vu
+}
+
+// AddPoVlans adds the "po_vlans" edges to the PortChannelInterface entity.
+func (vu *VlanUpdate) AddPoVlans(p ...*PortChannelInterface) *VlanUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vu.AddPoVlanIDs(ids...)
+}
+
+// AddPoNativeVlanIDs adds the "po_native_vlan" edge to the PortChannelInterface entity by IDs.
+func (vu *VlanUpdate) AddPoNativeVlanIDs(ids ...int) *VlanUpdate {
+	vu.mutation.AddPoNativeVlanIDs(ids...)
+	return vu
+}
+
+// AddPoNativeVlan adds the "po_native_vlan" edges to the PortChannelInterface entity.
+func (vu *VlanUpdate) AddPoNativeVlan(p ...*PortChannelInterface) *VlanUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vu.AddPoNativeVlanIDs(ids...)
 }
 
 // AddOnDeviceIDs adds the "on_device" edge to the Device entity by IDs.
@@ -131,6 +162,48 @@ func (vu *VlanUpdate) RemoveNativeVlan(n ...*NetInterface) *VlanUpdate {
 		ids[i] = n[i].ID
 	}
 	return vu.RemoveNativeVlanIDs(ids...)
+}
+
+// ClearPoVlans clears all "po_vlans" edges to the PortChannelInterface entity.
+func (vu *VlanUpdate) ClearPoVlans() *VlanUpdate {
+	vu.mutation.ClearPoVlans()
+	return vu
+}
+
+// RemovePoVlanIDs removes the "po_vlans" edge to PortChannelInterface entities by IDs.
+func (vu *VlanUpdate) RemovePoVlanIDs(ids ...int) *VlanUpdate {
+	vu.mutation.RemovePoVlanIDs(ids...)
+	return vu
+}
+
+// RemovePoVlans removes "po_vlans" edges to PortChannelInterface entities.
+func (vu *VlanUpdate) RemovePoVlans(p ...*PortChannelInterface) *VlanUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vu.RemovePoVlanIDs(ids...)
+}
+
+// ClearPoNativeVlan clears all "po_native_vlan" edges to the PortChannelInterface entity.
+func (vu *VlanUpdate) ClearPoNativeVlan() *VlanUpdate {
+	vu.mutation.ClearPoNativeVlan()
+	return vu
+}
+
+// RemovePoNativeVlanIDs removes the "po_native_vlan" edge to PortChannelInterface entities by IDs.
+func (vu *VlanUpdate) RemovePoNativeVlanIDs(ids ...int) *VlanUpdate {
+	vu.mutation.RemovePoNativeVlanIDs(ids...)
+	return vu
+}
+
+// RemovePoNativeVlan removes "po_native_vlan" edges to PortChannelInterface entities.
+func (vu *VlanUpdate) RemovePoNativeVlan(p ...*PortChannelInterface) *VlanUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vu.RemovePoNativeVlanIDs(ids...)
 }
 
 // ClearOnDevice clears all "on_device" edges to the Device entity.
@@ -361,6 +434,114 @@ func (vu *VlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if vu.mutation.PoVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.RemovedPoVlansIDs(); len(nodes) > 0 && !vu.mutation.PoVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.PoVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vu.mutation.PoNativeVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.RemovedPoNativeVlanIDs(); len(nodes) > 0 && !vu.mutation.PoNativeVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.PoNativeVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if vu.mutation.OnDeviceCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -477,6 +658,36 @@ func (vuo *VlanUpdateOne) AddNativeVlan(n ...*NetInterface) *VlanUpdateOne {
 	return vuo.AddNativeVlanIDs(ids...)
 }
 
+// AddPoVlanIDs adds the "po_vlans" edge to the PortChannelInterface entity by IDs.
+func (vuo *VlanUpdateOne) AddPoVlanIDs(ids ...int) *VlanUpdateOne {
+	vuo.mutation.AddPoVlanIDs(ids...)
+	return vuo
+}
+
+// AddPoVlans adds the "po_vlans" edges to the PortChannelInterface entity.
+func (vuo *VlanUpdateOne) AddPoVlans(p ...*PortChannelInterface) *VlanUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vuo.AddPoVlanIDs(ids...)
+}
+
+// AddPoNativeVlanIDs adds the "po_native_vlan" edge to the PortChannelInterface entity by IDs.
+func (vuo *VlanUpdateOne) AddPoNativeVlanIDs(ids ...int) *VlanUpdateOne {
+	vuo.mutation.AddPoNativeVlanIDs(ids...)
+	return vuo
+}
+
+// AddPoNativeVlan adds the "po_native_vlan" edges to the PortChannelInterface entity.
+func (vuo *VlanUpdateOne) AddPoNativeVlan(p ...*PortChannelInterface) *VlanUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vuo.AddPoNativeVlanIDs(ids...)
+}
+
 // AddOnDeviceIDs adds the "on_device" edge to the Device entity by IDs.
 func (vuo *VlanUpdateOne) AddOnDeviceIDs(ids ...int) *VlanUpdateOne {
 	vuo.mutation.AddOnDeviceIDs(ids...)
@@ -537,6 +748,48 @@ func (vuo *VlanUpdateOne) RemoveNativeVlan(n ...*NetInterface) *VlanUpdateOne {
 		ids[i] = n[i].ID
 	}
 	return vuo.RemoveNativeVlanIDs(ids...)
+}
+
+// ClearPoVlans clears all "po_vlans" edges to the PortChannelInterface entity.
+func (vuo *VlanUpdateOne) ClearPoVlans() *VlanUpdateOne {
+	vuo.mutation.ClearPoVlans()
+	return vuo
+}
+
+// RemovePoVlanIDs removes the "po_vlans" edge to PortChannelInterface entities by IDs.
+func (vuo *VlanUpdateOne) RemovePoVlanIDs(ids ...int) *VlanUpdateOne {
+	vuo.mutation.RemovePoVlanIDs(ids...)
+	return vuo
+}
+
+// RemovePoVlans removes "po_vlans" edges to PortChannelInterface entities.
+func (vuo *VlanUpdateOne) RemovePoVlans(p ...*PortChannelInterface) *VlanUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vuo.RemovePoVlanIDs(ids...)
+}
+
+// ClearPoNativeVlan clears all "po_native_vlan" edges to the PortChannelInterface entity.
+func (vuo *VlanUpdateOne) ClearPoNativeVlan() *VlanUpdateOne {
+	vuo.mutation.ClearPoNativeVlan()
+	return vuo
+}
+
+// RemovePoNativeVlanIDs removes the "po_native_vlan" edge to PortChannelInterface entities by IDs.
+func (vuo *VlanUpdateOne) RemovePoNativeVlanIDs(ids ...int) *VlanUpdateOne {
+	vuo.mutation.RemovePoNativeVlanIDs(ids...)
+	return vuo
+}
+
+// RemovePoNativeVlan removes "po_native_vlan" edges to PortChannelInterface entities.
+func (vuo *VlanUpdateOne) RemovePoNativeVlan(p ...*PortChannelInterface) *VlanUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return vuo.RemovePoNativeVlanIDs(ids...)
 }
 
 // ClearOnDevice clears all "on_device" edges to the Device entity.
@@ -783,6 +1036,114 @@ func (vuo *VlanUpdateOne) sqlSave(ctx context.Context) (_node *Vlan, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vuo.mutation.PoVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.RemovedPoVlansIDs(); len(nodes) > 0 && !vuo.mutation.PoVlansCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.PoVlansIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   vlan.PoVlansTable,
+			Columns: vlan.PoVlansPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vuo.mutation.PoNativeVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.RemovedPoNativeVlanIDs(); len(nodes) > 0 && !vuo.mutation.PoNativeVlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.PoNativeVlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vlan.PoNativeVlanTable,
+			Columns: []string{vlan.PoNativeVlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

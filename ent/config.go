@@ -33,6 +33,7 @@ type hooks struct {
 	NetInterfaceMode     []ent.Hook
 	NetTopology          []ent.Hook
 	NetTopologyDeviceMap []ent.Hook
+	PortChannelInterface []ent.Hook
 	Vlan                 []ent.Hook
 }
 

@@ -13,6 +13,10 @@ const (
 	EdgeVlans = "vlans"
 	// EdgeNativeVlan holds the string denoting the native_vlan edge name in mutations.
 	EdgeNativeVlan = "native_vlan"
+	// EdgePoVlans holds the string denoting the po_vlans edge name in mutations.
+	EdgePoVlans = "po_vlans"
+	// EdgePoNativeVlan holds the string denoting the po_native_vlan edge name in mutations.
+	EdgePoNativeVlan = "po_native_vlan"
 	// EdgeOnDevice holds the string denoting the on_device edge name in mutations.
 	EdgeOnDevice = "on_device"
 	// Table holds the table name of the vlan in the database.
@@ -29,6 +33,18 @@ const (
 	NativeVlanInverseTable = "net_interfaces"
 	// NativeVlanColumn is the table column denoting the native_vlan relation/edge.
 	NativeVlanColumn = "vlan_native_vlan"
+	// PoVlansTable is the table the holds the po_vlans relation/edge. The primary key declared below.
+	PoVlansTable = "vlan_po_vlans"
+	// PoVlansInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	PoVlansInverseTable = "port_channel_interfaces"
+	// PoNativeVlanTable is the table the holds the po_native_vlan relation/edge.
+	PoNativeVlanTable = "port_channel_interfaces"
+	// PoNativeVlanInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	PoNativeVlanInverseTable = "port_channel_interfaces"
+	// PoNativeVlanColumn is the table column denoting the po_native_vlan relation/edge.
+	PoNativeVlanColumn = "vlan_po_native_vlan"
 	// OnDeviceTable is the table the holds the on_device relation/edge. The primary key declared below.
 	OnDeviceTable = "device_store_vlans"
 	// OnDeviceInverseTable is the table name for the Device entity.
@@ -46,6 +62,9 @@ var (
 	// VlansPrimaryKey and VlansColumn2 are the table columns denoting the
 	// primary key for the vlans relation (M2M).
 	VlansPrimaryKey = []string{"vlan_id", "net_interface_id"}
+	// PoVlansPrimaryKey and PoVlansColumn2 are the table columns denoting the
+	// primary key for the po_vlans relation (M2M).
+	PoVlansPrimaryKey = []string{"vlan_id", "port_channel_interface_id"}
 	// OnDevicePrimaryKey and OnDeviceColumn2 are the table columns denoting the
 	// primary key for the on_device relation (M2M).
 	OnDevicePrimaryKey = []string{"device_id", "vlan_id"}

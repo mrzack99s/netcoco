@@ -230,6 +230,62 @@ func HasNativeVlanWith(preds ...predicate.NetInterface) predicate.Vlan {
 	})
 }
 
+// HasPoVlans applies the HasEdge predicate on the "po_vlans" edge.
+func HasPoVlans() predicate.Vlan {
+	return predicate.Vlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoVlansTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, PoVlansTable, PoVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoVlansWith applies the HasEdge predicate on the "po_vlans" edge with a given conditions (other predicates).
+func HasPoVlansWith(preds ...predicate.PortChannelInterface) predicate.Vlan {
+	return predicate.Vlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoVlansInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, PoVlansTable, PoVlansPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPoNativeVlan applies the HasEdge predicate on the "po_native_vlan" edge.
+func HasPoNativeVlan() predicate.Vlan {
+	return predicate.Vlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoNativeVlanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoNativeVlanTable, PoNativeVlanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoNativeVlanWith applies the HasEdge predicate on the "po_native_vlan" edge with a given conditions (other predicates).
+func HasPoNativeVlanWith(preds ...predicate.PortChannelInterface) predicate.Vlan {
+	return predicate.Vlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoNativeVlanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoNativeVlanTable, PoNativeVlanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOnDevice applies the HasEdge predicate on the "on_device" edge.
 func HasOnDevice() predicate.Vlan {
 	return predicate.Vlan(func(s *sql.Selector) {
