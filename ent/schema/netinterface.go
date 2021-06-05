@@ -25,6 +25,9 @@ func (NetInterface) Edges() []ent.Edge {
 		edge.From("on_device", Device.Type).
 			Ref("interfaces").
 			Unique(),
+		edge.From("on_po_interface", PortChannelInterface.Type).
+			Ref("interfaces").
+			Unique(),
 		edge.From("mode", NetInterfaceMode.Type).
 			Ref("modes").
 			Unique(),

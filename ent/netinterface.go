@@ -10,6 +10,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -24,16 +25,19 @@ type NetInterface struct {
 	InterfaceShutdown bool `json:"interface_shutdown,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NetInterfaceQuery when eager-loading is set.
-	Edges                    NetInterfaceEdges `json:"edges"`
-	device_interfaces        *int
-	net_interface_mode_modes *int
-	vlan_native_vlan         *int
+	Edges                             NetInterfaceEdges `json:"edges"`
+	device_interfaces                 *int
+	net_interface_mode_modes          *int
+	port_channel_interface_interfaces *int
+	vlan_native_vlan                  *int
 }
 
 // NetInterfaceEdges holds the relations/edges for other nodes in the graph.
 type NetInterfaceEdges struct {
 	// OnDevice holds the value of the on_device edge.
 	OnDevice *Device `json:"on_device,omitempty"`
+	// OnPoInterface holds the value of the on_po_interface edge.
+	OnPoInterface *PortChannelInterface `json:"on_po_interface,omitempty"`
 	// Mode holds the value of the mode edge.
 	Mode *NetInterfaceMode `json:"mode,omitempty"`
 	// HaveVlans holds the value of the have_vlans edge.
@@ -42,7 +46,7 @@ type NetInterfaceEdges struct {
 	NativeOnVlan *Vlan `json:"native_on_vlan,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OnDeviceOrErr returns the OnDevice value or an error if the edge
@@ -59,10 +63,24 @@ func (e NetInterfaceEdges) OnDeviceOrErr() (*Device, error) {
 	return nil, &NotLoadedError{edge: "on_device"}
 }
 
+// OnPoInterfaceOrErr returns the OnPoInterface value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NetInterfaceEdges) OnPoInterfaceOrErr() (*PortChannelInterface, error) {
+	if e.loadedTypes[1] {
+		if e.OnPoInterface == nil {
+			// The edge on_po_interface was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: portchannelinterface.Label}
+		}
+		return e.OnPoInterface, nil
+	}
+	return nil, &NotLoadedError{edge: "on_po_interface"}
+}
+
 // ModeOrErr returns the Mode value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e NetInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Mode == nil {
 			// The edge mode was loaded in eager-loading,
 			// but was not found.
@@ -76,7 +94,7 @@ func (e NetInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
 // HaveVlansOrErr returns the HaveVlans value or an error if the edge
 // was not loaded in eager-loading.
 func (e NetInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.HaveVlans, nil
 	}
 	return nil, &NotLoadedError{edge: "have_vlans"}
@@ -85,7 +103,7 @@ func (e NetInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
 // NativeOnVlanOrErr returns the NativeOnVlan value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e NetInterfaceEdges) NativeOnVlanOrErr() (*Vlan, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		if e.NativeOnVlan == nil {
 			// The edge native_on_vlan was loaded in eager-loading,
 			// but was not found.
@@ -111,7 +129,9 @@ func (*NetInterface) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case netinterface.ForeignKeys[1]: // net_interface_mode_modes
 			values[i] = new(sql.NullInt64)
-		case netinterface.ForeignKeys[2]: // vlan_native_vlan
+		case netinterface.ForeignKeys[2]: // port_channel_interface_interfaces
+			values[i] = new(sql.NullInt64)
+		case netinterface.ForeignKeys[3]: // vlan_native_vlan
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type NetInterface", columns[i])
@@ -162,6 +182,13 @@ func (ni *NetInterface) assignValues(columns []string, values []interface{}) err
 			}
 		case netinterface.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field port_channel_interface_interfaces", value)
+			} else if value.Valid {
+				ni.port_channel_interface_interfaces = new(int)
+				*ni.port_channel_interface_interfaces = int(value.Int64)
+			}
+		case netinterface.ForeignKeys[3]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field vlan_native_vlan", value)
 			} else if value.Valid {
 				ni.vlan_native_vlan = new(int)
@@ -175,6 +202,11 @@ func (ni *NetInterface) assignValues(columns []string, values []interface{}) err
 // QueryOnDevice queries the "on_device" edge of the NetInterface entity.
 func (ni *NetInterface) QueryOnDevice() *DeviceQuery {
 	return (&NetInterfaceClient{config: ni.config}).QueryOnDevice(ni)
+}
+
+// QueryOnPoInterface queries the "on_po_interface" edge of the NetInterface entity.
+func (ni *NetInterface) QueryOnPoInterface() *PortChannelInterfaceQuery {
+	return (&NetInterfaceClient{config: ni.config}).QueryOnPoInterface(ni)
 }
 
 // QueryMode queries the "mode" edge of the NetInterface entity.

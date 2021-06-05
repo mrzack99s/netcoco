@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -28,9 +29,11 @@ type VlanQuery struct {
 	fields     []string
 	predicates []predicate.Vlan
 	// eager-loading edges.
-	withVlans      *NetInterfaceQuery
-	withNativeVlan *NetInterfaceQuery
-	withOnDevice   *DeviceQuery
+	withVlans        *NetInterfaceQuery
+	withNativeVlan   *NetInterfaceQuery
+	withPoVlans      *PortChannelInterfaceQuery
+	withPoNativeVlan *PortChannelInterfaceQuery
+	withOnDevice     *DeviceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -104,6 +107,50 @@ func (vq *VlanQuery) QueryNativeVlan() *NetInterfaceQuery {
 			sqlgraph.From(vlan.Table, vlan.FieldID, selector),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vlan.NativeVlanTable, vlan.NativeVlanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPoVlans chains the current query on the "po_vlans" edge.
+func (vq *VlanQuery) QueryPoVlans() *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: vq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := vq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := vq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, selector),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, vlan.PoVlansTable, vlan.PoVlansPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPoNativeVlan chains the current query on the "po_native_vlan" edge.
+func (vq *VlanQuery) QueryPoNativeVlan() *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: vq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := vq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := vq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, selector),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, vlan.PoNativeVlanTable, vlan.PoNativeVlanColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
 		return fromU, nil
@@ -309,14 +356,16 @@ func (vq *VlanQuery) Clone() *VlanQuery {
 		return nil
 	}
 	return &VlanQuery{
-		config:         vq.config,
-		limit:          vq.limit,
-		offset:         vq.offset,
-		order:          append([]OrderFunc{}, vq.order...),
-		predicates:     append([]predicate.Vlan{}, vq.predicates...),
-		withVlans:      vq.withVlans.Clone(),
-		withNativeVlan: vq.withNativeVlan.Clone(),
-		withOnDevice:   vq.withOnDevice.Clone(),
+		config:           vq.config,
+		limit:            vq.limit,
+		offset:           vq.offset,
+		order:            append([]OrderFunc{}, vq.order...),
+		predicates:       append([]predicate.Vlan{}, vq.predicates...),
+		withVlans:        vq.withVlans.Clone(),
+		withNativeVlan:   vq.withNativeVlan.Clone(),
+		withPoVlans:      vq.withPoVlans.Clone(),
+		withPoNativeVlan: vq.withPoNativeVlan.Clone(),
+		withOnDevice:     vq.withOnDevice.Clone(),
 		// clone intermediate query.
 		sql:  vq.sql.Clone(),
 		path: vq.path,
@@ -342,6 +391,28 @@ func (vq *VlanQuery) WithNativeVlan(opts ...func(*NetInterfaceQuery)) *VlanQuery
 		opt(query)
 	}
 	vq.withNativeVlan = query
+	return vq
+}
+
+// WithPoVlans tells the query-builder to eager-load the nodes that are connected to
+// the "po_vlans" edge. The optional arguments are used to configure the query builder of the edge.
+func (vq *VlanQuery) WithPoVlans(opts ...func(*PortChannelInterfaceQuery)) *VlanQuery {
+	query := &PortChannelInterfaceQuery{config: vq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	vq.withPoVlans = query
+	return vq
+}
+
+// WithPoNativeVlan tells the query-builder to eager-load the nodes that are connected to
+// the "po_native_vlan" edge. The optional arguments are used to configure the query builder of the edge.
+func (vq *VlanQuery) WithPoNativeVlan(opts ...func(*PortChannelInterfaceQuery)) *VlanQuery {
+	query := &PortChannelInterfaceQuery{config: vq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	vq.withPoNativeVlan = query
 	return vq
 }
 
@@ -421,9 +492,11 @@ func (vq *VlanQuery) sqlAll(ctx context.Context) ([]*Vlan, error) {
 	var (
 		nodes       = []*Vlan{}
 		_spec       = vq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			vq.withVlans != nil,
 			vq.withNativeVlan != nil,
+			vq.withPoVlans != nil,
+			vq.withPoNativeVlan != nil,
 			vq.withOnDevice != nil,
 		}
 	)
@@ -538,6 +611,100 @@ func (vq *VlanQuery) sqlAll(ctx context.Context) ([]*Vlan, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "vlan_native_vlan" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.NativeVlan = append(node.Edges.NativeVlan, n)
+		}
+	}
+
+	if query := vq.withPoVlans; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Vlan, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.PoVlans = []*PortChannelInterface{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Vlan)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   vlan.PoVlansTable,
+				Columns: vlan.PoVlansPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(vlan.PoVlansPrimaryKey[0], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, vq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "po_vlans": %w`, err)
+		}
+		query.Where(portchannelinterface.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "po_vlans" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.PoVlans = append(nodes[i].Edges.PoVlans, n)
+			}
+		}
+	}
+
+	if query := vq.withPoNativeVlan; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Vlan)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.PoNativeVlan = []*PortChannelInterface{}
+		}
+		query.withFKs = true
+		query.Where(predicate.PortChannelInterface(func(s *sql.Selector) {
+			s.Where(sql.InValues(vlan.PoNativeVlanColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.vlan_po_native_vlan
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "vlan_po_native_vlan" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "vlan_po_native_vlan" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PoNativeVlan = append(node.Edges.PoNativeVlan, n)
 		}
 	}
 

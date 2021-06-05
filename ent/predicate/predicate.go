@@ -33,5 +33,8 @@ type NetTopology func(*sql.Selector)
 // NetTopologyDeviceMap is the predicate function for nettopologydevicemap builders.
 type NetTopologyDeviceMap func(*sql.Selector)
 
+// PortChannelInterface is the predicate function for portchannelinterface builders.
+type PortChannelInterface func(*sql.Selector)
+
 // Vlan is the predicate function for vlan builders.
 type Vlan func(*sql.Selector)

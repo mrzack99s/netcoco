@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 )
 
 // NetInterfaceModeCreate is the builder for creating a NetInterfaceMode entity.
@@ -39,6 +40,21 @@ func (nimc *NetInterfaceModeCreate) AddModes(n ...*NetInterface) *NetInterfaceMo
 		ids[i] = n[i].ID
 	}
 	return nimc.AddModeIDs(ids...)
+}
+
+// AddPoModeIDs adds the "po_modes" edge to the PortChannelInterface entity by IDs.
+func (nimc *NetInterfaceModeCreate) AddPoModeIDs(ids ...int) *NetInterfaceModeCreate {
+	nimc.mutation.AddPoModeIDs(ids...)
+	return nimc
+}
+
+// AddPoModes adds the "po_modes" edges to the PortChannelInterface entity.
+func (nimc *NetInterfaceModeCreate) AddPoModes(p ...*PortChannelInterface) *NetInterfaceModeCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nimc.AddPoModeIDs(ids...)
 }
 
 // Mutation returns the NetInterfaceModeMutation object of the builder.
@@ -146,6 +162,25 @@ func (nimc *NetInterfaceModeCreate) createSpec() (*NetInterfaceMode, *sqlgraph.C
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nimc.mutation.PoModesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

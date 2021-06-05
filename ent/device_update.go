@@ -15,6 +15,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -192,6 +193,21 @@ func (du *DeviceUpdate) AddInterfaces(n ...*NetInterface) *DeviceUpdate {
 	return du.AddInterfaceIDs(ids...)
 }
 
+// AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
+func (du *DeviceUpdate) AddPoInterfaceIDs(ids ...int) *DeviceUpdate {
+	du.mutation.AddPoInterfaceIDs(ids...)
+	return du
+}
+
+// AddPoInterfaces adds the "po_interfaces" edges to the PortChannelInterface entity.
+func (du *DeviceUpdate) AddPoInterfaces(p ...*PortChannelInterface) *DeviceUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return du.AddPoInterfaceIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (du *DeviceUpdate) AddInTopologyIDs(ids ...int) *DeviceUpdate {
 	du.mutation.AddInTopologyIDs(ids...)
@@ -273,6 +289,27 @@ func (du *DeviceUpdate) RemoveInterfaces(n ...*NetInterface) *DeviceUpdate {
 		ids[i] = n[i].ID
 	}
 	return du.RemoveInterfaceIDs(ids...)
+}
+
+// ClearPoInterfaces clears all "po_interfaces" edges to the PortChannelInterface entity.
+func (du *DeviceUpdate) ClearPoInterfaces() *DeviceUpdate {
+	du.mutation.ClearPoInterfaces()
+	return du
+}
+
+// RemovePoInterfaceIDs removes the "po_interfaces" edge to PortChannelInterface entities by IDs.
+func (du *DeviceUpdate) RemovePoInterfaceIDs(ids ...int) *DeviceUpdate {
+	du.mutation.RemovePoInterfaceIDs(ids...)
+	return du
+}
+
+// RemovePoInterfaces removes "po_interfaces" edges to PortChannelInterface entities.
+func (du *DeviceUpdate) RemovePoInterfaces(p ...*PortChannelInterface) *DeviceUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return du.RemovePoInterfaceIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -631,6 +668,60 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedPoInterfacesIDs(); len(nodes) > 0 && !du.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.PoInterfacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if du.mutation.InTopologyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -972,6 +1063,21 @@ func (duo *DeviceUpdateOne) AddInterfaces(n ...*NetInterface) *DeviceUpdateOne {
 	return duo.AddInterfaceIDs(ids...)
 }
 
+// AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
+func (duo *DeviceUpdateOne) AddPoInterfaceIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.AddPoInterfaceIDs(ids...)
+	return duo
+}
+
+// AddPoInterfaces adds the "po_interfaces" edges to the PortChannelInterface entity.
+func (duo *DeviceUpdateOne) AddPoInterfaces(p ...*PortChannelInterface) *DeviceUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return duo.AddPoInterfaceIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (duo *DeviceUpdateOne) AddInTopologyIDs(ids ...int) *DeviceUpdateOne {
 	duo.mutation.AddInTopologyIDs(ids...)
@@ -1053,6 +1159,27 @@ func (duo *DeviceUpdateOne) RemoveInterfaces(n ...*NetInterface) *DeviceUpdateOn
 		ids[i] = n[i].ID
 	}
 	return duo.RemoveInterfaceIDs(ids...)
+}
+
+// ClearPoInterfaces clears all "po_interfaces" edges to the PortChannelInterface entity.
+func (duo *DeviceUpdateOne) ClearPoInterfaces() *DeviceUpdateOne {
+	duo.mutation.ClearPoInterfaces()
+	return duo
+}
+
+// RemovePoInterfaceIDs removes the "po_interfaces" edge to PortChannelInterface entities by IDs.
+func (duo *DeviceUpdateOne) RemovePoInterfaceIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.RemovePoInterfaceIDs(ids...)
+	return duo
+}
+
+// RemovePoInterfaces removes "po_interfaces" edges to PortChannelInterface entities.
+func (duo *DeviceUpdateOne) RemovePoInterfaces(p ...*PortChannelInterface) *DeviceUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return duo.RemovePoInterfaceIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -1427,6 +1554,60 @@ func (duo *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedPoInterfacesIDs(); len(nodes) > 0 && !duo.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.PoInterfacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

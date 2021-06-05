@@ -12,6 +12,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/schema"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -112,6 +113,16 @@ func init() {
 	nettopologydevicemapDescPositionY := nettopologydevicemapFields[1].Descriptor()
 	// nettopologydevicemap.DefaultPositionY holds the default value on creation for the position_y field.
 	nettopologydevicemap.DefaultPositionY = nettopologydevicemapDescPositionY.Default.(int)
+	portchannelinterfaceFields := schema.PortChannelInterface{}.Fields()
+	_ = portchannelinterfaceFields
+	// portchannelinterfaceDescPoInterfaceID is the schema descriptor for po_interface_id field.
+	portchannelinterfaceDescPoInterfaceID := portchannelinterfaceFields[0].Descriptor()
+	// portchannelinterface.PoInterfaceIDValidator is a validator for the "po_interface_id" field. It is called by the builders before save.
+	portchannelinterface.PoInterfaceIDValidator = portchannelinterfaceDescPoInterfaceID.Validators[0].(func(int) error)
+	// portchannelinterfaceDescPoInterfaceShutdown is the schema descriptor for po_interface_shutdown field.
+	portchannelinterfaceDescPoInterfaceShutdown := portchannelinterfaceFields[1].Descriptor()
+	// portchannelinterface.DefaultPoInterfaceShutdown holds the default value on creation for the po_interface_shutdown field.
+	portchannelinterface.DefaultPoInterfaceShutdown = portchannelinterfaceDescPoInterfaceShutdown.Default.(bool)
 	vlanFields := schema.Vlan{}.Fields()
 	_ = vlanFields
 	// vlanDescVlanID is the schema descriptor for vlan_id field.

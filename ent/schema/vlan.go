@@ -23,6 +23,8 @@ func (Vlan) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("vlans", NetInterface.Type),
 		edge.To("native_vlan", NetInterface.Type),
+		edge.To("po_vlans", PortChannelInterface.Type),
+		edge.To("po_native_vlan", PortChannelInterface.Type),
 		edge.From("on_device", Device.Type).
 			Ref("store_vlans"),
 	}

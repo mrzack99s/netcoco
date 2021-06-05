@@ -19,6 +19,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -49,6 +50,7 @@ func columnChecker(table string) func(string) error {
 		netinterfacemode.Table:     netinterfacemode.ValidColumn,
 		nettopology.Table:          nettopology.ValidColumn,
 		nettopologydevicemap.Table: nettopologydevicemap.ValidColumn,
+		portchannelinterface.Table: portchannelinterface.ValidColumn,
 		vlan.Table:                 vlan.ValidColumn,
 	}
 	check, ok := checks[table]

@@ -12,6 +12,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -59,6 +60,25 @@ func (nic *NetInterfaceCreate) SetNillableOnDeviceID(id *int) *NetInterfaceCreat
 // SetOnDevice sets the "on_device" edge to the Device entity.
 func (nic *NetInterfaceCreate) SetOnDevice(d *Device) *NetInterfaceCreate {
 	return nic.SetOnDeviceID(d.ID)
+}
+
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (nic *NetInterfaceCreate) SetOnPoInterfaceID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnPoInterfaceID(id)
+	return nic
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnPoInterfaceID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnPoInterfaceID(*id)
+	}
+	return nic
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (nic *NetInterfaceCreate) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceCreate {
+	return nic.SetOnPoInterfaceID(p.ID)
 }
 
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
@@ -246,6 +266,26 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.device_interfaces = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.port_channel_interface_interfaces = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := nic.mutation.ModeIDs(); len(nodes) > 0 {

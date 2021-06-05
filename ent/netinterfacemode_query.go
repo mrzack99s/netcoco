@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 )
 
@@ -27,7 +28,8 @@ type NetInterfaceModeQuery struct {
 	fields     []string
 	predicates []predicate.NetInterfaceMode
 	// eager-loading edges.
-	withModes *NetInterfaceQuery
+	withModes   *NetInterfaceQuery
+	withPoModes *PortChannelInterfaceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +81,28 @@ func (nimq *NetInterfaceModeQuery) QueryModes() *NetInterfaceQuery {
 			sqlgraph.From(netinterfacemode.Table, netinterfacemode.FieldID, selector),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacemode.ModesTable, netinterfacemode.ModesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(nimq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPoModes chains the current query on the "po_modes" edge.
+func (nimq *NetInterfaceModeQuery) QueryPoModes() *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: nimq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := nimq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := nimq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterfacemode.Table, netinterfacemode.FieldID, selector),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacemode.PoModesTable, netinterfacemode.PoModesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(nimq.driver.Dialect(), step)
 		return fromU, nil
@@ -262,12 +286,13 @@ func (nimq *NetInterfaceModeQuery) Clone() *NetInterfaceModeQuery {
 		return nil
 	}
 	return &NetInterfaceModeQuery{
-		config:     nimq.config,
-		limit:      nimq.limit,
-		offset:     nimq.offset,
-		order:      append([]OrderFunc{}, nimq.order...),
-		predicates: append([]predicate.NetInterfaceMode{}, nimq.predicates...),
-		withModes:  nimq.withModes.Clone(),
+		config:      nimq.config,
+		limit:       nimq.limit,
+		offset:      nimq.offset,
+		order:       append([]OrderFunc{}, nimq.order...),
+		predicates:  append([]predicate.NetInterfaceMode{}, nimq.predicates...),
+		withModes:   nimq.withModes.Clone(),
+		withPoModes: nimq.withPoModes.Clone(),
 		// clone intermediate query.
 		sql:  nimq.sql.Clone(),
 		path: nimq.path,
@@ -282,6 +307,17 @@ func (nimq *NetInterfaceModeQuery) WithModes(opts ...func(*NetInterfaceQuery)) *
 		opt(query)
 	}
 	nimq.withModes = query
+	return nimq
+}
+
+// WithPoModes tells the query-builder to eager-load the nodes that are connected to
+// the "po_modes" edge. The optional arguments are used to configure the query builder of the edge.
+func (nimq *NetInterfaceModeQuery) WithPoModes(opts ...func(*PortChannelInterfaceQuery)) *NetInterfaceModeQuery {
+	query := &PortChannelInterfaceQuery{config: nimq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	nimq.withPoModes = query
 	return nimq
 }
 
@@ -350,8 +386,9 @@ func (nimq *NetInterfaceModeQuery) sqlAll(ctx context.Context) ([]*NetInterfaceM
 	var (
 		nodes       = []*NetInterfaceMode{}
 		_spec       = nimq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			nimq.withModes != nil,
+			nimq.withPoModes != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -400,6 +437,35 @@ func (nimq *NetInterfaceModeQuery) sqlAll(ctx context.Context) ([]*NetInterfaceM
 				return nil, fmt.Errorf(`unexpected foreign-key "net_interface_mode_modes" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Modes = append(node.Edges.Modes, n)
+		}
+	}
+
+	if query := nimq.withPoModes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*NetInterfaceMode)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.PoModes = []*PortChannelInterface{}
+		}
+		query.withFKs = true
+		query.Where(predicate.PortChannelInterface(func(s *sql.Selector) {
+			s.Where(sql.InValues(netinterfacemode.PoModesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.net_interface_mode_po_modes
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "net_interface_mode_po_modes" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "net_interface_mode_po_modes" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PoModes = append(node.Edges.PoModes, n)
 		}
 	}
 

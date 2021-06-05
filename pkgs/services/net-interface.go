@@ -18,7 +18,17 @@ func GetInterface(client *ent.Client, id int) (response *ent.NetInterface, err e
 }
 
 func CreateInterface(client *ent.Client, obj ent.NetInterface) (response *ent.NetInterface, err error) {
-	if obj.Edges.NativeOnVlan == nil {
+	if obj.Edges.Mode.InterfaceMode == "EtherChannel" {
+
+		response, err = client.NetInterface.Create().
+			SetInterfaceName(obj.InterfaceName).
+			SetInterfaceShutdown(obj.InterfaceShutdown).
+			SetOnDevice(obj.Edges.OnDevice).
+			SetOnPoInterface(obj.Edges.OnPoInterface).
+			SetMode(obj.Edges.Mode).
+			Save(context.Background())
+
+	} else if obj.Edges.NativeOnVlan == nil {
 		response, err = client.NetInterface.Create().
 			SetInterfaceName(obj.InterfaceName).
 			SetInterfaceShutdown(obj.InterfaceShutdown).
@@ -110,8 +120,17 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 		return
 
 	} else {
+		if obj.Edges.Mode.InterfaceMode == "EtherChannel" {
 
-		if obj.Edges.NativeOnVlan == nil {
+			response, err = client.NetInterface.UpdateOneID(obj.ID).
+				SetInterfaceName(obj.InterfaceName).
+				SetInterfaceShutdown(obj.InterfaceShutdown).
+				SetOnDevice(obj.Edges.OnDevice).
+				SetOnPoInterface(obj.Edges.OnPoInterface).
+				SetMode(obj.Edges.Mode).
+				Save(context.Background())
+
+		} else if obj.Edges.NativeOnVlan == nil {
 			response, err = client.NetInterface.UpdateOneID(obj.ID).
 				SetInterfaceName(obj.InterfaceName).
 				SetInterfaceShutdown(obj.InterfaceShutdown).
@@ -165,6 +184,17 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 }
 
 func DeleteInterface(client *ent.Client, id int) (err error) {
+	netInt, err := client.NetInterface.Query().Where(netinterface.IDEQ(id)).Only(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	netInt.Edges.OnPoInterface = netInt.QueryOnPoInterface().OnlyX(context.Background())
+	if netInt.Edges.OnPoInterface != nil {
+		err = errors.New("found po interface")
+		return
+	}
+
 	err = client.NetInterface.DeleteOneID(id).Exec(context.Background())
 	return
 }

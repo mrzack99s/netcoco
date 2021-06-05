@@ -46,6 +46,8 @@ type DeviceEdges struct {
 	InPlatform *DevicePlatform `json:"in_platform,omitempty"`
 	// Interfaces holds the value of the interfaces edge.
 	Interfaces []*NetInterface `json:"interfaces,omitempty"`
+	// PoInterfaces holds the value of the po_interfaces edge.
+	PoInterfaces []*PortChannelInterface `json:"po_interfaces,omitempty"`
 	// InTopology holds the value of the in_topology edge.
 	InTopology []*NetTopologyDeviceMap `json:"in_topology,omitempty"`
 	// StoreVlans holds the value of the store_vlans edge.
@@ -54,7 +56,7 @@ type DeviceEdges struct {
 	DeletedVlans []*DeletedVlanLog `json:"deleted_vlans,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // InTypeOrErr returns the InType value or an error if the edge
@@ -94,10 +96,19 @@ func (e DeviceEdges) InterfacesOrErr() ([]*NetInterface, error) {
 	return nil, &NotLoadedError{edge: "interfaces"}
 }
 
+// PoInterfacesOrErr returns the PoInterfaces value or an error if the edge
+// was not loaded in eager-loading.
+func (e DeviceEdges) PoInterfacesOrErr() ([]*PortChannelInterface, error) {
+	if e.loadedTypes[3] {
+		return e.PoInterfaces, nil
+	}
+	return nil, &NotLoadedError{edge: "po_interfaces"}
+}
+
 // InTopologyOrErr returns the InTopology value or an error if the edge
 // was not loaded in eager-loading.
 func (e DeviceEdges) InTopologyOrErr() ([]*NetTopologyDeviceMap, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.InTopology, nil
 	}
 	return nil, &NotLoadedError{edge: "in_topology"}
@@ -106,7 +117,7 @@ func (e DeviceEdges) InTopologyOrErr() ([]*NetTopologyDeviceMap, error) {
 // StoreVlansOrErr returns the StoreVlans value or an error if the edge
 // was not loaded in eager-loading.
 func (e DeviceEdges) StoreVlansOrErr() ([]*Vlan, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.StoreVlans, nil
 	}
 	return nil, &NotLoadedError{edge: "store_vlans"}
@@ -115,7 +126,7 @@ func (e DeviceEdges) StoreVlansOrErr() ([]*Vlan, error) {
 // DeletedVlansOrErr returns the DeletedVlans value or an error if the edge
 // was not loaded in eager-loading.
 func (e DeviceEdges) DeletedVlansOrErr() ([]*DeletedVlanLog, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.DeletedVlans, nil
 	}
 	return nil, &NotLoadedError{edge: "deleted_vlans"}
@@ -231,6 +242,11 @@ func (d *Device) QueryInPlatform() *DevicePlatformQuery {
 // QueryInterfaces queries the "interfaces" edge of the Device entity.
 func (d *Device) QueryInterfaces() *NetInterfaceQuery {
 	return (&DeviceClient{config: d.config}).QueryInterfaces(d)
+}
+
+// QueryPoInterfaces queries the "po_interfaces" edge of the Device entity.
+func (d *Device) QueryPoInterfaces() *PortChannelInterfaceQuery {
+	return (&DeviceClient{config: d.config}).QueryPoInterfaces(d)
 }
 
 // QueryInTopology queries the "in_topology" edge of the Device entity.

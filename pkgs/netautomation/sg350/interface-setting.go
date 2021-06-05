@@ -3,7 +3,6 @@ package sg350
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/mrzack99s/netcoco/ent"
@@ -16,6 +15,13 @@ func getInterfaceConfig(o *types.InterfaceSetting) (config []string) {
 	switch o.Shutdown {
 	case true:
 		switch o.Mode {
+		case constants.MODE_ETHERCHANNEL:
+			var rawCmd string = `interface %s
+channel-group %d mode auto
+shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.PortChannelID)
+			config = strings.Split(replaceRawCmd, "\n")
 		case constants.MODE_ACCESS:
 			var rawCmd string = `interface %s
 switchport mode access
@@ -63,6 +69,13 @@ exit`
 		}
 	case false:
 		switch o.Mode {
+		case constants.MODE_ETHERCHANNEL:
+			var rawCmd string = `interface %s
+channel-group %d mode auto
+no shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.PortChannelID)
+			config = strings.Split(replaceRawCmd, "\n")
 		case constants.MODE_ACCESS:
 			var rawCmd string = `interface %s
 switchport mode access
@@ -110,53 +123,70 @@ exit`
 		}
 	}
 
+	if !o.PoSetting {
+		tmp0 := config[0]
+		tmp1 := config[1:]
+		config = nil
+		config = append(config, tmp0)
+		config = append(config, "no channel-group")
+		config = append(config, tmp1...)
+	}
+
 	return
 }
-
 func GetCommitInterfaceConfig(device *ent.Device) (config []string) {
+	var portChannelConfig []string
+
 	for _, obj := range device.Edges.Interfaces {
 
 		obj.Edges.Mode = obj.QueryMode().OnlyX(context.Background())
-		obj.Edges.HaveVlans = obj.QueryHaveVlans().AllX(context.Background())
-		obj.Edges.NativeOnVlan = obj.QueryNativeOnVlan().OnlyX(context.Background())
 
-		mode := constants.MODE_NONE
-		if obj.Edges.Mode.InterfaceMode == "Access" {
-			mode = constants.MODE_ACCESS
-		} else if obj.Edges.Mode.InterfaceMode == "Trunking" {
-			mode = constants.MODE_TRUNKING
+		mode := constants.GetIntMode(obj.Edges.Mode)
+
+		if mode == constants.MODE_ETHERCHANNEL {
+			obj.Edges.OnPoInterface = obj.QueryOnPoInterface().OnlyX(context.Background())
+			obj.Edges.OnPoInterface.Edges.Mode = obj.Edges.OnPoInterface.QueryMode().OnlyX(context.Background())
+			obj.Edges.OnPoInterface.Edges.HaveVlans = obj.Edges.OnPoInterface.QueryHaveVlans().AllX(context.Background())
+			obj.Edges.OnPoInterface.Edges.NativeOnVlan = obj.Edges.OnPoInterface.QueryNativeOnVlan().OnlyX(context.Background())
+		} else {
+			obj.Edges.HaveVlans = obj.QueryHaveVlans().AllX(context.Background())
+			obj.Edges.NativeOnVlan = obj.QueryNativeOnVlan().OnlyX(context.Background())
 		}
 
-		intVlan := strings.Builder{}
-		if obj.Edges.HaveVlans != nil {
-			if len(obj.Edges.HaveVlans) > 1 {
-				for index, v := range obj.Edges.HaveVlans {
-					if index == len(obj.Edges.HaveVlans)-1 {
-						intVlan.WriteString(fmt.Sprintf("%d", v.VlanID))
-					} else {
-						intVlan.WriteString(fmt.Sprintf("%d,", v.VlanID))
-					}
-
-				}
-			} else {
-				intVlan.WriteString(fmt.Sprintf("%d", obj.Edges.HaveVlans[0].VlanID))
+		if mode == constants.MODE_ETHERCHANNEL {
+			intSetting := &types.InterfaceSetting{
+				InterfaceName: obj.InterfaceName,
+				PortChannelID: obj.Edges.OnPoInterface.PoInterfaceID,
+				Mode:          mode,
+				Shutdown:      obj.InterfaceShutdown,
+				PoSetting:     true,
 			}
+			config = append(config, getInterfaceConfig(intSetting)...)
+
+			intVlan := types.GetHaveVlans(obj.Edges.OnPoInterface.Edges.HaveVlans)
+			nVlan := types.GetNativeVlan(obj.Edges.OnPoInterface.Edges.NativeOnVlan)
+
+			intSetting.InterfaceName = fmt.Sprintf("port-channel %d", intSetting.PortChannelID)
+			intSetting.Mode = constants.GetIntMode(obj.Edges.OnPoInterface.Edges.Mode)
+			intSetting.VLANs = intVlan.String()
+			intSetting.NativeVLAN = nVlan
+			portChannelConfig = append(portChannelConfig, getInterfaceConfig(intSetting)...)
+		} else {
+
+			intVlan := types.GetHaveVlans(obj.Edges.HaveVlans)
+			nVlan := types.GetNativeVlan(obj.Edges.NativeOnVlan)
+			intSetting := &types.InterfaceSetting{
+				InterfaceName: obj.InterfaceName,
+				Mode:          mode,
+				VLANs:         intVlan.String(),
+				NativeVLAN:    nVlan,
+				Shutdown:      obj.InterfaceShutdown,
+				PoSetting:     false,
+			}
+			config = append(config, getInterfaceConfig(intSetting)...)
 		}
 
-		nVlan := ""
-		if obj.Edges.NativeOnVlan != nil {
-			nVlan = strconv.FormatInt(int64(obj.Edges.NativeOnVlan.VlanID), 10)
-		}
-
-		intSetting := &types.InterfaceSetting{
-			InterfaceName: obj.InterfaceName,
-			Mode:          mode,
-			VLANs:         intVlan.String(),
-			NativeVLAN:    nVlan,
-			Shutdown:      obj.InterfaceShutdown,
-		}
-
-		config = append(config, getInterfaceConfig(intSetting)...)
 	}
+	config = append(config, portChannelConfig...)
 	return
 }
