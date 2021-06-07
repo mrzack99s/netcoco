@@ -25,18 +25,35 @@ func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
 	response.Edges.Interfaces = response.QueryInterfaces().AllX(context.Background())
 	for _, dd := range response.Edges.Interfaces {
 		dd.Edges.Mode = dd.QueryMode().OnlyX(context.Background())
+		dd.Edges.OnLayer = dd.QueryOnLayer().OnlyX(context.Background())
 		if dd.Edges.Mode.InterfaceMode == "EtherChannel" {
 			dd.Edges.OnPoInterface = dd.QueryOnPoInterface().OnlyX(context.Background())
 		} else {
 			dd.Edges.HaveVlans = dd.QueryHaveVlans().AllX(context.Background())
-			dd.Edges.NativeOnVlan = dd.QueryNativeOnVlan().OnlyX(context.Background())
+			if i := dd.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+				dd.Edges.NativeOnVlan = dd.QueryNativeOnVlan().OnlyX(context.Background())
+			}
+		}
+		if dd.Edges.OnLayer.InterfaceLayer == 3 {
+			dd.Edges.OnIPAddress = dd.QueryOnIPAddress().OnlyX(context.Background())
 		}
 	}
+
 	response.Edges.PoInterfaces = response.QueryPoInterfaces().AllX(context.Background())
 	for _, po := range response.Edges.PoInterfaces {
-		po.Edges.HaveVlans = po.QueryHaveVlans().AllX(context.Background())
-		po.Edges.NativeOnVlan = po.QueryNativeOnVlan().OnlyX(context.Background())
 		po.Edges.Mode = po.QueryMode().OnlyX(context.Background())
+		po.Edges.OnLayer = po.QueryOnLayer().OnlyX(context.Background())
+		if i := po.QueryHaveVlans().CountX(context.Background()); i > 0 {
+			po.Edges.HaveVlans = po.QueryHaveVlans().AllX(context.Background())
+		}
+
+		if i := po.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+			po.Edges.NativeOnVlan = po.QueryNativeOnVlan().OnlyX(context.Background())
+		}
+
+		if po.Edges.OnLayer.InterfaceLayer == 3 {
+			po.Edges.OnIPAddress = po.QueryOnIPAddress().OnlyX(context.Background())
+		}
 	}
 	response.Edges.InType = response.QueryInType().OnlyX(context.Background())
 	response.Edges.InPlatform = response.QueryInPlatform().OnlyX(context.Background())

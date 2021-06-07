@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -25,12 +26,20 @@ func (PortChannelInterface) Edges() []ent.Edge {
 		edge.From("mode", NetInterfaceMode.Type).
 			Ref("po_modes").
 			Unique(),
+		edge.From("on_layer", NetInterfaceLayer.Type).
+			Ref("po_layers").
+			Unique(),
 		edge.From("have_vlans", Vlan.Type).
 			Ref("po_vlans"),
 		edge.From("native_on_vlan", Vlan.Type).
 			Ref("po_native_vlan").Unique(),
 		edge.From("on_device", Device.Type).
 			Ref("po_interfaces").
+			Unique(),
+		edge.From("on_ip_address", IPAddress.Type).
+			Ref("po_interfaces").Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}).
 			Unique(),
 		edge.To("interfaces", NetInterface.Type),
 	}

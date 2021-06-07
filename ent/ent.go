@@ -15,7 +15,9 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
@@ -46,7 +48,9 @@ func columnChecker(table string) func(string) error {
 		device.Table:               device.ValidColumn,
 		deviceplatform.Table:       deviceplatform.ValidColumn,
 		devicetype.Table:           devicetype.ValidColumn,
+		ipaddress.Table:            ipaddress.ValidColumn,
 		netinterface.Table:         netinterface.ValidColumn,
+		netinterfacelayer.Table:    netinterfacelayer.ValidColumn,
 		netinterfacemode.Table:     netinterfacemode.ValidColumn,
 		nettopology.Table:          nettopology.ValidColumn,
 		nettopologydevicemap.Table: nettopologydevicemap.ValidColumn,

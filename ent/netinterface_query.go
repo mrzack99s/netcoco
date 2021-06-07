@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
@@ -32,7 +34,9 @@ type NetInterfaceQuery struct {
 	// eager-loading edges.
 	withOnDevice      *DeviceQuery
 	withOnPoInterface *PortChannelInterfaceQuery
+	withOnIPAddress   *IPAddressQuery
 	withMode          *NetInterfaceModeQuery
+	withOnLayer       *NetInterfaceLayerQuery
 	withHaveVlans     *VlanQuery
 	withNativeOnVlan  *VlanQuery
 	withFKs           bool
@@ -116,6 +120,28 @@ func (niq *NetInterfaceQuery) QueryOnPoInterface() *PortChannelInterfaceQuery {
 	return query
 }
 
+// QueryOnIPAddress chains the current query on the "on_ip_address" edge.
+func (niq *NetInterfaceQuery) QueryOnIPAddress() *IPAddressQuery {
+	query := &IPAddressQuery{config: niq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := niq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := niq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnIPAddressTable, netinterface.OnIPAddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryMode chains the current query on the "mode" edge.
 func (niq *NetInterfaceQuery) QueryMode() *NetInterfaceModeQuery {
 	query := &NetInterfaceModeQuery{config: niq.config}
@@ -131,6 +157,28 @@ func (niq *NetInterfaceQuery) QueryMode() *NetInterfaceModeQuery {
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
 			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.ModeTable, netinterface.ModeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOnLayer chains the current query on the "on_layer" edge.
+func (niq *NetInterfaceQuery) QueryOnLayer() *NetInterfaceLayerQuery {
+	query := &NetInterfaceLayerQuery{config: niq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := niq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := niq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
+			sqlgraph.To(netinterfacelayer.Table, netinterfacelayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnLayerTable, netinterface.OnLayerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
 		return fromU, nil
@@ -365,7 +413,9 @@ func (niq *NetInterfaceQuery) Clone() *NetInterfaceQuery {
 		predicates:        append([]predicate.NetInterface{}, niq.predicates...),
 		withOnDevice:      niq.withOnDevice.Clone(),
 		withOnPoInterface: niq.withOnPoInterface.Clone(),
+		withOnIPAddress:   niq.withOnIPAddress.Clone(),
 		withMode:          niq.withMode.Clone(),
+		withOnLayer:       niq.withOnLayer.Clone(),
 		withHaveVlans:     niq.withHaveVlans.Clone(),
 		withNativeOnVlan:  niq.withNativeOnVlan.Clone(),
 		// clone intermediate query.
@@ -396,6 +446,17 @@ func (niq *NetInterfaceQuery) WithOnPoInterface(opts ...func(*PortChannelInterfa
 	return niq
 }
 
+// WithOnIPAddress tells the query-builder to eager-load the nodes that are connected to
+// the "on_ip_address" edge. The optional arguments are used to configure the query builder of the edge.
+func (niq *NetInterfaceQuery) WithOnIPAddress(opts ...func(*IPAddressQuery)) *NetInterfaceQuery {
+	query := &IPAddressQuery{config: niq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	niq.withOnIPAddress = query
+	return niq
+}
+
 // WithMode tells the query-builder to eager-load the nodes that are connected to
 // the "mode" edge. The optional arguments are used to configure the query builder of the edge.
 func (niq *NetInterfaceQuery) WithMode(opts ...func(*NetInterfaceModeQuery)) *NetInterfaceQuery {
@@ -404,6 +465,17 @@ func (niq *NetInterfaceQuery) WithMode(opts ...func(*NetInterfaceModeQuery)) *Ne
 		opt(query)
 	}
 	niq.withMode = query
+	return niq
+}
+
+// WithOnLayer tells the query-builder to eager-load the nodes that are connected to
+// the "on_layer" edge. The optional arguments are used to configure the query builder of the edge.
+func (niq *NetInterfaceQuery) WithOnLayer(opts ...func(*NetInterfaceLayerQuery)) *NetInterfaceQuery {
+	query := &NetInterfaceLayerQuery{config: niq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	niq.withOnLayer = query
 	return niq
 }
 
@@ -495,15 +567,17 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 		nodes       = []*NetInterface{}
 		withFKs     = niq.withFKs
 		_spec       = niq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			niq.withOnDevice != nil,
 			niq.withOnPoInterface != nil,
+			niq.withOnIPAddress != nil,
 			niq.withMode != nil,
+			niq.withOnLayer != nil,
 			niq.withHaveVlans != nil,
 			niq.withNativeOnVlan != nil,
 		}
 	)
-	if niq.withOnDevice != nil || niq.withOnPoInterface != nil || niq.withMode != nil || niq.withNativeOnVlan != nil {
+	if niq.withOnDevice != nil || niq.withOnPoInterface != nil || niq.withOnIPAddress != nil || niq.withMode != nil || niq.withOnLayer != nil || niq.withNativeOnVlan != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -587,6 +661,35 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 		}
 	}
 
+	if query := niq.withOnIPAddress; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*NetInterface)
+		for i := range nodes {
+			if nodes[i].ip_address_interfaces == nil {
+				continue
+			}
+			fk := *nodes[i].ip_address_interfaces
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(ipaddress.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "ip_address_interfaces" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.OnIPAddress = n
+			}
+		}
+	}
+
 	if query := niq.withMode; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*NetInterface)
@@ -612,6 +715,35 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 			}
 			for i := range nodes {
 				nodes[i].Edges.Mode = n
+			}
+		}
+	}
+
+	if query := niq.withOnLayer; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*NetInterface)
+		for i := range nodes {
+			if nodes[i].net_interface_layer_layers == nil {
+				continue
+			}
+			fk := *nodes[i].net_interface_layer_layers
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(netinterfacelayer.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "net_interface_layer_layers" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.OnLayer = n
 			}
 		}
 	}

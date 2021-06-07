@@ -27,7 +27,7 @@ func (ctl *PortChannelInterfaceController) Create(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -49,7 +49,7 @@ func (ctl *PortChannelInterfaceController) Edit(c *gin.Context) {
 	usr, err := services.EditPortChannelInterface(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -67,7 +67,7 @@ func (ctl *PortChannelInterfaceController) Get(c *gin.Context) {
 	usr, err := services.GetPortChannelInterface(ctl.client, intId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -85,7 +85,7 @@ func (ctl *PortChannelInterfaceController) Delete(c *gin.Context) {
 	err := services.DeletePortChannelInterface(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

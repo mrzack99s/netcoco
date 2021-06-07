@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
@@ -31,9 +33,11 @@ type PortChannelInterfaceQuery struct {
 	predicates []predicate.PortChannelInterface
 	// eager-loading edges.
 	withMode         *NetInterfaceModeQuery
+	withOnLayer      *NetInterfaceLayerQuery
 	withHaveVlans    *VlanQuery
 	withNativeOnVlan *VlanQuery
 	withOnDevice     *DeviceQuery
+	withOnIPAddress  *IPAddressQuery
 	withInterfaces   *NetInterfaceQuery
 	withFKs          bool
 	// intermediate query (i.e. traversal path).
@@ -87,6 +91,28 @@ func (pciq *PortChannelInterfaceQuery) QueryMode() *NetInterfaceModeQuery {
 			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, selector),
 			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.ModeTable, portchannelinterface.ModeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pciq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOnLayer chains the current query on the "on_layer" edge.
+func (pciq *PortChannelInterfaceQuery) QueryOnLayer() *NetInterfaceLayerQuery {
+	query := &NetInterfaceLayerQuery{config: pciq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pciq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pciq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, selector),
+			sqlgraph.To(netinterfacelayer.Table, netinterfacelayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnLayerTable, portchannelinterface.OnLayerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pciq.driver.Dialect(), step)
 		return fromU, nil
@@ -153,6 +179,28 @@ func (pciq *PortChannelInterfaceQuery) QueryOnDevice() *DeviceQuery {
 			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, selector),
 			sqlgraph.To(device.Table, device.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnDeviceTable, portchannelinterface.OnDeviceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pciq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOnIPAddress chains the current query on the "on_ip_address" edge.
+func (pciq *PortChannelInterfaceQuery) QueryOnIPAddress() *IPAddressQuery {
+	query := &IPAddressQuery{config: pciq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pciq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pciq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, selector),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnIPAddressTable, portchannelinterface.OnIPAddressColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pciq.driver.Dialect(), step)
 		return fromU, nil
@@ -364,9 +412,11 @@ func (pciq *PortChannelInterfaceQuery) Clone() *PortChannelInterfaceQuery {
 		order:            append([]OrderFunc{}, pciq.order...),
 		predicates:       append([]predicate.PortChannelInterface{}, pciq.predicates...),
 		withMode:         pciq.withMode.Clone(),
+		withOnLayer:      pciq.withOnLayer.Clone(),
 		withHaveVlans:    pciq.withHaveVlans.Clone(),
 		withNativeOnVlan: pciq.withNativeOnVlan.Clone(),
 		withOnDevice:     pciq.withOnDevice.Clone(),
+		withOnIPAddress:  pciq.withOnIPAddress.Clone(),
 		withInterfaces:   pciq.withInterfaces.Clone(),
 		// clone intermediate query.
 		sql:  pciq.sql.Clone(),
@@ -382,6 +432,17 @@ func (pciq *PortChannelInterfaceQuery) WithMode(opts ...func(*NetInterfaceModeQu
 		opt(query)
 	}
 	pciq.withMode = query
+	return pciq
+}
+
+// WithOnLayer tells the query-builder to eager-load the nodes that are connected to
+// the "on_layer" edge. The optional arguments are used to configure the query builder of the edge.
+func (pciq *PortChannelInterfaceQuery) WithOnLayer(opts ...func(*NetInterfaceLayerQuery)) *PortChannelInterfaceQuery {
+	query := &NetInterfaceLayerQuery{config: pciq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pciq.withOnLayer = query
 	return pciq
 }
 
@@ -415,6 +476,17 @@ func (pciq *PortChannelInterfaceQuery) WithOnDevice(opts ...func(*DeviceQuery)) 
 		opt(query)
 	}
 	pciq.withOnDevice = query
+	return pciq
+}
+
+// WithOnIPAddress tells the query-builder to eager-load the nodes that are connected to
+// the "on_ip_address" edge. The optional arguments are used to configure the query builder of the edge.
+func (pciq *PortChannelInterfaceQuery) WithOnIPAddress(opts ...func(*IPAddressQuery)) *PortChannelInterfaceQuery {
+	query := &IPAddressQuery{config: pciq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pciq.withOnIPAddress = query
 	return pciq
 }
 
@@ -495,15 +567,17 @@ func (pciq *PortChannelInterfaceQuery) sqlAll(ctx context.Context) ([]*PortChann
 		nodes       = []*PortChannelInterface{}
 		withFKs     = pciq.withFKs
 		_spec       = pciq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			pciq.withMode != nil,
+			pciq.withOnLayer != nil,
 			pciq.withHaveVlans != nil,
 			pciq.withNativeOnVlan != nil,
 			pciq.withOnDevice != nil,
+			pciq.withOnIPAddress != nil,
 			pciq.withInterfaces != nil,
 		}
 	)
-	if pciq.withMode != nil || pciq.withNativeOnVlan != nil || pciq.withOnDevice != nil {
+	if pciq.withMode != nil || pciq.withOnLayer != nil || pciq.withNativeOnVlan != nil || pciq.withOnDevice != nil || pciq.withOnIPAddress != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -554,6 +628,35 @@ func (pciq *PortChannelInterfaceQuery) sqlAll(ctx context.Context) ([]*PortChann
 			}
 			for i := range nodes {
 				nodes[i].Edges.Mode = n
+			}
+		}
+	}
+
+	if query := pciq.withOnLayer; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PortChannelInterface)
+		for i := range nodes {
+			if nodes[i].net_interface_layer_po_layers == nil {
+				continue
+			}
+			fk := *nodes[i].net_interface_layer_po_layers
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(netinterfacelayer.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "net_interface_layer_po_layers" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.OnLayer = n
 			}
 		}
 	}
@@ -677,6 +780,35 @@ func (pciq *PortChannelInterfaceQuery) sqlAll(ctx context.Context) ([]*PortChann
 			}
 			for i := range nodes {
 				nodes[i].Edges.OnDevice = n
+			}
+		}
+	}
+
+	if query := pciq.withOnIPAddress; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PortChannelInterface)
+		for i := range nodes {
+			if nodes[i].ip_address_po_interfaces == nil {
+				continue
+			}
+			fk := *nodes[i].ip_address_po_interfaces
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(ipaddress.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "ip_address_po_interfaces" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.OnIPAddress = n
 			}
 		}
 	}

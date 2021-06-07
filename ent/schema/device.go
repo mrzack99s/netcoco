@@ -40,6 +40,9 @@ func (Device) Edges() []ent.Edge {
 		edge.To("po_interfaces", PortChannelInterface.Type).Annotations(entsql.Annotation{
 			OnDelete: entsql.Cascade,
 		}),
+		edge.To("have_ip_addresses", IPAddress.Type).Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
 		edge.To("in_topology", NetTopologyDeviceMap.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

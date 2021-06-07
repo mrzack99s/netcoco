@@ -21,8 +21,14 @@ type DevicePlatform func(*sql.Selector)
 // DeviceType is the predicate function for devicetype builders.
 type DeviceType func(*sql.Selector)
 
+// IPAddress is the predicate function for ipaddress builders.
+type IPAddress func(*sql.Selector)
+
 // NetInterface is the predicate function for netinterface builders.
 type NetInterface func(*sql.Selector)
+
+// NetInterfaceLayer is the predicate function for netinterfacelayer builders.
+type NetInterfaceLayer func(*sql.Selector)
 
 // NetInterfaceMode is the predicate function for netinterfacemode builders.
 type NetInterfaceMode func(*sql.Selector)

@@ -22,8 +22,12 @@ type Tx struct {
 	DevicePlatform *DevicePlatformClient
 	// DeviceType is the client for interacting with the DeviceType builders.
 	DeviceType *DeviceTypeClient
+	// IPAddress is the client for interacting with the IPAddress builders.
+	IPAddress *IPAddressClient
 	// NetInterface is the client for interacting with the NetInterface builders.
 	NetInterface *NetInterfaceClient
+	// NetInterfaceLayer is the client for interacting with the NetInterfaceLayer builders.
+	NetInterfaceLayer *NetInterfaceLayerClient
 	// NetInterfaceMode is the client for interacting with the NetInterfaceMode builders.
 	NetInterfaceMode *NetInterfaceModeClient
 	// NetTopology is the client for interacting with the NetTopology builders.
@@ -174,7 +178,9 @@ func (tx *Tx) init() {
 	tx.Device = NewDeviceClient(tx.config)
 	tx.DevicePlatform = NewDevicePlatformClient(tx.config)
 	tx.DeviceType = NewDeviceTypeClient(tx.config)
+	tx.IPAddress = NewIPAddressClient(tx.config)
 	tx.NetInterface = NewNetInterfaceClient(tx.config)
+	tx.NetInterfaceLayer = NewNetInterfaceLayerClient(tx.config)
 	tx.NetInterfaceMode = NewNetInterfaceModeClient(tx.config)
 	tx.NetTopology = NewNetTopologyClient(tx.config)
 	tx.NetTopologyDeviceMap = NewNetTopologyDeviceMapClient(tx.config)

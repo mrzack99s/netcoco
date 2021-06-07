@@ -24,7 +24,7 @@ func (ctl *AdministratorController) Create(c *gin.Context) {
 	u, err := services.CreateAdministrator(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -48,7 +48,7 @@ func (ctl *AdministratorController) Change(c *gin.Context) {
 	usr, err := services.ChangePasswordAdministrator(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

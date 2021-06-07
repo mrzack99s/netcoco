@@ -13,6 +13,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
@@ -208,6 +209,21 @@ func (du *DeviceUpdate) AddPoInterfaces(p ...*PortChannelInterface) *DeviceUpdat
 	return du.AddPoInterfaceIDs(ids...)
 }
 
+// AddHaveIPAddressIDs adds the "have_ip_addresses" edge to the IPAddress entity by IDs.
+func (du *DeviceUpdate) AddHaveIPAddressIDs(ids ...int) *DeviceUpdate {
+	du.mutation.AddHaveIPAddressIDs(ids...)
+	return du
+}
+
+// AddHaveIPAddresses adds the "have_ip_addresses" edges to the IPAddress entity.
+func (du *DeviceUpdate) AddHaveIPAddresses(i ...*IPAddress) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.AddHaveIPAddressIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (du *DeviceUpdate) AddInTopologyIDs(ids ...int) *DeviceUpdate {
 	du.mutation.AddInTopologyIDs(ids...)
@@ -310,6 +326,27 @@ func (du *DeviceUpdate) RemovePoInterfaces(p ...*PortChannelInterface) *DeviceUp
 		ids[i] = p[i].ID
 	}
 	return du.RemovePoInterfaceIDs(ids...)
+}
+
+// ClearHaveIPAddresses clears all "have_ip_addresses" edges to the IPAddress entity.
+func (du *DeviceUpdate) ClearHaveIPAddresses() *DeviceUpdate {
+	du.mutation.ClearHaveIPAddresses()
+	return du
+}
+
+// RemoveHaveIPAddressIDs removes the "have_ip_addresses" edge to IPAddress entities by IDs.
+func (du *DeviceUpdate) RemoveHaveIPAddressIDs(ids ...int) *DeviceUpdate {
+	du.mutation.RemoveHaveIPAddressIDs(ids...)
+	return du
+}
+
+// RemoveHaveIPAddresses removes "have_ip_addresses" edges to IPAddress entities.
+func (du *DeviceUpdate) RemoveHaveIPAddresses(i ...*IPAddress) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.RemoveHaveIPAddressIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -722,6 +759,60 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedHaveIPAddressesIDs(); len(nodes) > 0 && !du.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.HaveIPAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if du.mutation.InTopologyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1078,6 +1169,21 @@ func (duo *DeviceUpdateOne) AddPoInterfaces(p ...*PortChannelInterface) *DeviceU
 	return duo.AddPoInterfaceIDs(ids...)
 }
 
+// AddHaveIPAddressIDs adds the "have_ip_addresses" edge to the IPAddress entity by IDs.
+func (duo *DeviceUpdateOne) AddHaveIPAddressIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.AddHaveIPAddressIDs(ids...)
+	return duo
+}
+
+// AddHaveIPAddresses adds the "have_ip_addresses" edges to the IPAddress entity.
+func (duo *DeviceUpdateOne) AddHaveIPAddresses(i ...*IPAddress) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.AddHaveIPAddressIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (duo *DeviceUpdateOne) AddInTopologyIDs(ids ...int) *DeviceUpdateOne {
 	duo.mutation.AddInTopologyIDs(ids...)
@@ -1180,6 +1286,27 @@ func (duo *DeviceUpdateOne) RemovePoInterfaces(p ...*PortChannelInterface) *Devi
 		ids[i] = p[i].ID
 	}
 	return duo.RemovePoInterfaceIDs(ids...)
+}
+
+// ClearHaveIPAddresses clears all "have_ip_addresses" edges to the IPAddress entity.
+func (duo *DeviceUpdateOne) ClearHaveIPAddresses() *DeviceUpdateOne {
+	duo.mutation.ClearHaveIPAddresses()
+	return duo
+}
+
+// RemoveHaveIPAddressIDs removes the "have_ip_addresses" edge to IPAddress entities by IDs.
+func (duo *DeviceUpdateOne) RemoveHaveIPAddressIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.RemoveHaveIPAddressIDs(ids...)
+	return duo
+}
+
+// RemoveHaveIPAddresses removes "have_ip_addresses" edges to IPAddress entities.
+func (duo *DeviceUpdateOne) RemoveHaveIPAddresses(i ...*IPAddress) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.RemoveHaveIPAddressIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -1608,6 +1735,60 @@ func (duo *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedHaveIPAddressesIDs(); len(nodes) > 0 && !duo.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.HaveIPAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
 				},
 			},
 		}

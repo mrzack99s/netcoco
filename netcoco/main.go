@@ -2,15 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
-
-	entsql "entgo.io/ent/dialect/sql"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -20,26 +17,6 @@ import (
 	"github.com/mrzack99s/netcoco/pkgs/services"
 	"github.com/mrzack99s/netcoco/pkgs/system"
 )
-
-func Open() (*ent.Client, error) {
-	db, err := sql.Open("mysql",
-		fmt.Sprintf("%s:%s@tcp(%s)/%s",
-			system.SystemConfigVar.NetCoCo.DB.SQL.Username,
-			system.SystemConfigVar.NetCoCo.DB.SQL.Password,
-			system.SystemConfigVar.NetCoCo.DB.SQL.Hostname,
-			system.SystemConfigVar.NetCoCo.DB.SQL.DBName,
-		),
-	)
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(100)
-	db.SetConnMaxLifetime(time.Hour)
-	// Create an ent.Driver from `db`.
-	drv := entsql.OpenDB("mysql", db)
-	return ent.NewClient(ent.Driver(drv)), nil
-}
 
 func SystemInitial(client *ent.Client) {
 	mode := gin.DebugMode
@@ -107,46 +84,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = client.Schema.Create(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if i, _ := client.DeviceType.Query().Count(context.Background()); i == 0 {
-		temp := []string{"router", "l3switch", "l2switch", "firewall", "storage", "server"}
-		for _, item := range temp {
-			_, err = client.DeviceType.Create().SetDeviceTypeName(item).Save(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
-
-	if i, _ := client.NetInterfaceMode.Query().Count(context.Background()); i == 0 {
-		temp := []string{"Access", "Trunking", "EtherChannel", "None"}
-		for _, item := range temp {
-			_, err = client.NetInterfaceMode.Create().SetInterfaceMode(item).Save(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
-
-	if i, _ := client.DevicePlatform.Query().Count(context.Background()); i == 0 {
-		temp := []string{"ios", "sg300", "sg350"}
-		for _, item := range temp {
-			_, err = client.DevicePlatform.Create().SetDevicePlatformName(item).Save(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
-	if i, _ := client.Vlan.Query().Count(context.Background()); i == 0 {
-		_, err = client.Vlan.Create().SetVlanID(1).Save(context.Background())
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	DBInitial(client)
 
 	SystemInitial(client)
 

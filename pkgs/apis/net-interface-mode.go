@@ -16,7 +16,7 @@ func (ctl *InterfaceModeController) GetAll(c *gin.Context) {
 	usr, err := services.GetInterfaceMode(ctl.client)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

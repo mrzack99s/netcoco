@@ -16,6 +16,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
@@ -33,14 +34,15 @@ type DeviceQuery struct {
 	fields     []string
 	predicates []predicate.Device
 	// eager-loading edges.
-	withInType       *DeviceTypeQuery
-	withInPlatform   *DevicePlatformQuery
-	withInterfaces   *NetInterfaceQuery
-	withPoInterfaces *PortChannelInterfaceQuery
-	withInTopology   *NetTopologyDeviceMapQuery
-	withStoreVlans   *VlanQuery
-	withDeletedVlans *DeletedVlanLogQuery
-	withFKs          bool
+	withInType          *DeviceTypeQuery
+	withInPlatform      *DevicePlatformQuery
+	withInterfaces      *NetInterfaceQuery
+	withPoInterfaces    *PortChannelInterfaceQuery
+	withHaveIPAddresses *IPAddressQuery
+	withInTopology      *NetTopologyDeviceMapQuery
+	withStoreVlans      *VlanQuery
+	withDeletedVlans    *DeletedVlanLogQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -158,6 +160,28 @@ func (dq *DeviceQuery) QueryPoInterfaces() *PortChannelInterfaceQuery {
 			sqlgraph.From(device.Table, device.FieldID, selector),
 			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, device.PoInterfacesTable, device.PoInterfacesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHaveIPAddresses chains the current query on the "have_ip_addresses" edge.
+func (dq *DeviceQuery) QueryHaveIPAddresses() *IPAddressQuery {
+	query := &IPAddressQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.HaveIPAddressesTable, device.HaveIPAddressesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -407,18 +431,19 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 		return nil
 	}
 	return &DeviceQuery{
-		config:           dq.config,
-		limit:            dq.limit,
-		offset:           dq.offset,
-		order:            append([]OrderFunc{}, dq.order...),
-		predicates:       append([]predicate.Device{}, dq.predicates...),
-		withInType:       dq.withInType.Clone(),
-		withInPlatform:   dq.withInPlatform.Clone(),
-		withInterfaces:   dq.withInterfaces.Clone(),
-		withPoInterfaces: dq.withPoInterfaces.Clone(),
-		withInTopology:   dq.withInTopology.Clone(),
-		withStoreVlans:   dq.withStoreVlans.Clone(),
-		withDeletedVlans: dq.withDeletedVlans.Clone(),
+		config:              dq.config,
+		limit:               dq.limit,
+		offset:              dq.offset,
+		order:               append([]OrderFunc{}, dq.order...),
+		predicates:          append([]predicate.Device{}, dq.predicates...),
+		withInType:          dq.withInType.Clone(),
+		withInPlatform:      dq.withInPlatform.Clone(),
+		withInterfaces:      dq.withInterfaces.Clone(),
+		withPoInterfaces:    dq.withPoInterfaces.Clone(),
+		withHaveIPAddresses: dq.withHaveIPAddresses.Clone(),
+		withInTopology:      dq.withInTopology.Clone(),
+		withStoreVlans:      dq.withStoreVlans.Clone(),
+		withDeletedVlans:    dq.withDeletedVlans.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
@@ -466,6 +491,17 @@ func (dq *DeviceQuery) WithPoInterfaces(opts ...func(*PortChannelInterfaceQuery)
 		opt(query)
 	}
 	dq.withPoInterfaces = query
+	return dq
+}
+
+// WithHaveIPAddresses tells the query-builder to eager-load the nodes that are connected to
+// the "have_ip_addresses" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithHaveIPAddresses(opts ...func(*IPAddressQuery)) *DeviceQuery {
+	query := &IPAddressQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withHaveIPAddresses = query
 	return dq
 }
 
@@ -568,11 +604,12 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 		nodes       = []*Device{}
 		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			dq.withInType != nil,
 			dq.withInPlatform != nil,
 			dq.withInterfaces != nil,
 			dq.withPoInterfaces != nil,
+			dq.withHaveIPAddresses != nil,
 			dq.withInTopology != nil,
 			dq.withStoreVlans != nil,
 			dq.withDeletedVlans != nil,
@@ -717,6 +754,35 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "device_po_interfaces" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PoInterfaces = append(node.Edges.PoInterfaces, n)
+		}
+	}
+
+	if query := dq.withHaveIPAddresses; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Device)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.HaveIPAddresses = []*IPAddress{}
+		}
+		query.withFKs = true
+		query.Where(predicate.IPAddress(func(s *sql.Selector) {
+			s.Where(sql.InValues(device.HaveIPAddressesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.device_have_ip_addresses
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "device_have_ip_addresses" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "device_have_ip_addresses" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.HaveIPAddresses = append(node.Edges.HaveIPAddresses, n)
 		}
 	}
 

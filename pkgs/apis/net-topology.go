@@ -26,7 +26,7 @@ func (ctl *TopologyController) Create(c *gin.Context) {
 	u, err := services.CreateTopology(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -48,7 +48,7 @@ func (ctl *TopologyController) Edit(c *gin.Context) {
 	usr, err := services.EditTopologyDetail(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -83,7 +83,7 @@ func (ctl *TopologyController) Get(c *gin.Context) {
 	usr, err := services.GetTopology(ctl.client, topoId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -101,7 +101,7 @@ func (ctl *TopologyController) Delete(c *gin.Context) {
 	err := services.DeleteTopology(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

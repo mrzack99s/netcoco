@@ -20,7 +20,7 @@ func (ctl *NetAutomationController) GetPingTopology(c *gin.Context) {
 	usr, err := services.GetPingTopology(ctl.client, topoId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -38,7 +38,7 @@ func (ctl *NetAutomationController) GetPingDevice(c *gin.Context) {
 	usr, err := services.GetPingDevice(ctl.client, deviceId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -62,7 +62,7 @@ func (ctl *NetAutomationController) Commit(c *gin.Context) {
 	usr, err := services.Commit(ctl.client, obj.ID)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

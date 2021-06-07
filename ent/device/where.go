@@ -939,6 +939,34 @@ func HasPoInterfacesWith(preds ...predicate.PortChannelInterface) predicate.Devi
 	})
 }
 
+// HasHaveIPAddresses applies the HasEdge predicate on the "have_ip_addresses" edge.
+func HasHaveIPAddresses() predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HaveIPAddressesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HaveIPAddressesTable, HaveIPAddressesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHaveIPAddressesWith applies the HasEdge predicate on the "have_ip_addresses" edge with a given conditions (other predicates).
+func HasHaveIPAddressesWith(preds ...predicate.IPAddress) predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HaveIPAddressesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HaveIPAddressesTable, HaveIPAddressesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasInTopology applies the HasEdge predicate on the "in_topology" edge.
 func HasInTopology() predicate.Device {
 	return predicate.Device(func(s *sql.Selector) {
