@@ -26,7 +26,7 @@ func (ctl *TopologyDeviceMapController) Create(c *gin.Context) {
 	u, err := services.CreateDeviceMap(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -48,7 +48,7 @@ func (ctl *TopologyDeviceMapController) CreateEdge(c *gin.Context) {
 	u, err := services.CreateEdge(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -64,7 +64,7 @@ func (ctl *TopologyDeviceMapController) Delete(c *gin.Context) {
 	err := services.DeleteDeviceMap(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

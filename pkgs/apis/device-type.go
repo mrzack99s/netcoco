@@ -26,7 +26,7 @@ func (ctl *VlanController) Create(c *gin.Context) {
 	u, err := services.CreateVlan(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -48,7 +48,7 @@ func (ctl *VlanController) Edit(c *gin.Context) {
 	usr, err := services.EditVlanDetail(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -82,7 +82,7 @@ func (ctl *VlanController) Get(c *gin.Context) {
 	usr, err := services.GetVlan(ctl.client, vlanId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -100,7 +100,7 @@ func (ctl *VlanController) Delete(c *gin.Context) {
 	err := services.DeleteVlan(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

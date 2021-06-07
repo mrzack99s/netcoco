@@ -24,7 +24,7 @@ func (ctl *UnsecureController) Login(c *gin.Context) {
 	usr, err := services.GetAuthentication(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -47,7 +47,7 @@ func (ctl *UnsecureController) CheckSession(c *gin.Context) {
 	usr, err := services.CheckSessionWithUsernameAndAPISecret(obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -71,7 +71,7 @@ func (ctl *UnsecureController) Logout(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

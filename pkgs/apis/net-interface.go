@@ -27,7 +27,7 @@ func (ctl *InterfaceController) Create(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -50,7 +50,7 @@ func (ctl *InterfaceController) CreateRange(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -72,7 +72,7 @@ func (ctl *InterfaceController) Edit(c *gin.Context) {
 	usr, err := services.EditInterfaceDetail(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -90,7 +90,7 @@ func (ctl *InterfaceController) Get(c *gin.Context) {
 	usr, err := services.GetInterface(ctl.client, intId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -108,7 +108,7 @@ func (ctl *InterfaceController) CleanInterface(c *gin.Context) {
 	err := services.CleanInterface(ctl.client, deviceId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -128,7 +128,7 @@ func (ctl *InterfaceController) Delete(c *gin.Context) {
 	err := services.DeleteInterface(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

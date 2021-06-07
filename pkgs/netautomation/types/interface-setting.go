@@ -8,7 +8,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent"
 )
 
-type InterfaceSetting struct {
+type InterfaceL2Setting struct {
 	InterfaceName string
 	PortChannelID int
 	Mode          string
@@ -18,9 +18,17 @@ type InterfaceSetting struct {
 	PoSetting     bool
 }
 
+type InterfaceL3Setting struct {
+	InterfaceName string
+	DeviceType    string
+	Shutdown      bool
+	IPAddress     string
+	SubnetMask    string
+}
+
 func GetHaveVlans(vlans []*ent.Vlan) (intVlan strings.Builder) {
 	intVlan = strings.Builder{}
-	if vlans != nil {
+	if len(vlans) > 0 {
 		if len(vlans) > 1 {
 			for index, v := range vlans {
 				if index == len(vlans)-1 {

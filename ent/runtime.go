@@ -8,7 +8,9 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
@@ -77,6 +79,16 @@ func init() {
 	devicetypeDescDeviceTypeName := devicetypeFields[0].Descriptor()
 	// devicetype.DeviceTypeNameValidator is a validator for the "device_type_name" field. It is called by the builders before save.
 	devicetype.DeviceTypeNameValidator = devicetypeDescDeviceTypeName.Validators[0].(func(string) error)
+	ipaddressFields := schema.IPAddress{}.Fields()
+	_ = ipaddressFields
+	// ipaddressDescIPAddress is the schema descriptor for ip_address field.
+	ipaddressDescIPAddress := ipaddressFields[0].Descriptor()
+	// ipaddress.IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
+	ipaddress.IPAddressValidator = ipaddressDescIPAddress.Validators[0].(func(string) error)
+	// ipaddressDescSubnetMask is the schema descriptor for subnet_mask field.
+	ipaddressDescSubnetMask := ipaddressFields[1].Descriptor()
+	// ipaddress.SubnetMaskValidator is a validator for the "subnet_mask" field. It is called by the builders before save.
+	ipaddress.SubnetMaskValidator = ipaddressDescSubnetMask.Validators[0].(func(string) error)
 	netinterfaceFields := schema.NetInterface{}.Fields()
 	_ = netinterfaceFields
 	// netinterfaceDescInterfaceName is the schema descriptor for interface_name field.
@@ -87,6 +99,12 @@ func init() {
 	netinterfaceDescInterfaceShutdown := netinterfaceFields[1].Descriptor()
 	// netinterface.DefaultInterfaceShutdown holds the default value on creation for the interface_shutdown field.
 	netinterface.DefaultInterfaceShutdown = netinterfaceDescInterfaceShutdown.Default.(bool)
+	netinterfacelayerFields := schema.NetInterfaceLayer{}.Fields()
+	_ = netinterfacelayerFields
+	// netinterfacelayerDescInterfaceLayer is the schema descriptor for interface_layer field.
+	netinterfacelayerDescInterfaceLayer := netinterfacelayerFields[0].Descriptor()
+	// netinterfacelayer.InterfaceLayerValidator is a validator for the "interface_layer" field. It is called by the builders before save.
+	netinterfacelayer.InterfaceLayerValidator = netinterfacelayerDescInterfaceLayer.Validators[0].(func(int) error)
 	netinterfacemodeFields := schema.NetInterfaceMode{}.Fields()
 	_ = netinterfacemodeFields
 	// netinterfacemodeDescInterfaceMode is the schema descriptor for interface_mode field.

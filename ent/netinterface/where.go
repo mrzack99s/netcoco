@@ -286,6 +286,34 @@ func HasOnPoInterfaceWith(preds ...predicate.PortChannelInterface) predicate.Net
 	})
 }
 
+// HasOnIPAddress applies the HasEdge predicate on the "on_ip_address" edge.
+func HasOnIPAddress() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnIPAddressTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnIPAddressTable, OnIPAddressColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOnIPAddressWith applies the HasEdge predicate on the "on_ip_address" edge with a given conditions (other predicates).
+func HasOnIPAddressWith(preds ...predicate.IPAddress) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnIPAddressInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnIPAddressTable, OnIPAddressColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMode applies the HasEdge predicate on the "mode" edge.
 func HasMode() predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {
@@ -305,6 +333,34 @@ func HasModeWith(preds ...predicate.NetInterfaceMode) predicate.NetInterface {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ModeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ModeTable, ModeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOnLayer applies the HasEdge predicate on the "on_layer" edge.
+func HasOnLayer() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnLayerTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnLayerTable, OnLayerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOnLayerWith applies the HasEdge predicate on the "on_layer" edge with a given conditions (other predicates).
+func HasOnLayerWith(preds ...predicate.NetInterfaceLayer) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnLayerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnLayerTable, OnLayerColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

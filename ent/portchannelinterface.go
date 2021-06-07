@@ -8,6 +8,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
@@ -24,27 +26,33 @@ type PortChannelInterface struct {
 	PoInterfaceShutdown bool `json:"po_interface_shutdown,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PortChannelInterfaceQuery when eager-loading is set.
-	Edges                       PortChannelInterfaceEdges `json:"edges"`
-	device_po_interfaces        *int
-	net_interface_mode_po_modes *int
-	vlan_po_native_vlan         *int
+	Edges                         PortChannelInterfaceEdges `json:"edges"`
+	device_po_interfaces          *int
+	ip_address_po_interfaces      *int
+	net_interface_layer_po_layers *int
+	net_interface_mode_po_modes   *int
+	vlan_po_native_vlan           *int
 }
 
 // PortChannelInterfaceEdges holds the relations/edges for other nodes in the graph.
 type PortChannelInterfaceEdges struct {
 	// Mode holds the value of the mode edge.
 	Mode *NetInterfaceMode `json:"mode,omitempty"`
+	// OnLayer holds the value of the on_layer edge.
+	OnLayer *NetInterfaceLayer `json:"on_layer,omitempty"`
 	// HaveVlans holds the value of the have_vlans edge.
 	HaveVlans []*Vlan `json:"have_vlans,omitempty"`
 	// NativeOnVlan holds the value of the native_on_vlan edge.
 	NativeOnVlan *Vlan `json:"native_on_vlan,omitempty"`
 	// OnDevice holds the value of the on_device edge.
 	OnDevice *Device `json:"on_device,omitempty"`
+	// OnIPAddress holds the value of the on_ip_address edge.
+	OnIPAddress *IPAddress `json:"on_ip_address,omitempty"`
 	// Interfaces holds the value of the interfaces edge.
 	Interfaces []*NetInterface `json:"interfaces,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 }
 
 // ModeOrErr returns the Mode value or an error if the edge
@@ -61,10 +69,24 @@ func (e PortChannelInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
 	return nil, &NotLoadedError{edge: "mode"}
 }
 
+// OnLayerOrErr returns the OnLayer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PortChannelInterfaceEdges) OnLayerOrErr() (*NetInterfaceLayer, error) {
+	if e.loadedTypes[1] {
+		if e.OnLayer == nil {
+			// The edge on_layer was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: netinterfacelayer.Label}
+		}
+		return e.OnLayer, nil
+	}
+	return nil, &NotLoadedError{edge: "on_layer"}
+}
+
 // HaveVlansOrErr returns the HaveVlans value or an error if the edge
 // was not loaded in eager-loading.
 func (e PortChannelInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.HaveVlans, nil
 	}
 	return nil, &NotLoadedError{edge: "have_vlans"}
@@ -73,7 +95,7 @@ func (e PortChannelInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
 // NativeOnVlanOrErr returns the NativeOnVlan value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e PortChannelInterfaceEdges) NativeOnVlanOrErr() (*Vlan, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.NativeOnVlan == nil {
 			// The edge native_on_vlan was loaded in eager-loading,
 			// but was not found.
@@ -87,7 +109,7 @@ func (e PortChannelInterfaceEdges) NativeOnVlanOrErr() (*Vlan, error) {
 // OnDeviceOrErr returns the OnDevice value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e PortChannelInterfaceEdges) OnDeviceOrErr() (*Device, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		if e.OnDevice == nil {
 			// The edge on_device was loaded in eager-loading,
 			// but was not found.
@@ -98,10 +120,24 @@ func (e PortChannelInterfaceEdges) OnDeviceOrErr() (*Device, error) {
 	return nil, &NotLoadedError{edge: "on_device"}
 }
 
+// OnIPAddressOrErr returns the OnIPAddress value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PortChannelInterfaceEdges) OnIPAddressOrErr() (*IPAddress, error) {
+	if e.loadedTypes[5] {
+		if e.OnIPAddress == nil {
+			// The edge on_ip_address was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: ipaddress.Label}
+		}
+		return e.OnIPAddress, nil
+	}
+	return nil, &NotLoadedError{edge: "on_ip_address"}
+}
+
 // InterfacesOrErr returns the Interfaces value or an error if the edge
 // was not loaded in eager-loading.
 func (e PortChannelInterfaceEdges) InterfacesOrErr() ([]*NetInterface, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[6] {
 		return e.Interfaces, nil
 	}
 	return nil, &NotLoadedError{edge: "interfaces"}
@@ -118,9 +154,13 @@ func (*PortChannelInterface) scanValues(columns []string) ([]interface{}, error)
 			values[i] = new(sql.NullInt64)
 		case portchannelinterface.ForeignKeys[0]: // device_po_interfaces
 			values[i] = new(sql.NullInt64)
-		case portchannelinterface.ForeignKeys[1]: // net_interface_mode_po_modes
+		case portchannelinterface.ForeignKeys[1]: // ip_address_po_interfaces
 			values[i] = new(sql.NullInt64)
-		case portchannelinterface.ForeignKeys[2]: // vlan_po_native_vlan
+		case portchannelinterface.ForeignKeys[2]: // net_interface_layer_po_layers
+			values[i] = new(sql.NullInt64)
+		case portchannelinterface.ForeignKeys[3]: // net_interface_mode_po_modes
+			values[i] = new(sql.NullInt64)
+		case portchannelinterface.ForeignKeys[4]: // vlan_po_native_vlan
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PortChannelInterface", columns[i])
@@ -164,12 +204,26 @@ func (pci *PortChannelInterface) assignValues(columns []string, values []interfa
 			}
 		case portchannelinterface.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field ip_address_po_interfaces", value)
+			} else if value.Valid {
+				pci.ip_address_po_interfaces = new(int)
+				*pci.ip_address_po_interfaces = int(value.Int64)
+			}
+		case portchannelinterface.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field net_interface_layer_po_layers", value)
+			} else if value.Valid {
+				pci.net_interface_layer_po_layers = new(int)
+				*pci.net_interface_layer_po_layers = int(value.Int64)
+			}
+		case portchannelinterface.ForeignKeys[3]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field net_interface_mode_po_modes", value)
 			} else if value.Valid {
 				pci.net_interface_mode_po_modes = new(int)
 				*pci.net_interface_mode_po_modes = int(value.Int64)
 			}
-		case portchannelinterface.ForeignKeys[2]:
+		case portchannelinterface.ForeignKeys[4]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field vlan_po_native_vlan", value)
 			} else if value.Valid {
@@ -186,6 +240,11 @@ func (pci *PortChannelInterface) QueryMode() *NetInterfaceModeQuery {
 	return (&PortChannelInterfaceClient{config: pci.config}).QueryMode(pci)
 }
 
+// QueryOnLayer queries the "on_layer" edge of the PortChannelInterface entity.
+func (pci *PortChannelInterface) QueryOnLayer() *NetInterfaceLayerQuery {
+	return (&PortChannelInterfaceClient{config: pci.config}).QueryOnLayer(pci)
+}
+
 // QueryHaveVlans queries the "have_vlans" edge of the PortChannelInterface entity.
 func (pci *PortChannelInterface) QueryHaveVlans() *VlanQuery {
 	return (&PortChannelInterfaceClient{config: pci.config}).QueryHaveVlans(pci)
@@ -199,6 +258,11 @@ func (pci *PortChannelInterface) QueryNativeOnVlan() *VlanQuery {
 // QueryOnDevice queries the "on_device" edge of the PortChannelInterface entity.
 func (pci *PortChannelInterface) QueryOnDevice() *DeviceQuery {
 	return (&PortChannelInterfaceClient{config: pci.config}).QueryOnDevice(pci)
+}
+
+// QueryOnIPAddress queries the "on_ip_address" edge of the PortChannelInterface entity.
+func (pci *PortChannelInterface) QueryOnIPAddress() *IPAddressQuery {
+	return (&PortChannelInterfaceClient{config: pci.config}).QueryOnIPAddress(pci)
 }
 
 // QueryInterfaces queries the "interfaces" edge of the PortChannelInterface entity.

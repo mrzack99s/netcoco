@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
@@ -81,6 +83,25 @@ func (nic *NetInterfaceCreate) SetOnPoInterface(p *PortChannelInterface) *NetInt
 	return nic.SetOnPoInterfaceID(p.ID)
 }
 
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (nic *NetInterfaceCreate) SetOnIPAddressID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnIPAddressID(id)
+	return nic
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnIPAddressID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnIPAddressID(*id)
+	}
+	return nic
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (nic *NetInterfaceCreate) SetOnIPAddress(i *IPAddress) *NetInterfaceCreate {
+	return nic.SetOnIPAddressID(i.ID)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (nic *NetInterfaceCreate) SetModeID(id int) *NetInterfaceCreate {
 	nic.mutation.SetModeID(id)
@@ -98,6 +119,25 @@ func (nic *NetInterfaceCreate) SetNillableModeID(id *int) *NetInterfaceCreate {
 // SetMode sets the "mode" edge to the NetInterfaceMode entity.
 func (nic *NetInterfaceCreate) SetMode(n *NetInterfaceMode) *NetInterfaceCreate {
 	return nic.SetModeID(n.ID)
+}
+
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (nic *NetInterfaceCreate) SetOnLayerID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnLayerID(id)
+	return nic
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnLayerID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnLayerID(*id)
+	}
+	return nic
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (nic *NetInterfaceCreate) SetOnLayer(n *NetInterfaceLayer) *NetInterfaceCreate {
+	return nic.SetOnLayerID(n.ID)
 }
 
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
@@ -288,6 +328,26 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 		_node.port_channel_interface_interfaces = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := nic.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ip_address_interfaces = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := nic.mutation.ModeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -306,6 +366,26 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.net_interface_mode_modes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.net_interface_layer_layers = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := nic.mutation.HaveVlansIDs(); len(nodes) > 0 {

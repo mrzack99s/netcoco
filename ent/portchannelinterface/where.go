@@ -223,6 +223,34 @@ func HasModeWith(preds ...predicate.NetInterfaceMode) predicate.PortChannelInter
 	})
 }
 
+// HasOnLayer applies the HasEdge predicate on the "on_layer" edge.
+func HasOnLayer() predicate.PortChannelInterface {
+	return predicate.PortChannelInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnLayerTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnLayerTable, OnLayerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOnLayerWith applies the HasEdge predicate on the "on_layer" edge with a given conditions (other predicates).
+func HasOnLayerWith(preds ...predicate.NetInterfaceLayer) predicate.PortChannelInterface {
+	return predicate.PortChannelInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnLayerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnLayerTable, OnLayerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasHaveVlans applies the HasEdge predicate on the "have_vlans" edge.
 func HasHaveVlans() predicate.PortChannelInterface {
 	return predicate.PortChannelInterface(func(s *sql.Selector) {
@@ -298,6 +326,34 @@ func HasOnDeviceWith(preds ...predicate.Device) predicate.PortChannelInterface {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(OnDeviceInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, OnDeviceTable, OnDeviceColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOnIPAddress applies the HasEdge predicate on the "on_ip_address" edge.
+func HasOnIPAddress() predicate.PortChannelInterface {
+	return predicate.PortChannelInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnIPAddressTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnIPAddressTable, OnIPAddressColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOnIPAddressWith applies the HasEdge predicate on the "on_ip_address" edge with a given conditions (other predicates).
+func HasOnIPAddressWith(preds ...predicate.IPAddress) predicate.PortChannelInterface {
+	return predicate.PortChannelInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OnIPAddressInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OnIPAddressTable, OnIPAddressColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

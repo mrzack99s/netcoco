@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
@@ -76,6 +78,25 @@ func (pciu *PortChannelInterfaceUpdate) SetMode(n *NetInterfaceMode) *PortChanne
 	return pciu.SetModeID(n.ID)
 }
 
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (pciu *PortChannelInterfaceUpdate) SetOnLayerID(id int) *PortChannelInterfaceUpdate {
+	pciu.mutation.SetOnLayerID(id)
+	return pciu
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (pciu *PortChannelInterfaceUpdate) SetNillableOnLayerID(id *int) *PortChannelInterfaceUpdate {
+	if id != nil {
+		pciu = pciu.SetOnLayerID(*id)
+	}
+	return pciu
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (pciu *PortChannelInterfaceUpdate) SetOnLayer(n *NetInterfaceLayer) *PortChannelInterfaceUpdate {
+	return pciu.SetOnLayerID(n.ID)
+}
+
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
 func (pciu *PortChannelInterfaceUpdate) AddHaveVlanIDs(ids ...int) *PortChannelInterfaceUpdate {
 	pciu.mutation.AddHaveVlanIDs(ids...)
@@ -129,6 +150,25 @@ func (pciu *PortChannelInterfaceUpdate) SetOnDevice(d *Device) *PortChannelInter
 	return pciu.SetOnDeviceID(d.ID)
 }
 
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (pciu *PortChannelInterfaceUpdate) SetOnIPAddressID(id int) *PortChannelInterfaceUpdate {
+	pciu.mutation.SetOnIPAddressID(id)
+	return pciu
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (pciu *PortChannelInterfaceUpdate) SetNillableOnIPAddressID(id *int) *PortChannelInterfaceUpdate {
+	if id != nil {
+		pciu = pciu.SetOnIPAddressID(*id)
+	}
+	return pciu
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (pciu *PortChannelInterfaceUpdate) SetOnIPAddress(i *IPAddress) *PortChannelInterfaceUpdate {
+	return pciu.SetOnIPAddressID(i.ID)
+}
+
 // AddInterfaceIDs adds the "interfaces" edge to the NetInterface entity by IDs.
 func (pciu *PortChannelInterfaceUpdate) AddInterfaceIDs(ids ...int) *PortChannelInterfaceUpdate {
 	pciu.mutation.AddInterfaceIDs(ids...)
@@ -152,6 +192,12 @@ func (pciu *PortChannelInterfaceUpdate) Mutation() *PortChannelInterfaceMutation
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (pciu *PortChannelInterfaceUpdate) ClearMode() *PortChannelInterfaceUpdate {
 	pciu.mutation.ClearMode()
+	return pciu
+}
+
+// ClearOnLayer clears the "on_layer" edge to the NetInterfaceLayer entity.
+func (pciu *PortChannelInterfaceUpdate) ClearOnLayer() *PortChannelInterfaceUpdate {
+	pciu.mutation.ClearOnLayer()
 	return pciu
 }
 
@@ -185,6 +231,12 @@ func (pciu *PortChannelInterfaceUpdate) ClearNativeOnVlan() *PortChannelInterfac
 // ClearOnDevice clears the "on_device" edge to the Device entity.
 func (pciu *PortChannelInterfaceUpdate) ClearOnDevice() *PortChannelInterfaceUpdate {
 	pciu.mutation.ClearOnDevice()
+	return pciu
+}
+
+// ClearOnIPAddress clears the "on_ip_address" edge to the IPAddress entity.
+func (pciu *PortChannelInterfaceUpdate) ClearOnIPAddress() *PortChannelInterfaceUpdate {
+	pciu.mutation.ClearOnIPAddress()
 	return pciu
 }
 
@@ -350,6 +402,41 @@ func (pciu *PortChannelInterfaceUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pciu.mutation.OnLayerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnLayerTable,
+			Columns: []string{portchannelinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pciu.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnLayerTable,
+			Columns: []string{portchannelinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if pciu.mutation.HaveVlansCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -466,6 +553,41 @@ func (pciu *PortChannelInterfaceUpdate) sqlSave(ctx context.Context) (n int, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: device.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pciu.mutation.OnIPAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnIPAddressTable,
+			Columns: []string{portchannelinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pciu.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnIPAddressTable,
+			Columns: []string{portchannelinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
 				},
 			},
 		}
@@ -593,6 +715,25 @@ func (pciuo *PortChannelInterfaceUpdateOne) SetMode(n *NetInterfaceMode) *PortCh
 	return pciuo.SetModeID(n.ID)
 }
 
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (pciuo *PortChannelInterfaceUpdateOne) SetOnLayerID(id int) *PortChannelInterfaceUpdateOne {
+	pciuo.mutation.SetOnLayerID(id)
+	return pciuo
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (pciuo *PortChannelInterfaceUpdateOne) SetNillableOnLayerID(id *int) *PortChannelInterfaceUpdateOne {
+	if id != nil {
+		pciuo = pciuo.SetOnLayerID(*id)
+	}
+	return pciuo
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (pciuo *PortChannelInterfaceUpdateOne) SetOnLayer(n *NetInterfaceLayer) *PortChannelInterfaceUpdateOne {
+	return pciuo.SetOnLayerID(n.ID)
+}
+
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
 func (pciuo *PortChannelInterfaceUpdateOne) AddHaveVlanIDs(ids ...int) *PortChannelInterfaceUpdateOne {
 	pciuo.mutation.AddHaveVlanIDs(ids...)
@@ -646,6 +787,25 @@ func (pciuo *PortChannelInterfaceUpdateOne) SetOnDevice(d *Device) *PortChannelI
 	return pciuo.SetOnDeviceID(d.ID)
 }
 
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (pciuo *PortChannelInterfaceUpdateOne) SetOnIPAddressID(id int) *PortChannelInterfaceUpdateOne {
+	pciuo.mutation.SetOnIPAddressID(id)
+	return pciuo
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (pciuo *PortChannelInterfaceUpdateOne) SetNillableOnIPAddressID(id *int) *PortChannelInterfaceUpdateOne {
+	if id != nil {
+		pciuo = pciuo.SetOnIPAddressID(*id)
+	}
+	return pciuo
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (pciuo *PortChannelInterfaceUpdateOne) SetOnIPAddress(i *IPAddress) *PortChannelInterfaceUpdateOne {
+	return pciuo.SetOnIPAddressID(i.ID)
+}
+
 // AddInterfaceIDs adds the "interfaces" edge to the NetInterface entity by IDs.
 func (pciuo *PortChannelInterfaceUpdateOne) AddInterfaceIDs(ids ...int) *PortChannelInterfaceUpdateOne {
 	pciuo.mutation.AddInterfaceIDs(ids...)
@@ -669,6 +829,12 @@ func (pciuo *PortChannelInterfaceUpdateOne) Mutation() *PortChannelInterfaceMuta
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (pciuo *PortChannelInterfaceUpdateOne) ClearMode() *PortChannelInterfaceUpdateOne {
 	pciuo.mutation.ClearMode()
+	return pciuo
+}
+
+// ClearOnLayer clears the "on_layer" edge to the NetInterfaceLayer entity.
+func (pciuo *PortChannelInterfaceUpdateOne) ClearOnLayer() *PortChannelInterfaceUpdateOne {
+	pciuo.mutation.ClearOnLayer()
 	return pciuo
 }
 
@@ -702,6 +868,12 @@ func (pciuo *PortChannelInterfaceUpdateOne) ClearNativeOnVlan() *PortChannelInte
 // ClearOnDevice clears the "on_device" edge to the Device entity.
 func (pciuo *PortChannelInterfaceUpdateOne) ClearOnDevice() *PortChannelInterfaceUpdateOne {
 	pciuo.mutation.ClearOnDevice()
+	return pciuo
+}
+
+// ClearOnIPAddress clears the "on_ip_address" edge to the IPAddress entity.
+func (pciuo *PortChannelInterfaceUpdateOne) ClearOnIPAddress() *PortChannelInterfaceUpdateOne {
+	pciuo.mutation.ClearOnIPAddress()
 	return pciuo
 }
 
@@ -891,6 +1063,41 @@ func (pciuo *PortChannelInterfaceUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pciuo.mutation.OnLayerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnLayerTable,
+			Columns: []string{portchannelinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pciuo.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnLayerTable,
+			Columns: []string{portchannelinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if pciuo.mutation.HaveVlansCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -1007,6 +1214,41 @@ func (pciuo *PortChannelInterfaceUpdateOne) sqlSave(ctx context.Context) (_node 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: device.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pciuo.mutation.OnIPAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnIPAddressTable,
+			Columns: []string{portchannelinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pciuo.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   portchannelinterface.OnIPAddressTable,
+			Columns: []string{portchannelinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
 				},
 			},
 		}

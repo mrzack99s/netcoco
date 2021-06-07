@@ -18,5 +18,6 @@ func DefaultSystem(client *ent.Client) {
 	NewDevicePlatformController(system.SecureAPIGroup, client)
 	NewVlanController(system.SecureAPIGroup, client)
 	NewPortChannelInterfaceController(system.SecureAPIGroup, client)
+	NewInterfaceLayerController(system.SecureAPIGroup, client)
 	templates.NewHTMLController(false)
 }
