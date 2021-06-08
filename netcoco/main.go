@@ -117,7 +117,7 @@ func main() {
 				system.HttpRouter = nil
 				break
 			}
-			time.Sleep(time.Microsecond * 300)
+			time.Sleep(time.Microsecond * 500)
 		}
 
 		SystemInitial(client)
