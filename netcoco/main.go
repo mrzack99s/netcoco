@@ -101,7 +101,7 @@ func main() {
 				default:
 					err = system.ApplicationListener.ListenAndServe()
 					if err != nil {
-						log.Panic(err)
+						continue
 					}
 				}
 			}
@@ -109,14 +109,15 @@ func main() {
 
 		for {
 			if !services.CheckNilAdministrator(client) {
-				cancelCtx()
-				system.HttpRouter = nil
-				err = system.ApplicationListener.Shutdown(context.Background())
+				err = system.ApplicationListener.Shutdown(ctx)
 				if err != nil {
 					log.Panic(err)
 				}
+				cancelCtx()
+				system.HttpRouter = nil
 				break
 			}
+			time.Sleep(time.Microsecond * 500)
 		}
 
 		SystemInitial(client)
