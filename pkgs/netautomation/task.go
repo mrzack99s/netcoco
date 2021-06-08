@@ -1,8 +1,9 @@
 package netautomation
 
 import (
-	"fmt"
-
+	"github.com/mrzack99s/netcoco/pkgs/netautomation/ios"
+	"github.com/mrzack99s/netcoco/pkgs/netautomation/sg300"
+	"github.com/mrzack99s/netcoco/pkgs/netautomation/sg350"
 	"github.com/mrzack99s/netcoco/pkgs/netautomation/types"
 )
 
@@ -13,15 +14,14 @@ func (task *Task) GetCommands() []string {
 }
 func (task *Task) SendConfig() (err error) {
 
-	fmt.Println(task.Commands)
+	switch task.Host.Platform {
+	case "ios":
+		err = ios.SendConfig((*types.Task)(task))
+	case "sg300":
+		err = sg300.SendConfig((*types.Task)(task))
+	case "sg350":
+		err = sg350.SendConfig((*types.Task)(task))
+	}
 
-	// switch task.Host.Platform {
-	// case "ios":
-	// 	err = ios.SendConfig((*types.Task)(task))
-	// case "sg300":
-	// 	err = sg300.SendConfig((*types.Task)(task))
-	// case "sg350":
-	// 	err = sg350.SendConfig((*types.Task)(task))
-	// }
 	return
 }
