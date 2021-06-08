@@ -70,7 +70,7 @@ func Commit(client *ent.Client, device_id int) (status interface{}, err error) {
 	err = task.SendConfig()
 	if err != nil {
 		status = gin.H{
-			"error": err,
+			"error": err.Error(),
 		}
 		return
 	}
