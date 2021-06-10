@@ -27,6 +27,8 @@ const (
 	EdgeInPlatform = "in_platform"
 	// EdgeInterfaces holds the string denoting the interfaces edge name in mutations.
 	EdgeInterfaces = "interfaces"
+	// EdgeIPStaticRouting holds the string denoting the ip_static_routing edge name in mutations.
+	EdgeIPStaticRouting = "ip_static_routing"
 	// EdgePoInterfaces holds the string denoting the po_interfaces edge name in mutations.
 	EdgePoInterfaces = "po_interfaces"
 	// EdgeHaveIPAddresses holds the string denoting the have_ip_addresses edge name in mutations.
@@ -60,6 +62,13 @@ const (
 	InterfacesInverseTable = "net_interfaces"
 	// InterfacesColumn is the table column denoting the interfaces relation/edge.
 	InterfacesColumn = "device_interfaces"
+	// IPStaticRoutingTable is the table the holds the ip_static_routing relation/edge.
+	IPStaticRoutingTable = "ip_static_routing_tables"
+	// IPStaticRoutingInverseTable is the table name for the IPStaticRoutingTable entity.
+	// It exists in this package in order to avoid circular dependency with the "ipstaticroutingtable" package.
+	IPStaticRoutingInverseTable = "ip_static_routing_tables"
+	// IPStaticRoutingColumn is the table column denoting the ip_static_routing relation/edge.
+	IPStaticRoutingColumn = "device_ip_static_routing"
 	// PoInterfacesTable is the table the holds the po_interfaces relation/edge.
 	PoInterfacesTable = "port_channel_interfaces"
 	// PoInterfacesInverseTable is the table name for the PortChannelInterface entity.

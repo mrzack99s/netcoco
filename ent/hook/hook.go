@@ -87,6 +87,19 @@ func (f IPAddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return f(ctx, mv)
 }
 
+// The IPStaticRoutingTableFunc type is an adapter to allow the use of ordinary
+// function as IPStaticRoutingTable mutator.
+type IPStaticRoutingTableFunc func(context.Context, *ent.IPStaticRoutingTableMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IPStaticRoutingTableFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.IPStaticRoutingTableMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IPStaticRoutingTableMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The NetInterfaceFunc type is an adapter to allow the use of ordinary
 // function as NetInterface mutator.
 type NetInterfaceFunc func(context.Context, *ent.NetInterfaceMutation) (ent.Value, error)

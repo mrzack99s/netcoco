@@ -13,6 +13,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -40,6 +41,7 @@ const (
 	TypeDevicePlatform       = "DevicePlatform"
 	TypeDeviceType           = "DeviceType"
 	TypeIPAddress            = "IPAddress"
+	TypeIPStaticRoutingTable = "IPStaticRoutingTable"
 	TypeNetInterface         = "NetInterface"
 	TypeNetInterfaceLayer    = "NetInterfaceLayer"
 	TypeNetInterfaceMode     = "NetInterfaceMode"
@@ -858,6 +860,9 @@ type DeviceMutation struct {
 	interfaces               map[int]struct{}
 	removedinterfaces        map[int]struct{}
 	clearedinterfaces        bool
+	ip_static_routing        map[int]struct{}
+	removedip_static_routing map[int]struct{}
+	clearedip_static_routing bool
 	po_interfaces            map[int]struct{}
 	removedpo_interfaces     map[int]struct{}
 	clearedpo_interfaces     bool
@@ -1399,6 +1404,59 @@ func (m *DeviceMutation) ResetInterfaces() {
 	m.removedinterfaces = nil
 }
 
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by ids.
+func (m *DeviceMutation) AddIPStaticRoutingIDs(ids ...int) {
+	if m.ip_static_routing == nil {
+		m.ip_static_routing = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.ip_static_routing[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIPStaticRouting clears the "ip_static_routing" edge to the IPStaticRoutingTable entity.
+func (m *DeviceMutation) ClearIPStaticRouting() {
+	m.clearedip_static_routing = true
+}
+
+// IPStaticRoutingCleared reports if the "ip_static_routing" edge to the IPStaticRoutingTable entity was cleared.
+func (m *DeviceMutation) IPStaticRoutingCleared() bool {
+	return m.clearedip_static_routing
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (m *DeviceMutation) RemoveIPStaticRoutingIDs(ids ...int) {
+	if m.removedip_static_routing == nil {
+		m.removedip_static_routing = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedip_static_routing[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIPStaticRouting returns the removed IDs of the "ip_static_routing" edge to the IPStaticRoutingTable entity.
+func (m *DeviceMutation) RemovedIPStaticRoutingIDs() (ids []int) {
+	for id := range m.removedip_static_routing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IPStaticRoutingIDs returns the "ip_static_routing" edge IDs in the mutation.
+func (m *DeviceMutation) IPStaticRoutingIDs() (ids []int) {
+	for id := range m.ip_static_routing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIPStaticRouting resets all changes to the "ip_static_routing" edge.
+func (m *DeviceMutation) ResetIPStaticRouting() {
+	m.ip_static_routing = nil
+	m.clearedip_static_routing = false
+	m.removedip_static_routing = nil
+}
+
 // AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by ids.
 func (m *DeviceMutation) AddPoInterfaceIDs(ids ...int) {
 	if m.po_interfaces == nil {
@@ -1915,7 +1973,7 @@ func (m *DeviceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DeviceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.in_type != nil {
 		edges = append(edges, device.EdgeInType)
 	}
@@ -1924,6 +1982,9 @@ func (m *DeviceMutation) AddedEdges() []string {
 	}
 	if m.interfaces != nil {
 		edges = append(edges, device.EdgeInterfaces)
+	}
+	if m.ip_static_routing != nil {
+		edges = append(edges, device.EdgeIPStaticRouting)
 	}
 	if m.po_interfaces != nil {
 		edges = append(edges, device.EdgePoInterfaces)
@@ -1958,6 +2019,12 @@ func (m *DeviceMutation) AddedIDs(name string) []ent.Value {
 	case device.EdgeInterfaces:
 		ids := make([]ent.Value, 0, len(m.interfaces))
 		for id := range m.interfaces {
+			ids = append(ids, id)
+		}
+		return ids
+	case device.EdgeIPStaticRouting:
+		ids := make([]ent.Value, 0, len(m.ip_static_routing))
+		for id := range m.ip_static_routing {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1997,9 +2064,12 @@ func (m *DeviceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DeviceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedinterfaces != nil {
 		edges = append(edges, device.EdgeInterfaces)
+	}
+	if m.removedip_static_routing != nil {
+		edges = append(edges, device.EdgeIPStaticRouting)
 	}
 	if m.removedpo_interfaces != nil {
 		edges = append(edges, device.EdgePoInterfaces)
@@ -2026,6 +2096,12 @@ func (m *DeviceMutation) RemovedIDs(name string) []ent.Value {
 	case device.EdgeInterfaces:
 		ids := make([]ent.Value, 0, len(m.removedinterfaces))
 		for id := range m.removedinterfaces {
+			ids = append(ids, id)
+		}
+		return ids
+	case device.EdgeIPStaticRouting:
+		ids := make([]ent.Value, 0, len(m.removedip_static_routing))
+		for id := range m.removedip_static_routing {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2065,7 +2141,7 @@ func (m *DeviceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DeviceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedin_type {
 		edges = append(edges, device.EdgeInType)
 	}
@@ -2074,6 +2150,9 @@ func (m *DeviceMutation) ClearedEdges() []string {
 	}
 	if m.clearedinterfaces {
 		edges = append(edges, device.EdgeInterfaces)
+	}
+	if m.clearedip_static_routing {
+		edges = append(edges, device.EdgeIPStaticRouting)
 	}
 	if m.clearedpo_interfaces {
 		edges = append(edges, device.EdgePoInterfaces)
@@ -2103,6 +2182,8 @@ func (m *DeviceMutation) EdgeCleared(name string) bool {
 		return m.clearedin_platform
 	case device.EdgeInterfaces:
 		return m.clearedinterfaces
+	case device.EdgeIPStaticRouting:
+		return m.clearedip_static_routing
 	case device.EdgePoInterfaces:
 		return m.clearedpo_interfaces
 	case device.EdgeHaveIPAddresses:
@@ -2143,6 +2224,9 @@ func (m *DeviceMutation) ResetEdge(name string) error {
 		return nil
 	case device.EdgeInterfaces:
 		m.ResetInterfaces()
+		return nil
+	case device.EdgeIPStaticRouting:
+		m.ResetIPStaticRouting()
 		return nil
 	case device.EdgePoInterfaces:
 		m.ResetPoInterfaces()
@@ -3495,33 +3579,613 @@ func (m *IPAddressMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown IPAddress edge %s", name)
 }
 
+// IPStaticRoutingTableMutation represents an operation that mutates the IPStaticRoutingTable nodes in the graph.
+type IPStaticRoutingTableMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	network_address     *string
+	subnet_mask         *string
+	next_hop            *string
+	brd_interface       *bool
+	clearedFields       map[string]struct{}
+	on_device           *int
+	clearedon_device    bool
+	on_interface        *int
+	clearedon_interface bool
+	done                bool
+	oldValue            func(context.Context) (*IPStaticRoutingTable, error)
+	predicates          []predicate.IPStaticRoutingTable
+}
+
+var _ ent.Mutation = (*IPStaticRoutingTableMutation)(nil)
+
+// ipstaticroutingtableOption allows management of the mutation configuration using functional options.
+type ipstaticroutingtableOption func(*IPStaticRoutingTableMutation)
+
+// newIPStaticRoutingTableMutation creates new mutation for the IPStaticRoutingTable entity.
+func newIPStaticRoutingTableMutation(c config, op Op, opts ...ipstaticroutingtableOption) *IPStaticRoutingTableMutation {
+	m := &IPStaticRoutingTableMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIPStaticRoutingTable,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIPStaticRoutingTableID sets the ID field of the mutation.
+func withIPStaticRoutingTableID(id int) ipstaticroutingtableOption {
+	return func(m *IPStaticRoutingTableMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IPStaticRoutingTable
+		)
+		m.oldValue = func(ctx context.Context) (*IPStaticRoutingTable, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IPStaticRoutingTable.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIPStaticRoutingTable sets the old IPStaticRoutingTable of the mutation.
+func withIPStaticRoutingTable(node *IPStaticRoutingTable) ipstaticroutingtableOption {
+	return func(m *IPStaticRoutingTableMutation) {
+		m.oldValue = func(context.Context) (*IPStaticRoutingTable, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IPStaticRoutingTableMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IPStaticRoutingTableMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *IPStaticRoutingTableMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetNetworkAddress sets the "network_address" field.
+func (m *IPStaticRoutingTableMutation) SetNetworkAddress(s string) {
+	m.network_address = &s
+}
+
+// NetworkAddress returns the value of the "network_address" field in the mutation.
+func (m *IPStaticRoutingTableMutation) NetworkAddress() (r string, exists bool) {
+	v := m.network_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNetworkAddress returns the old "network_address" field's value of the IPStaticRoutingTable entity.
+// If the IPStaticRoutingTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IPStaticRoutingTableMutation) OldNetworkAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldNetworkAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldNetworkAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNetworkAddress: %w", err)
+	}
+	return oldValue.NetworkAddress, nil
+}
+
+// ResetNetworkAddress resets all changes to the "network_address" field.
+func (m *IPStaticRoutingTableMutation) ResetNetworkAddress() {
+	m.network_address = nil
+}
+
+// SetSubnetMask sets the "subnet_mask" field.
+func (m *IPStaticRoutingTableMutation) SetSubnetMask(s string) {
+	m.subnet_mask = &s
+}
+
+// SubnetMask returns the value of the "subnet_mask" field in the mutation.
+func (m *IPStaticRoutingTableMutation) SubnetMask() (r string, exists bool) {
+	v := m.subnet_mask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubnetMask returns the old "subnet_mask" field's value of the IPStaticRoutingTable entity.
+// If the IPStaticRoutingTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IPStaticRoutingTableMutation) OldSubnetMask(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldSubnetMask is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldSubnetMask requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubnetMask: %w", err)
+	}
+	return oldValue.SubnetMask, nil
+}
+
+// ResetSubnetMask resets all changes to the "subnet_mask" field.
+func (m *IPStaticRoutingTableMutation) ResetSubnetMask() {
+	m.subnet_mask = nil
+}
+
+// SetNextHop sets the "next_hop" field.
+func (m *IPStaticRoutingTableMutation) SetNextHop(s string) {
+	m.next_hop = &s
+}
+
+// NextHop returns the value of the "next_hop" field in the mutation.
+func (m *IPStaticRoutingTableMutation) NextHop() (r string, exists bool) {
+	v := m.next_hop
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextHop returns the old "next_hop" field's value of the IPStaticRoutingTable entity.
+// If the IPStaticRoutingTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IPStaticRoutingTableMutation) OldNextHop(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldNextHop is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldNextHop requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextHop: %w", err)
+	}
+	return oldValue.NextHop, nil
+}
+
+// ResetNextHop resets all changes to the "next_hop" field.
+func (m *IPStaticRoutingTableMutation) ResetNextHop() {
+	m.next_hop = nil
+}
+
+// SetBrdInterface sets the "brd_interface" field.
+func (m *IPStaticRoutingTableMutation) SetBrdInterface(b bool) {
+	m.brd_interface = &b
+}
+
+// BrdInterface returns the value of the "brd_interface" field in the mutation.
+func (m *IPStaticRoutingTableMutation) BrdInterface() (r bool, exists bool) {
+	v := m.brd_interface
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBrdInterface returns the old "brd_interface" field's value of the IPStaticRoutingTable entity.
+// If the IPStaticRoutingTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IPStaticRoutingTableMutation) OldBrdInterface(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBrdInterface is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBrdInterface requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBrdInterface: %w", err)
+	}
+	return oldValue.BrdInterface, nil
+}
+
+// ResetBrdInterface resets all changes to the "brd_interface" field.
+func (m *IPStaticRoutingTableMutation) ResetBrdInterface() {
+	m.brd_interface = nil
+}
+
+// SetOnDeviceID sets the "on_device" edge to the Device entity by id.
+func (m *IPStaticRoutingTableMutation) SetOnDeviceID(id int) {
+	m.on_device = &id
+}
+
+// ClearOnDevice clears the "on_device" edge to the Device entity.
+func (m *IPStaticRoutingTableMutation) ClearOnDevice() {
+	m.clearedon_device = true
+}
+
+// OnDeviceCleared reports if the "on_device" edge to the Device entity was cleared.
+func (m *IPStaticRoutingTableMutation) OnDeviceCleared() bool {
+	return m.clearedon_device
+}
+
+// OnDeviceID returns the "on_device" edge ID in the mutation.
+func (m *IPStaticRoutingTableMutation) OnDeviceID() (id int, exists bool) {
+	if m.on_device != nil {
+		return *m.on_device, true
+	}
+	return
+}
+
+// OnDeviceIDs returns the "on_device" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OnDeviceID instead. It exists only for internal usage by the builders.
+func (m *IPStaticRoutingTableMutation) OnDeviceIDs() (ids []int) {
+	if id := m.on_device; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOnDevice resets all changes to the "on_device" edge.
+func (m *IPStaticRoutingTableMutation) ResetOnDevice() {
+	m.on_device = nil
+	m.clearedon_device = false
+}
+
+// SetOnInterfaceID sets the "on_interface" edge to the NetInterface entity by id.
+func (m *IPStaticRoutingTableMutation) SetOnInterfaceID(id int) {
+	m.on_interface = &id
+}
+
+// ClearOnInterface clears the "on_interface" edge to the NetInterface entity.
+func (m *IPStaticRoutingTableMutation) ClearOnInterface() {
+	m.clearedon_interface = true
+}
+
+// OnInterfaceCleared reports if the "on_interface" edge to the NetInterface entity was cleared.
+func (m *IPStaticRoutingTableMutation) OnInterfaceCleared() bool {
+	return m.clearedon_interface
+}
+
+// OnInterfaceID returns the "on_interface" edge ID in the mutation.
+func (m *IPStaticRoutingTableMutation) OnInterfaceID() (id int, exists bool) {
+	if m.on_interface != nil {
+		return *m.on_interface, true
+	}
+	return
+}
+
+// OnInterfaceIDs returns the "on_interface" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OnInterfaceID instead. It exists only for internal usage by the builders.
+func (m *IPStaticRoutingTableMutation) OnInterfaceIDs() (ids []int) {
+	if id := m.on_interface; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOnInterface resets all changes to the "on_interface" edge.
+func (m *IPStaticRoutingTableMutation) ResetOnInterface() {
+	m.on_interface = nil
+	m.clearedon_interface = false
+}
+
+// Op returns the operation name.
+func (m *IPStaticRoutingTableMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (IPStaticRoutingTable).
+func (m *IPStaticRoutingTableMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IPStaticRoutingTableMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.network_address != nil {
+		fields = append(fields, ipstaticroutingtable.FieldNetworkAddress)
+	}
+	if m.subnet_mask != nil {
+		fields = append(fields, ipstaticroutingtable.FieldSubnetMask)
+	}
+	if m.next_hop != nil {
+		fields = append(fields, ipstaticroutingtable.FieldNextHop)
+	}
+	if m.brd_interface != nil {
+		fields = append(fields, ipstaticroutingtable.FieldBrdInterface)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IPStaticRoutingTableMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case ipstaticroutingtable.FieldNetworkAddress:
+		return m.NetworkAddress()
+	case ipstaticroutingtable.FieldSubnetMask:
+		return m.SubnetMask()
+	case ipstaticroutingtable.FieldNextHop:
+		return m.NextHop()
+	case ipstaticroutingtable.FieldBrdInterface:
+		return m.BrdInterface()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IPStaticRoutingTableMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case ipstaticroutingtable.FieldNetworkAddress:
+		return m.OldNetworkAddress(ctx)
+	case ipstaticroutingtable.FieldSubnetMask:
+		return m.OldSubnetMask(ctx)
+	case ipstaticroutingtable.FieldNextHop:
+		return m.OldNextHop(ctx)
+	case ipstaticroutingtable.FieldBrdInterface:
+		return m.OldBrdInterface(ctx)
+	}
+	return nil, fmt.Errorf("unknown IPStaticRoutingTable field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IPStaticRoutingTableMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case ipstaticroutingtable.FieldNetworkAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNetworkAddress(v)
+		return nil
+	case ipstaticroutingtable.FieldSubnetMask:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubnetMask(v)
+		return nil
+	case ipstaticroutingtable.FieldNextHop:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextHop(v)
+		return nil
+	case ipstaticroutingtable.FieldBrdInterface:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBrdInterface(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IPStaticRoutingTable field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IPStaticRoutingTableMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IPStaticRoutingTableMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IPStaticRoutingTableMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown IPStaticRoutingTable numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IPStaticRoutingTableMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IPStaticRoutingTableMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IPStaticRoutingTableMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown IPStaticRoutingTable nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IPStaticRoutingTableMutation) ResetField(name string) error {
+	switch name {
+	case ipstaticroutingtable.FieldNetworkAddress:
+		m.ResetNetworkAddress()
+		return nil
+	case ipstaticroutingtable.FieldSubnetMask:
+		m.ResetSubnetMask()
+		return nil
+	case ipstaticroutingtable.FieldNextHop:
+		m.ResetNextHop()
+		return nil
+	case ipstaticroutingtable.FieldBrdInterface:
+		m.ResetBrdInterface()
+		return nil
+	}
+	return fmt.Errorf("unknown IPStaticRoutingTable field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IPStaticRoutingTableMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.on_device != nil {
+		edges = append(edges, ipstaticroutingtable.EdgeOnDevice)
+	}
+	if m.on_interface != nil {
+		edges = append(edges, ipstaticroutingtable.EdgeOnInterface)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IPStaticRoutingTableMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case ipstaticroutingtable.EdgeOnDevice:
+		if id := m.on_device; id != nil {
+			return []ent.Value{*id}
+		}
+	case ipstaticroutingtable.EdgeOnInterface:
+		if id := m.on_interface; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IPStaticRoutingTableMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IPStaticRoutingTableMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IPStaticRoutingTableMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedon_device {
+		edges = append(edges, ipstaticroutingtable.EdgeOnDevice)
+	}
+	if m.clearedon_interface {
+		edges = append(edges, ipstaticroutingtable.EdgeOnInterface)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IPStaticRoutingTableMutation) EdgeCleared(name string) bool {
+	switch name {
+	case ipstaticroutingtable.EdgeOnDevice:
+		return m.clearedon_device
+	case ipstaticroutingtable.EdgeOnInterface:
+		return m.clearedon_interface
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IPStaticRoutingTableMutation) ClearEdge(name string) error {
+	switch name {
+	case ipstaticroutingtable.EdgeOnDevice:
+		m.ClearOnDevice()
+		return nil
+	case ipstaticroutingtable.EdgeOnInterface:
+		m.ClearOnInterface()
+		return nil
+	}
+	return fmt.Errorf("unknown IPStaticRoutingTable unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IPStaticRoutingTableMutation) ResetEdge(name string) error {
+	switch name {
+	case ipstaticroutingtable.EdgeOnDevice:
+		m.ResetOnDevice()
+		return nil
+	case ipstaticroutingtable.EdgeOnInterface:
+		m.ResetOnInterface()
+		return nil
+	}
+	return fmt.Errorf("unknown IPStaticRoutingTable edge %s", name)
+}
+
 // NetInterfaceMutation represents an operation that mutates the NetInterface nodes in the graph.
 type NetInterfaceMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	interface_name         *string
-	interface_shutdown     *bool
-	clearedFields          map[string]struct{}
-	on_device              *int
-	clearedon_device       bool
-	on_po_interface        *int
-	clearedon_po_interface bool
-	on_ip_address          *int
-	clearedon_ip_address   bool
-	mode                   *int
-	clearedmode            bool
-	on_layer               *int
-	clearedon_layer        bool
-	have_vlans             map[int]struct{}
-	removedhave_vlans      map[int]struct{}
-	clearedhave_vlans      bool
-	native_on_vlan         *int
-	clearednative_on_vlan  bool
-	done                   bool
-	oldValue               func(context.Context) (*NetInterface, error)
-	predicates             []predicate.NetInterface
+	op                       Op
+	typ                      string
+	id                       *int
+	interface_name           *string
+	interface_shutdown       *bool
+	clearedFields            map[string]struct{}
+	on_device                *int
+	clearedon_device         bool
+	on_po_interface          *int
+	clearedon_po_interface   bool
+	on_ip_address            *int
+	clearedon_ip_address     bool
+	ip_static_routing        map[int]struct{}
+	removedip_static_routing map[int]struct{}
+	clearedip_static_routing bool
+	mode                     *int
+	clearedmode              bool
+	on_layer                 *int
+	clearedon_layer          bool
+	have_vlans               map[int]struct{}
+	removedhave_vlans        map[int]struct{}
+	clearedhave_vlans        bool
+	native_on_vlan           *int
+	clearednative_on_vlan    bool
+	done                     bool
+	oldValue                 func(context.Context) (*NetInterface, error)
+	predicates               []predicate.NetInterface
 }
 
 var _ ent.Mutation = (*NetInterfaceMutation)(nil)
@@ -3790,6 +4454,59 @@ func (m *NetInterfaceMutation) OnIPAddressIDs() (ids []int) {
 func (m *NetInterfaceMutation) ResetOnIPAddress() {
 	m.on_ip_address = nil
 	m.clearedon_ip_address = false
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by ids.
+func (m *NetInterfaceMutation) AddIPStaticRoutingIDs(ids ...int) {
+	if m.ip_static_routing == nil {
+		m.ip_static_routing = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.ip_static_routing[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIPStaticRouting clears the "ip_static_routing" edge to the IPStaticRoutingTable entity.
+func (m *NetInterfaceMutation) ClearIPStaticRouting() {
+	m.clearedip_static_routing = true
+}
+
+// IPStaticRoutingCleared reports if the "ip_static_routing" edge to the IPStaticRoutingTable entity was cleared.
+func (m *NetInterfaceMutation) IPStaticRoutingCleared() bool {
+	return m.clearedip_static_routing
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (m *NetInterfaceMutation) RemoveIPStaticRoutingIDs(ids ...int) {
+	if m.removedip_static_routing == nil {
+		m.removedip_static_routing = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedip_static_routing[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIPStaticRouting returns the removed IDs of the "ip_static_routing" edge to the IPStaticRoutingTable entity.
+func (m *NetInterfaceMutation) RemovedIPStaticRoutingIDs() (ids []int) {
+	for id := range m.removedip_static_routing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IPStaticRoutingIDs returns the "ip_static_routing" edge IDs in the mutation.
+func (m *NetInterfaceMutation) IPStaticRoutingIDs() (ids []int) {
+	for id := range m.ip_static_routing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIPStaticRouting resets all changes to the "ip_static_routing" edge.
+func (m *NetInterfaceMutation) ResetIPStaticRouting() {
+	m.ip_static_routing = nil
+	m.clearedip_static_routing = false
+	m.removedip_static_routing = nil
 }
 
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by id.
@@ -4092,7 +4809,7 @@ func (m *NetInterfaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NetInterfaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.on_device != nil {
 		edges = append(edges, netinterface.EdgeOnDevice)
 	}
@@ -4101,6 +4818,9 @@ func (m *NetInterfaceMutation) AddedEdges() []string {
 	}
 	if m.on_ip_address != nil {
 		edges = append(edges, netinterface.EdgeOnIPAddress)
+	}
+	if m.ip_static_routing != nil {
+		edges = append(edges, netinterface.EdgeIPStaticRouting)
 	}
 	if m.mode != nil {
 		edges = append(edges, netinterface.EdgeMode)
@@ -4133,6 +4853,12 @@ func (m *NetInterfaceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.on_ip_address; id != nil {
 			return []ent.Value{*id}
 		}
+	case netinterface.EdgeIPStaticRouting:
+		ids := make([]ent.Value, 0, len(m.ip_static_routing))
+		for id := range m.ip_static_routing {
+			ids = append(ids, id)
+		}
+		return ids
 	case netinterface.EdgeMode:
 		if id := m.mode; id != nil {
 			return []ent.Value{*id}
@@ -4157,7 +4883,10 @@ func (m *NetInterfaceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NetInterfaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.removedip_static_routing != nil {
+		edges = append(edges, netinterface.EdgeIPStaticRouting)
+	}
 	if m.removedhave_vlans != nil {
 		edges = append(edges, netinterface.EdgeHaveVlans)
 	}
@@ -4168,6 +4897,12 @@ func (m *NetInterfaceMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *NetInterfaceMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case netinterface.EdgeIPStaticRouting:
+		ids := make([]ent.Value, 0, len(m.removedip_static_routing))
+		for id := range m.removedip_static_routing {
+			ids = append(ids, id)
+		}
+		return ids
 	case netinterface.EdgeHaveVlans:
 		ids := make([]ent.Value, 0, len(m.removedhave_vlans))
 		for id := range m.removedhave_vlans {
@@ -4180,7 +4915,7 @@ func (m *NetInterfaceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NetInterfaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedon_device {
 		edges = append(edges, netinterface.EdgeOnDevice)
 	}
@@ -4189,6 +4924,9 @@ func (m *NetInterfaceMutation) ClearedEdges() []string {
 	}
 	if m.clearedon_ip_address {
 		edges = append(edges, netinterface.EdgeOnIPAddress)
+	}
+	if m.clearedip_static_routing {
+		edges = append(edges, netinterface.EdgeIPStaticRouting)
 	}
 	if m.clearedmode {
 		edges = append(edges, netinterface.EdgeMode)
@@ -4215,6 +4953,8 @@ func (m *NetInterfaceMutation) EdgeCleared(name string) bool {
 		return m.clearedon_po_interface
 	case netinterface.EdgeOnIPAddress:
 		return m.clearedon_ip_address
+	case netinterface.EdgeIPStaticRouting:
+		return m.clearedip_static_routing
 	case netinterface.EdgeMode:
 		return m.clearedmode
 	case netinterface.EdgeOnLayer:
@@ -4265,6 +5005,9 @@ func (m *NetInterfaceMutation) ResetEdge(name string) error {
 		return nil
 	case netinterface.EdgeOnIPAddress:
 		m.ResetOnIPAddress()
+		return nil
+	case netinterface.EdgeIPStaticRouting:
+		m.ResetIPStaticRouting()
 		return nil
 	case netinterface.EdgeMode:
 		m.ResetMode()

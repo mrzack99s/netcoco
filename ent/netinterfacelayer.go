@@ -67,7 +67,7 @@ func (*NetInterfaceLayer) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the NetInterfaceLayer fields.
-func (nl *NetInterfaceLayer) assignValues(columns []string, values []interface{}) error {
+func (nly *NetInterfaceLayer) assignValues(columns []string, values []interface{}) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -78,12 +78,12 @@ func (nl *NetInterfaceLayer) assignValues(columns []string, values []interface{}
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			nl.ID = int(value.Int64)
+			nly.ID = int(value.Int64)
 		case netinterfacelayer.FieldInterfaceLayer:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field interface_layer", values[i])
 			} else if value.Valid {
-				nl.InterfaceLayer = int(value.Int64)
+				nly.InterfaceLayer = int(value.Int64)
 			}
 		}
 	}

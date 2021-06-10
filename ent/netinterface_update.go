@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -109,6 +110,21 @@ func (niu *NetInterfaceUpdate) SetOnIPAddress(i *IPAddress) *NetInterfaceUpdate 
 	return niu.SetOnIPAddressID(i.ID)
 }
 
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (niu *NetInterfaceUpdate) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.AddIPStaticRoutingIDs(ids...)
+	return niu
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niu *NetInterfaceUpdate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niu.AddIPStaticRoutingIDs(ids...)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (niu *NetInterfaceUpdate) SetModeID(id int) *NetInterfaceUpdate {
 	niu.mutation.SetModeID(id)
@@ -202,6 +218,27 @@ func (niu *NetInterfaceUpdate) ClearOnPoInterface() *NetInterfaceUpdate {
 func (niu *NetInterfaceUpdate) ClearOnIPAddress() *NetInterfaceUpdate {
 	niu.mutation.ClearOnIPAddress()
 	return niu
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niu *NetInterfaceUpdate) ClearIPStaticRouting() *NetInterfaceUpdate {
+	niu.mutation.ClearIPStaticRouting()
+	return niu
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (niu *NetInterfaceUpdate) RemoveIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return niu
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (niu *NetInterfaceUpdate) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niu.RemoveIPStaticRoutingIDs(ids...)
 }
 
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
@@ -439,6 +476,60 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !niu.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
 				},
 			},
 		}
@@ -702,6 +793,21 @@ func (niuo *NetInterfaceUpdateOne) SetOnIPAddress(i *IPAddress) *NetInterfaceUpd
 	return niuo.SetOnIPAddressID(i.ID)
 }
 
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (niuo *NetInterfaceUpdateOne) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.AddIPStaticRoutingIDs(ids...)
+	return niuo
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niuo *NetInterfaceUpdateOne) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niuo.AddIPStaticRoutingIDs(ids...)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (niuo *NetInterfaceUpdateOne) SetModeID(id int) *NetInterfaceUpdateOne {
 	niuo.mutation.SetModeID(id)
@@ -795,6 +901,27 @@ func (niuo *NetInterfaceUpdateOne) ClearOnPoInterface() *NetInterfaceUpdateOne {
 func (niuo *NetInterfaceUpdateOne) ClearOnIPAddress() *NetInterfaceUpdateOne {
 	niuo.mutation.ClearOnIPAddress()
 	return niuo
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niuo *NetInterfaceUpdateOne) ClearIPStaticRouting() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearIPStaticRouting()
+	return niuo
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (niuo *NetInterfaceUpdateOne) RemoveIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return niuo
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (niuo *NetInterfaceUpdateOne) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niuo.RemoveIPStaticRoutingIDs(ids...)
 }
 
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
@@ -1056,6 +1183,60 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !niuo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
 				},
 			},
 		}

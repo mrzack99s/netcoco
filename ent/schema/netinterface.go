@@ -34,6 +34,9 @@ func (NetInterface) Edges() []ent.Edge {
 			OnDelete: entsql.Cascade,
 		}).
 			Unique(),
+		edge.To("ip_static_routing", IPStaticRoutingTable.Type).Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
 		edge.From("mode", NetInterfaceMode.Type).
 			Ref("modes").
 			Unique(),

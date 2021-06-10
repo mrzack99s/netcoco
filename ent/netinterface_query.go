@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -32,14 +33,15 @@ type NetInterfaceQuery struct {
 	fields     []string
 	predicates []predicate.NetInterface
 	// eager-loading edges.
-	withOnDevice      *DeviceQuery
-	withOnPoInterface *PortChannelInterfaceQuery
-	withOnIPAddress   *IPAddressQuery
-	withMode          *NetInterfaceModeQuery
-	withOnLayer       *NetInterfaceLayerQuery
-	withHaveVlans     *VlanQuery
-	withNativeOnVlan  *VlanQuery
-	withFKs           bool
+	withOnDevice        *DeviceQuery
+	withOnPoInterface   *PortChannelInterfaceQuery
+	withOnIPAddress     *IPAddressQuery
+	withIPStaticRouting *IPStaticRoutingTableQuery
+	withMode            *NetInterfaceModeQuery
+	withOnLayer         *NetInterfaceLayerQuery
+	withHaveVlans       *VlanQuery
+	withNativeOnVlan    *VlanQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -135,6 +137,28 @@ func (niq *NetInterfaceQuery) QueryOnIPAddress() *IPAddressQuery {
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
 			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnIPAddressTable, netinterface.OnIPAddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIPStaticRouting chains the current query on the "ip_static_routing" edge.
+func (niq *NetInterfaceQuery) QueryIPStaticRouting() *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: niq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := niq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := niq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, selector),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterface.IPStaticRoutingTable, netinterface.IPStaticRoutingColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
 		return fromU, nil
@@ -406,18 +430,19 @@ func (niq *NetInterfaceQuery) Clone() *NetInterfaceQuery {
 		return nil
 	}
 	return &NetInterfaceQuery{
-		config:            niq.config,
-		limit:             niq.limit,
-		offset:            niq.offset,
-		order:             append([]OrderFunc{}, niq.order...),
-		predicates:        append([]predicate.NetInterface{}, niq.predicates...),
-		withOnDevice:      niq.withOnDevice.Clone(),
-		withOnPoInterface: niq.withOnPoInterface.Clone(),
-		withOnIPAddress:   niq.withOnIPAddress.Clone(),
-		withMode:          niq.withMode.Clone(),
-		withOnLayer:       niq.withOnLayer.Clone(),
-		withHaveVlans:     niq.withHaveVlans.Clone(),
-		withNativeOnVlan:  niq.withNativeOnVlan.Clone(),
+		config:              niq.config,
+		limit:               niq.limit,
+		offset:              niq.offset,
+		order:               append([]OrderFunc{}, niq.order...),
+		predicates:          append([]predicate.NetInterface{}, niq.predicates...),
+		withOnDevice:        niq.withOnDevice.Clone(),
+		withOnPoInterface:   niq.withOnPoInterface.Clone(),
+		withOnIPAddress:     niq.withOnIPAddress.Clone(),
+		withIPStaticRouting: niq.withIPStaticRouting.Clone(),
+		withMode:            niq.withMode.Clone(),
+		withOnLayer:         niq.withOnLayer.Clone(),
+		withHaveVlans:       niq.withHaveVlans.Clone(),
+		withNativeOnVlan:    niq.withNativeOnVlan.Clone(),
 		// clone intermediate query.
 		sql:  niq.sql.Clone(),
 		path: niq.path,
@@ -454,6 +479,17 @@ func (niq *NetInterfaceQuery) WithOnIPAddress(opts ...func(*IPAddressQuery)) *Ne
 		opt(query)
 	}
 	niq.withOnIPAddress = query
+	return niq
+}
+
+// WithIPStaticRouting tells the query-builder to eager-load the nodes that are connected to
+// the "ip_static_routing" edge. The optional arguments are used to configure the query builder of the edge.
+func (niq *NetInterfaceQuery) WithIPStaticRouting(opts ...func(*IPStaticRoutingTableQuery)) *NetInterfaceQuery {
+	query := &IPStaticRoutingTableQuery{config: niq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	niq.withIPStaticRouting = query
 	return niq
 }
 
@@ -567,10 +603,11 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 		nodes       = []*NetInterface{}
 		withFKs     = niq.withFKs
 		_spec       = niq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			niq.withOnDevice != nil,
 			niq.withOnPoInterface != nil,
 			niq.withOnIPAddress != nil,
+			niq.withIPStaticRouting != nil,
 			niq.withMode != nil,
 			niq.withOnLayer != nil,
 			niq.withHaveVlans != nil,
@@ -687,6 +724,35 @@ func (niq *NetInterfaceQuery) sqlAll(ctx context.Context) ([]*NetInterface, erro
 			for i := range nodes {
 				nodes[i].Edges.OnIPAddress = n
 			}
+		}
+	}
+
+	if query := niq.withIPStaticRouting; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*NetInterface)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.IPStaticRouting = []*IPStaticRoutingTable{}
+		}
+		query.withFKs = true
+		query.Where(predicate.IPStaticRoutingTable(func(s *sql.Selector) {
+			s.Where(sql.InValues(netinterface.IPStaticRoutingColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.net_interface_ip_static_routing
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "net_interface_ip_static_routing" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "net_interface_ip_static_routing" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.IPStaticRouting = append(node.Edges.IPStaticRouting, n)
 		}
 	}
 

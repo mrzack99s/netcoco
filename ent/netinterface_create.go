@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -100,6 +101,21 @@ func (nic *NetInterfaceCreate) SetNillableOnIPAddressID(id *int) *NetInterfaceCr
 // SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
 func (nic *NetInterfaceCreate) SetOnIPAddress(i *IPAddress) *NetInterfaceCreate {
 	return nic.SetOnIPAddressID(i.ID)
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (nic *NetInterfaceCreate) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceCreate {
+	nic.mutation.AddIPStaticRoutingIDs(ids...)
+	return nic
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (nic *NetInterfaceCreate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceCreate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return nic.AddIPStaticRoutingIDs(ids...)
 }
 
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
@@ -346,6 +362,25 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ip_address_interfaces = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := nic.mutation.ModeIDs(); len(nodes) > 0 {

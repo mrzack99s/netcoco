@@ -10,14 +10,23 @@ import (
 func GetCommitConfig(device *ent.Device) (config []string) {
 	switch device.Edges.InPlatform.DevicePlatformName {
 	case "ios":
-		config = ios.GetCommitVlanConfig(device)
+		if device.Edges.InType.DeviceTypeName != "router" {
+			config = ios.GetCommitVlanConfig(device)
+		}
 		config = append(config, ios.GetCommitInterfaceConfig(device)...)
+		config = append(config, ios.GetCommitIPStaticPoutingConfig(device)...)
 	case "sg300":
 		config = sg300.GetCommitVlanConfig(device)
 		config = append(config, sg300.GetCommitInterfaceConfig(device)...)
 	case "sg350":
 		config = sg350.GetCommitVlanConfig(device)
 		config = append(config, sg350.GetCommitInterfaceConfig(device)...)
+		config = append(config, sg350.GetCommitIPStaticPoutingConfig(device)...)
+	}
+
+	switch device.Edges.InType.DeviceTypeName {
+	case "l3switch":
+		config = append(config, "ip routing")
 	}
 	return
 }
