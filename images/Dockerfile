@@ -31,8 +31,6 @@ RUN mkdir -p /netcoco/templates
 RUN mkdir -p /netcoco/templates/dist
 
 COPY --from=build_go /netcoco/templates /netcoco/templates
-RUN sed -i "s,<Hostname or Domain name>:<port>,localhost:8080,g" /netcoco/templates/js/main.js 
-
 COPY --from=build_node /netcoco-ui/dist /netcoco/templates/dist
 COPY --from=build_go /netcoco/netcoco-linux-amd64 /netcoco
 
