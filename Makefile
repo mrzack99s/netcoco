@@ -6,7 +6,7 @@ LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production'
 WIN_LDFLAGS = "-X 'github.com/mrzack99s/netcoco/pkgs/system.Product_mode=production' -X 'github.com/mrzack99s/netcoco/pkgs/system.Os=windows'"
 
 # Build binary
-build: install tidy windows linux
+build: install tidy linux
 
 install:
 	go install ./netcoco
