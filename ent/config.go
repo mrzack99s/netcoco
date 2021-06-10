@@ -29,10 +29,14 @@ type hooks struct {
 	Device               []ent.Hook
 	DevicePlatform       []ent.Hook
 	DeviceType           []ent.Hook
+	IPAddress            []ent.Hook
+	IPStaticRoutingTable []ent.Hook
 	NetInterface         []ent.Hook
+	NetInterfaceLayer    []ent.Hook
 	NetInterfaceMode     []ent.Hook
 	NetTopology          []ent.Hook
 	NetTopologyDeviceMap []ent.Hook
+	PortChannelInterface []ent.Hook
 	Vlan                 []ent.Hook
 }
 

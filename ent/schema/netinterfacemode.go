@@ -22,5 +22,6 @@ func (NetInterfaceMode) Fields() []ent.Field {
 func (NetInterfaceMode) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("modes", NetInterface.Type),
+		edge.To("po_modes", PortChannelInterface.Type),
 	}
 }

@@ -13,8 +13,11 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -192,6 +195,51 @@ func (du *DeviceUpdate) AddInterfaces(n ...*NetInterface) *DeviceUpdate {
 	return du.AddInterfaceIDs(ids...)
 }
 
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (du *DeviceUpdate) AddIPStaticRoutingIDs(ids ...int) *DeviceUpdate {
+	du.mutation.AddIPStaticRoutingIDs(ids...)
+	return du
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (du *DeviceUpdate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.AddIPStaticRoutingIDs(ids...)
+}
+
+// AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
+func (du *DeviceUpdate) AddPoInterfaceIDs(ids ...int) *DeviceUpdate {
+	du.mutation.AddPoInterfaceIDs(ids...)
+	return du
+}
+
+// AddPoInterfaces adds the "po_interfaces" edges to the PortChannelInterface entity.
+func (du *DeviceUpdate) AddPoInterfaces(p ...*PortChannelInterface) *DeviceUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return du.AddPoInterfaceIDs(ids...)
+}
+
+// AddHaveIPAddressIDs adds the "have_ip_addresses" edge to the IPAddress entity by IDs.
+func (du *DeviceUpdate) AddHaveIPAddressIDs(ids ...int) *DeviceUpdate {
+	du.mutation.AddHaveIPAddressIDs(ids...)
+	return du
+}
+
+// AddHaveIPAddresses adds the "have_ip_addresses" edges to the IPAddress entity.
+func (du *DeviceUpdate) AddHaveIPAddresses(i ...*IPAddress) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.AddHaveIPAddressIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (du *DeviceUpdate) AddInTopologyIDs(ids ...int) *DeviceUpdate {
 	du.mutation.AddInTopologyIDs(ids...)
@@ -273,6 +321,69 @@ func (du *DeviceUpdate) RemoveInterfaces(n ...*NetInterface) *DeviceUpdate {
 		ids[i] = n[i].ID
 	}
 	return du.RemoveInterfaceIDs(ids...)
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (du *DeviceUpdate) ClearIPStaticRouting() *DeviceUpdate {
+	du.mutation.ClearIPStaticRouting()
+	return du
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (du *DeviceUpdate) RemoveIPStaticRoutingIDs(ids ...int) *DeviceUpdate {
+	du.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return du
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (du *DeviceUpdate) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.RemoveIPStaticRoutingIDs(ids...)
+}
+
+// ClearPoInterfaces clears all "po_interfaces" edges to the PortChannelInterface entity.
+func (du *DeviceUpdate) ClearPoInterfaces() *DeviceUpdate {
+	du.mutation.ClearPoInterfaces()
+	return du
+}
+
+// RemovePoInterfaceIDs removes the "po_interfaces" edge to PortChannelInterface entities by IDs.
+func (du *DeviceUpdate) RemovePoInterfaceIDs(ids ...int) *DeviceUpdate {
+	du.mutation.RemovePoInterfaceIDs(ids...)
+	return du
+}
+
+// RemovePoInterfaces removes "po_interfaces" edges to PortChannelInterface entities.
+func (du *DeviceUpdate) RemovePoInterfaces(p ...*PortChannelInterface) *DeviceUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return du.RemovePoInterfaceIDs(ids...)
+}
+
+// ClearHaveIPAddresses clears all "have_ip_addresses" edges to the IPAddress entity.
+func (du *DeviceUpdate) ClearHaveIPAddresses() *DeviceUpdate {
+	du.mutation.ClearHaveIPAddresses()
+	return du
+}
+
+// RemoveHaveIPAddressIDs removes the "have_ip_addresses" edge to IPAddress entities by IDs.
+func (du *DeviceUpdate) RemoveHaveIPAddressIDs(ids ...int) *DeviceUpdate {
+	du.mutation.RemoveHaveIPAddressIDs(ids...)
+	return du
+}
+
+// RemoveHaveIPAddresses removes "have_ip_addresses" edges to IPAddress entities.
+func (du *DeviceUpdate) RemoveHaveIPAddresses(i ...*IPAddress) *DeviceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return du.RemoveHaveIPAddressIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -631,6 +742,168 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !du.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if du.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedPoInterfacesIDs(); len(nodes) > 0 && !du.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.PoInterfacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if du.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedHaveIPAddressesIDs(); len(nodes) > 0 && !du.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.HaveIPAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if du.mutation.InTopologyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -972,6 +1245,51 @@ func (duo *DeviceUpdateOne) AddInterfaces(n ...*NetInterface) *DeviceUpdateOne {
 	return duo.AddInterfaceIDs(ids...)
 }
 
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (duo *DeviceUpdateOne) AddIPStaticRoutingIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.AddIPStaticRoutingIDs(ids...)
+	return duo
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (duo *DeviceUpdateOne) AddIPStaticRouting(i ...*IPStaticRoutingTable) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.AddIPStaticRoutingIDs(ids...)
+}
+
+// AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
+func (duo *DeviceUpdateOne) AddPoInterfaceIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.AddPoInterfaceIDs(ids...)
+	return duo
+}
+
+// AddPoInterfaces adds the "po_interfaces" edges to the PortChannelInterface entity.
+func (duo *DeviceUpdateOne) AddPoInterfaces(p ...*PortChannelInterface) *DeviceUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return duo.AddPoInterfaceIDs(ids...)
+}
+
+// AddHaveIPAddressIDs adds the "have_ip_addresses" edge to the IPAddress entity by IDs.
+func (duo *DeviceUpdateOne) AddHaveIPAddressIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.AddHaveIPAddressIDs(ids...)
+	return duo
+}
+
+// AddHaveIPAddresses adds the "have_ip_addresses" edges to the IPAddress entity.
+func (duo *DeviceUpdateOne) AddHaveIPAddresses(i ...*IPAddress) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.AddHaveIPAddressIDs(ids...)
+}
+
 // AddInTopologyIDs adds the "in_topology" edge to the NetTopologyDeviceMap entity by IDs.
 func (duo *DeviceUpdateOne) AddInTopologyIDs(ids ...int) *DeviceUpdateOne {
 	duo.mutation.AddInTopologyIDs(ids...)
@@ -1053,6 +1371,69 @@ func (duo *DeviceUpdateOne) RemoveInterfaces(n ...*NetInterface) *DeviceUpdateOn
 		ids[i] = n[i].ID
 	}
 	return duo.RemoveInterfaceIDs(ids...)
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (duo *DeviceUpdateOne) ClearIPStaticRouting() *DeviceUpdateOne {
+	duo.mutation.ClearIPStaticRouting()
+	return duo
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (duo *DeviceUpdateOne) RemoveIPStaticRoutingIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return duo
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (duo *DeviceUpdateOne) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.RemoveIPStaticRoutingIDs(ids...)
+}
+
+// ClearPoInterfaces clears all "po_interfaces" edges to the PortChannelInterface entity.
+func (duo *DeviceUpdateOne) ClearPoInterfaces() *DeviceUpdateOne {
+	duo.mutation.ClearPoInterfaces()
+	return duo
+}
+
+// RemovePoInterfaceIDs removes the "po_interfaces" edge to PortChannelInterface entities by IDs.
+func (duo *DeviceUpdateOne) RemovePoInterfaceIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.RemovePoInterfaceIDs(ids...)
+	return duo
+}
+
+// RemovePoInterfaces removes "po_interfaces" edges to PortChannelInterface entities.
+func (duo *DeviceUpdateOne) RemovePoInterfaces(p ...*PortChannelInterface) *DeviceUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return duo.RemovePoInterfaceIDs(ids...)
+}
+
+// ClearHaveIPAddresses clears all "have_ip_addresses" edges to the IPAddress entity.
+func (duo *DeviceUpdateOne) ClearHaveIPAddresses() *DeviceUpdateOne {
+	duo.mutation.ClearHaveIPAddresses()
+	return duo
+}
+
+// RemoveHaveIPAddressIDs removes the "have_ip_addresses" edge to IPAddress entities by IDs.
+func (duo *DeviceUpdateOne) RemoveHaveIPAddressIDs(ids ...int) *DeviceUpdateOne {
+	duo.mutation.RemoveHaveIPAddressIDs(ids...)
+	return duo
+}
+
+// RemoveHaveIPAddresses removes "have_ip_addresses" edges to IPAddress entities.
+func (duo *DeviceUpdateOne) RemoveHaveIPAddresses(i ...*IPAddress) *DeviceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return duo.RemoveHaveIPAddressIDs(ids...)
 }
 
 // ClearInTopology clears all "in_topology" edges to the NetTopologyDeviceMap entity.
@@ -1427,6 +1808,168 @@ func (duo *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !duo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedPoInterfacesIDs(); len(nodes) > 0 && !duo.mutation.PoInterfacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.PoInterfacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.PoInterfacesTable,
+			Columns: []string{device.PoInterfacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedHaveIPAddressesIDs(); len(nodes) > 0 && !duo.mutation.HaveIPAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.HaveIPAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.HaveIPAddressesTable,
+			Columns: []string{device.HaveIPAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
 				},
 			},
 		}

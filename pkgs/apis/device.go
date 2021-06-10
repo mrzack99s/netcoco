@@ -26,7 +26,7 @@ func (ctl *DeviceController) Create(c *gin.Context) {
 	u, err := services.CreateDevice(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -48,7 +48,7 @@ func (ctl *DeviceController) AddDeviceVlan(c *gin.Context) {
 	u, err := services.AddDeviceVlan(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -70,7 +70,7 @@ func (ctl *DeviceController) Edit(c *gin.Context) {
 	usr, err := services.EditDeviceDetail(ctl.client, obj)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -105,7 +105,7 @@ func (ctl *DeviceController) Get(c *gin.Context) {
 	usr, err := services.GetDevice(ctl.client, deviceId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -123,7 +123,7 @@ func (ctl *DeviceController) Delete(c *gin.Context) {
 	err := services.DeleteDevice(ctl.client, id)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 
@@ -144,7 +144,7 @@ func (ctl *DeviceController) DeleteDeviceVlan(c *gin.Context) {
 	err := services.DeleteDeviceVlan(ctl.client, id, vid)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

@@ -22,5 +22,6 @@ func (task *Task) SendConfig() (err error) {
 	case "sg350":
 		err = sg350.SendConfig((*types.Task)(task))
 	}
+
 	return
 }

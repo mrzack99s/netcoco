@@ -99,13 +99,67 @@ var (
 		PrimaryKey:  []*schema.Column{DeviceTypesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// IPAddressesColumns holds the columns for the "ip_addresses" table.
+	IPAddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ip_address", Type: field.TypeString},
+		{Name: "subnet_mask", Type: field.TypeString},
+		{Name: "device_have_ip_addresses", Type: field.TypeInt, Nullable: true},
+	}
+	// IPAddressesTable holds the schema information for the "ip_addresses" table.
+	IPAddressesTable = &schema.Table{
+		Name:       "ip_addresses",
+		Columns:    IPAddressesColumns,
+		PrimaryKey: []*schema.Column{IPAddressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ip_addresses_devices_have_ip_addresses",
+				Columns:    []*schema.Column{IPAddressesColumns[3]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// IPStaticRoutingTablesColumns holds the columns for the "ip_static_routing_tables" table.
+	IPStaticRoutingTablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "network_address", Type: field.TypeString},
+		{Name: "subnet_mask", Type: field.TypeString},
+		{Name: "next_hop", Type: field.TypeString},
+		{Name: "brd_interface", Type: field.TypeBool, Default: false},
+		{Name: "device_ip_static_routing", Type: field.TypeInt, Nullable: true},
+		{Name: "net_interface_ip_static_routing", Type: field.TypeInt, Nullable: true},
+	}
+	// IPStaticRoutingTablesTable holds the schema information for the "ip_static_routing_tables" table.
+	IPStaticRoutingTablesTable = &schema.Table{
+		Name:       "ip_static_routing_tables",
+		Columns:    IPStaticRoutingTablesColumns,
+		PrimaryKey: []*schema.Column{IPStaticRoutingTablesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ip_static_routing_tables_devices_ip_static_routing",
+				Columns:    []*schema.Column{IPStaticRoutingTablesColumns[5]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "ip_static_routing_tables_net_interfaces_ip_static_routing",
+				Columns:    []*schema.Column{IPStaticRoutingTablesColumns[6]},
+				RefColumns: []*schema.Column{NetInterfacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// NetInterfacesColumns holds the columns for the "net_interfaces" table.
 	NetInterfacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "interface_name", Type: field.TypeString},
 		{Name: "interface_shutdown", Type: field.TypeBool, Default: true},
 		{Name: "device_interfaces", Type: field.TypeInt, Nullable: true},
+		{Name: "ip_address_interfaces", Type: field.TypeInt, Nullable: true},
+		{Name: "net_interface_layer_layers", Type: field.TypeInt, Nullable: true},
 		{Name: "net_interface_mode_modes", Type: field.TypeInt, Nullable: true},
+		{Name: "port_channel_interface_interfaces", Type: field.TypeInt, Nullable: true},
 		{Name: "vlan_native_vlan", Type: field.TypeInt, Nullable: true},
 	}
 	// NetInterfacesTable holds the schema information for the "net_interfaces" table.
@@ -121,18 +175,48 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "net_interfaces_net_interface_modes_modes",
+				Symbol:     "net_interfaces_ip_addresses_interfaces",
 				Columns:    []*schema.Column{NetInterfacesColumns[4]},
+				RefColumns: []*schema.Column{IPAddressesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "net_interfaces_net_interface_layers_layers",
+				Columns:    []*schema.Column{NetInterfacesColumns[5]},
+				RefColumns: []*schema.Column{NetInterfaceLayersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "net_interfaces_net_interface_modes_modes",
+				Columns:    []*schema.Column{NetInterfacesColumns[6]},
 				RefColumns: []*schema.Column{NetInterfaceModesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:     "net_interfaces_port_channel_interfaces_interfaces",
+				Columns:    []*schema.Column{NetInterfacesColumns[7]},
+				RefColumns: []*schema.Column{PortChannelInterfacesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "net_interfaces_vlans_native_vlan",
-				Columns:    []*schema.Column{NetInterfacesColumns[5]},
+				Columns:    []*schema.Column{NetInterfacesColumns[8]},
 				RefColumns: []*schema.Column{VlansColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// NetInterfaceLayersColumns holds the columns for the "net_interface_layers" table.
+	NetInterfaceLayersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "interface_layer", Type: field.TypeInt},
+	}
+	// NetInterfaceLayersTable holds the schema information for the "net_interface_layers" table.
+	NetInterfaceLayersTable = &schema.Table{
+		Name:        "net_interface_layers",
+		Columns:     NetInterfaceLayersColumns,
+		PrimaryKey:  []*schema.Column{NetInterfaceLayersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// NetInterfaceModesColumns holds the columns for the "net_interface_modes" table.
 	NetInterfaceModesColumns = []*schema.Column{
@@ -184,6 +268,55 @@ var (
 				Columns:    []*schema.Column{NetTopologyDeviceMapsColumns[4]},
 				RefColumns: []*schema.Column{NetTopologiesColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// PortChannelInterfacesColumns holds the columns for the "port_channel_interfaces" table.
+	PortChannelInterfacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "po_interface_id", Type: field.TypeInt},
+		{Name: "po_interface_shutdown", Type: field.TypeBool, Default: true},
+		{Name: "device_po_interfaces", Type: field.TypeInt, Nullable: true},
+		{Name: "ip_address_po_interfaces", Type: field.TypeInt, Nullable: true},
+		{Name: "net_interface_layer_po_layers", Type: field.TypeInt, Nullable: true},
+		{Name: "net_interface_mode_po_modes", Type: field.TypeInt, Nullable: true},
+		{Name: "vlan_po_native_vlan", Type: field.TypeInt, Nullable: true},
+	}
+	// PortChannelInterfacesTable holds the schema information for the "port_channel_interfaces" table.
+	PortChannelInterfacesTable = &schema.Table{
+		Name:       "port_channel_interfaces",
+		Columns:    PortChannelInterfacesColumns,
+		PrimaryKey: []*schema.Column{PortChannelInterfacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "port_channel_interfaces_devices_po_interfaces",
+				Columns:    []*schema.Column{PortChannelInterfacesColumns[3]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "port_channel_interfaces_ip_addresses_po_interfaces",
+				Columns:    []*schema.Column{PortChannelInterfacesColumns[4]},
+				RefColumns: []*schema.Column{IPAddressesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "port_channel_interfaces_net_interface_layers_po_layers",
+				Columns:    []*schema.Column{PortChannelInterfacesColumns[5]},
+				RefColumns: []*schema.Column{NetInterfaceLayersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "port_channel_interfaces_net_interface_modes_po_modes",
+				Columns:    []*schema.Column{PortChannelInterfacesColumns[6]},
+				RefColumns: []*schema.Column{NetInterfaceModesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "port_channel_interfaces_vlans_po_native_vlan",
+				Columns:    []*schema.Column{PortChannelInterfacesColumns[7]},
+				RefColumns: []*schema.Column{VlansColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -274,6 +407,31 @@ var (
 			},
 		},
 	}
+	// VlanPoVlansColumns holds the columns for the "vlan_po_vlans" table.
+	VlanPoVlansColumns = []*schema.Column{
+		{Name: "vlan_id", Type: field.TypeInt},
+		{Name: "port_channel_interface_id", Type: field.TypeInt},
+	}
+	// VlanPoVlansTable holds the schema information for the "vlan_po_vlans" table.
+	VlanPoVlansTable = &schema.Table{
+		Name:       "vlan_po_vlans",
+		Columns:    VlanPoVlansColumns,
+		PrimaryKey: []*schema.Column{VlanPoVlansColumns[0], VlanPoVlansColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "vlan_po_vlans_vlan_id",
+				Columns:    []*schema.Column{VlanPoVlansColumns[0]},
+				RefColumns: []*schema.Column{VlansColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "vlan_po_vlans_port_channel_interface_id",
+				Columns:    []*schema.Column{VlanPoVlansColumns[1]},
+				RefColumns: []*schema.Column{PortChannelInterfacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AdministratorsTable,
@@ -281,14 +439,19 @@ var (
 		DevicesTable,
 		DevicePlatformsTable,
 		DeviceTypesTable,
+		IPAddressesTable,
+		IPStaticRoutingTablesTable,
 		NetInterfacesTable,
+		NetInterfaceLayersTable,
 		NetInterfaceModesTable,
 		NetTopologiesTable,
 		NetTopologyDeviceMapsTable,
+		PortChannelInterfacesTable,
 		VlansTable,
 		DeviceStoreVlansTable,
 		NetTopologyDeviceMapEdgeTable,
 		VlanVlansTable,
+		VlanPoVlansTable,
 	}
 )
 
@@ -296,15 +459,28 @@ func init() {
 	DeletedVlanLogsTable.ForeignKeys[0].RefTable = DevicesTable
 	DevicesTable.ForeignKeys[0].RefTable = DevicePlatformsTable
 	DevicesTable.ForeignKeys[1].RefTable = DeviceTypesTable
+	IPAddressesTable.ForeignKeys[0].RefTable = DevicesTable
+	IPStaticRoutingTablesTable.ForeignKeys[0].RefTable = DevicesTable
+	IPStaticRoutingTablesTable.ForeignKeys[1].RefTable = NetInterfacesTable
 	NetInterfacesTable.ForeignKeys[0].RefTable = DevicesTable
-	NetInterfacesTable.ForeignKeys[1].RefTable = NetInterfaceModesTable
-	NetInterfacesTable.ForeignKeys[2].RefTable = VlansTable
+	NetInterfacesTable.ForeignKeys[1].RefTable = IPAddressesTable
+	NetInterfacesTable.ForeignKeys[2].RefTable = NetInterfaceLayersTable
+	NetInterfacesTable.ForeignKeys[3].RefTable = NetInterfaceModesTable
+	NetInterfacesTable.ForeignKeys[4].RefTable = PortChannelInterfacesTable
+	NetInterfacesTable.ForeignKeys[5].RefTable = VlansTable
 	NetTopologyDeviceMapsTable.ForeignKeys[0].RefTable = DevicesTable
 	NetTopologyDeviceMapsTable.ForeignKeys[1].RefTable = NetTopologiesTable
+	PortChannelInterfacesTable.ForeignKeys[0].RefTable = DevicesTable
+	PortChannelInterfacesTable.ForeignKeys[1].RefTable = IPAddressesTable
+	PortChannelInterfacesTable.ForeignKeys[2].RefTable = NetInterfaceLayersTable
+	PortChannelInterfacesTable.ForeignKeys[3].RefTable = NetInterfaceModesTable
+	PortChannelInterfacesTable.ForeignKeys[4].RefTable = VlansTable
 	DeviceStoreVlansTable.ForeignKeys[0].RefTable = DevicesTable
 	DeviceStoreVlansTable.ForeignKeys[1].RefTable = VlansTable
 	NetTopologyDeviceMapEdgeTable.ForeignKeys[0].RefTable = NetTopologyDeviceMapsTable
 	NetTopologyDeviceMapEdgeTable.ForeignKeys[1].RefTable = NetTopologyDeviceMapsTable
 	VlanVlansTable.ForeignKeys[0].RefTable = VlansTable
 	VlanVlansTable.ForeignKeys[1].RefTable = NetInterfacesTable
+	VlanPoVlansTable.ForeignKeys[0].RefTable = VlansTable
+	VlanPoVlansTable.ForeignKeys[1].RefTable = PortChannelInterfacesTable
 }

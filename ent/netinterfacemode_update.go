@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 )
 
@@ -48,6 +49,21 @@ func (nimu *NetInterfaceModeUpdate) AddModes(n ...*NetInterface) *NetInterfaceMo
 	return nimu.AddModeIDs(ids...)
 }
 
+// AddPoModeIDs adds the "po_modes" edge to the PortChannelInterface entity by IDs.
+func (nimu *NetInterfaceModeUpdate) AddPoModeIDs(ids ...int) *NetInterfaceModeUpdate {
+	nimu.mutation.AddPoModeIDs(ids...)
+	return nimu
+}
+
+// AddPoModes adds the "po_modes" edges to the PortChannelInterface entity.
+func (nimu *NetInterfaceModeUpdate) AddPoModes(p ...*PortChannelInterface) *NetInterfaceModeUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nimu.AddPoModeIDs(ids...)
+}
+
 // Mutation returns the NetInterfaceModeMutation object of the builder.
 func (nimu *NetInterfaceModeUpdate) Mutation() *NetInterfaceModeMutation {
 	return nimu.mutation
@@ -72,6 +88,27 @@ func (nimu *NetInterfaceModeUpdate) RemoveModes(n ...*NetInterface) *NetInterfac
 		ids[i] = n[i].ID
 	}
 	return nimu.RemoveModeIDs(ids...)
+}
+
+// ClearPoModes clears all "po_modes" edges to the PortChannelInterface entity.
+func (nimu *NetInterfaceModeUpdate) ClearPoModes() *NetInterfaceModeUpdate {
+	nimu.mutation.ClearPoModes()
+	return nimu
+}
+
+// RemovePoModeIDs removes the "po_modes" edge to PortChannelInterface entities by IDs.
+func (nimu *NetInterfaceModeUpdate) RemovePoModeIDs(ids ...int) *NetInterfaceModeUpdate {
+	nimu.mutation.RemovePoModeIDs(ids...)
+	return nimu
+}
+
+// RemovePoModes removes "po_modes" edges to PortChannelInterface entities.
+func (nimu *NetInterfaceModeUpdate) RemovePoModes(p ...*PortChannelInterface) *NetInterfaceModeUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nimu.RemovePoModeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -220,6 +257,60 @@ func (nimu *NetInterfaceModeUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nimu.mutation.PoModesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nimu.mutation.RemovedPoModesIDs(); len(nodes) > 0 && !nimu.mutation.PoModesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nimu.mutation.PoModesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, nimu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{netinterfacemode.Label}
@@ -260,6 +351,21 @@ func (nimuo *NetInterfaceModeUpdateOne) AddModes(n ...*NetInterface) *NetInterfa
 	return nimuo.AddModeIDs(ids...)
 }
 
+// AddPoModeIDs adds the "po_modes" edge to the PortChannelInterface entity by IDs.
+func (nimuo *NetInterfaceModeUpdateOne) AddPoModeIDs(ids ...int) *NetInterfaceModeUpdateOne {
+	nimuo.mutation.AddPoModeIDs(ids...)
+	return nimuo
+}
+
+// AddPoModes adds the "po_modes" edges to the PortChannelInterface entity.
+func (nimuo *NetInterfaceModeUpdateOne) AddPoModes(p ...*PortChannelInterface) *NetInterfaceModeUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nimuo.AddPoModeIDs(ids...)
+}
+
 // Mutation returns the NetInterfaceModeMutation object of the builder.
 func (nimuo *NetInterfaceModeUpdateOne) Mutation() *NetInterfaceModeMutation {
 	return nimuo.mutation
@@ -284,6 +390,27 @@ func (nimuo *NetInterfaceModeUpdateOne) RemoveModes(n ...*NetInterface) *NetInte
 		ids[i] = n[i].ID
 	}
 	return nimuo.RemoveModeIDs(ids...)
+}
+
+// ClearPoModes clears all "po_modes" edges to the PortChannelInterface entity.
+func (nimuo *NetInterfaceModeUpdateOne) ClearPoModes() *NetInterfaceModeUpdateOne {
+	nimuo.mutation.ClearPoModes()
+	return nimuo
+}
+
+// RemovePoModeIDs removes the "po_modes" edge to PortChannelInterface entities by IDs.
+func (nimuo *NetInterfaceModeUpdateOne) RemovePoModeIDs(ids ...int) *NetInterfaceModeUpdateOne {
+	nimuo.mutation.RemovePoModeIDs(ids...)
+	return nimuo
+}
+
+// RemovePoModes removes "po_modes" edges to PortChannelInterface entities.
+func (nimuo *NetInterfaceModeUpdateOne) RemovePoModes(p ...*PortChannelInterface) *NetInterfaceModeUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nimuo.RemovePoModeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -448,6 +575,60 @@ func (nimuo *NetInterfaceModeUpdateOne) sqlSave(ctx context.Context) (_node *Net
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nimuo.mutation.PoModesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nimuo.mutation.RemovedPoModesIDs(); len(nodes) > 0 && !nimuo.mutation.PoModesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nimuo.mutation.PoModesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterfacemode.PoModesTable,
+			Columns: []string{netinterfacemode.PoModesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
 				},
 			},
 		}

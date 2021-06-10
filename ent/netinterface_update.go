@@ -10,8 +10,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/predicate"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -68,6 +72,59 @@ func (niu *NetInterfaceUpdate) SetOnDevice(d *Device) *NetInterfaceUpdate {
 	return niu.SetOnDeviceID(d.ID)
 }
 
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (niu *NetInterfaceUpdate) SetOnPoInterfaceID(id int) *NetInterfaceUpdate {
+	niu.mutation.SetOnPoInterfaceID(id)
+	return niu
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableOnPoInterfaceID(id *int) *NetInterfaceUpdate {
+	if id != nil {
+		niu = niu.SetOnPoInterfaceID(*id)
+	}
+	return niu
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (niu *NetInterfaceUpdate) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceUpdate {
+	return niu.SetOnPoInterfaceID(p.ID)
+}
+
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (niu *NetInterfaceUpdate) SetOnIPAddressID(id int) *NetInterfaceUpdate {
+	niu.mutation.SetOnIPAddressID(id)
+	return niu
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableOnIPAddressID(id *int) *NetInterfaceUpdate {
+	if id != nil {
+		niu = niu.SetOnIPAddressID(*id)
+	}
+	return niu
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (niu *NetInterfaceUpdate) SetOnIPAddress(i *IPAddress) *NetInterfaceUpdate {
+	return niu.SetOnIPAddressID(i.ID)
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (niu *NetInterfaceUpdate) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.AddIPStaticRoutingIDs(ids...)
+	return niu
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niu *NetInterfaceUpdate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niu.AddIPStaticRoutingIDs(ids...)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (niu *NetInterfaceUpdate) SetModeID(id int) *NetInterfaceUpdate {
 	niu.mutation.SetModeID(id)
@@ -85,6 +142,25 @@ func (niu *NetInterfaceUpdate) SetNillableModeID(id *int) *NetInterfaceUpdate {
 // SetMode sets the "mode" edge to the NetInterfaceMode entity.
 func (niu *NetInterfaceUpdate) SetMode(n *NetInterfaceMode) *NetInterfaceUpdate {
 	return niu.SetModeID(n.ID)
+}
+
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (niu *NetInterfaceUpdate) SetOnLayerID(id int) *NetInterfaceUpdate {
+	niu.mutation.SetOnLayerID(id)
+	return niu
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (niu *NetInterfaceUpdate) SetNillableOnLayerID(id *int) *NetInterfaceUpdate {
+	if id != nil {
+		niu = niu.SetOnLayerID(*id)
+	}
+	return niu
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (niu *NetInterfaceUpdate) SetOnLayer(n *NetInterfaceLayer) *NetInterfaceUpdate {
+	return niu.SetOnLayerID(n.ID)
 }
 
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
@@ -132,9 +208,48 @@ func (niu *NetInterfaceUpdate) ClearOnDevice() *NetInterfaceUpdate {
 	return niu
 }
 
+// ClearOnPoInterface clears the "on_po_interface" edge to the PortChannelInterface entity.
+func (niu *NetInterfaceUpdate) ClearOnPoInterface() *NetInterfaceUpdate {
+	niu.mutation.ClearOnPoInterface()
+	return niu
+}
+
+// ClearOnIPAddress clears the "on_ip_address" edge to the IPAddress entity.
+func (niu *NetInterfaceUpdate) ClearOnIPAddress() *NetInterfaceUpdate {
+	niu.mutation.ClearOnIPAddress()
+	return niu
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niu *NetInterfaceUpdate) ClearIPStaticRouting() *NetInterfaceUpdate {
+	niu.mutation.ClearIPStaticRouting()
+	return niu
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (niu *NetInterfaceUpdate) RemoveIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdate {
+	niu.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return niu
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (niu *NetInterfaceUpdate) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niu.RemoveIPStaticRoutingIDs(ids...)
+}
+
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (niu *NetInterfaceUpdate) ClearMode() *NetInterfaceUpdate {
 	niu.mutation.ClearMode()
+	return niu
+}
+
+// ClearOnLayer clears the "on_layer" edge to the NetInterfaceLayer entity.
+func (niu *NetInterfaceUpdate) ClearOnLayer() *NetInterfaceUpdate {
+	niu.mutation.ClearOnLayer()
 	return niu
 }
 
@@ -299,6 +414,130 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if niu.mutation.OnPoInterfaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.OnIPAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !niu.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if niu.mutation.ModeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -326,6 +565,41 @@ func (niu *NetInterfaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterfacemode.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niu.mutation.OnLayerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niu.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
 				},
 			},
 		}
@@ -481,6 +755,59 @@ func (niuo *NetInterfaceUpdateOne) SetOnDevice(d *Device) *NetInterfaceUpdateOne
 	return niuo.SetOnDeviceID(d.ID)
 }
 
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (niuo *NetInterfaceUpdateOne) SetOnPoInterfaceID(id int) *NetInterfaceUpdateOne {
+	niuo.mutation.SetOnPoInterfaceID(id)
+	return niuo
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableOnPoInterfaceID(id *int) *NetInterfaceUpdateOne {
+	if id != nil {
+		niuo = niuo.SetOnPoInterfaceID(*id)
+	}
+	return niuo
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (niuo *NetInterfaceUpdateOne) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceUpdateOne {
+	return niuo.SetOnPoInterfaceID(p.ID)
+}
+
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (niuo *NetInterfaceUpdateOne) SetOnIPAddressID(id int) *NetInterfaceUpdateOne {
+	niuo.mutation.SetOnIPAddressID(id)
+	return niuo
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableOnIPAddressID(id *int) *NetInterfaceUpdateOne {
+	if id != nil {
+		niuo = niuo.SetOnIPAddressID(*id)
+	}
+	return niuo
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (niuo *NetInterfaceUpdateOne) SetOnIPAddress(i *IPAddress) *NetInterfaceUpdateOne {
+	return niuo.SetOnIPAddressID(i.ID)
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (niuo *NetInterfaceUpdateOne) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.AddIPStaticRoutingIDs(ids...)
+	return niuo
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niuo *NetInterfaceUpdateOne) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niuo.AddIPStaticRoutingIDs(ids...)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (niuo *NetInterfaceUpdateOne) SetModeID(id int) *NetInterfaceUpdateOne {
 	niuo.mutation.SetModeID(id)
@@ -498,6 +825,25 @@ func (niuo *NetInterfaceUpdateOne) SetNillableModeID(id *int) *NetInterfaceUpdat
 // SetMode sets the "mode" edge to the NetInterfaceMode entity.
 func (niuo *NetInterfaceUpdateOne) SetMode(n *NetInterfaceMode) *NetInterfaceUpdateOne {
 	return niuo.SetModeID(n.ID)
+}
+
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (niuo *NetInterfaceUpdateOne) SetOnLayerID(id int) *NetInterfaceUpdateOne {
+	niuo.mutation.SetOnLayerID(id)
+	return niuo
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (niuo *NetInterfaceUpdateOne) SetNillableOnLayerID(id *int) *NetInterfaceUpdateOne {
+	if id != nil {
+		niuo = niuo.SetOnLayerID(*id)
+	}
+	return niuo
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (niuo *NetInterfaceUpdateOne) SetOnLayer(n *NetInterfaceLayer) *NetInterfaceUpdateOne {
+	return niuo.SetOnLayerID(n.ID)
 }
 
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
@@ -545,9 +891,48 @@ func (niuo *NetInterfaceUpdateOne) ClearOnDevice() *NetInterfaceUpdateOne {
 	return niuo
 }
 
+// ClearOnPoInterface clears the "on_po_interface" edge to the PortChannelInterface entity.
+func (niuo *NetInterfaceUpdateOne) ClearOnPoInterface() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearOnPoInterface()
+	return niuo
+}
+
+// ClearOnIPAddress clears the "on_ip_address" edge to the IPAddress entity.
+func (niuo *NetInterfaceUpdateOne) ClearOnIPAddress() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearOnIPAddress()
+	return niuo
+}
+
+// ClearIPStaticRouting clears all "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (niuo *NetInterfaceUpdateOne) ClearIPStaticRouting() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearIPStaticRouting()
+	return niuo
+}
+
+// RemoveIPStaticRoutingIDs removes the "ip_static_routing" edge to IPStaticRoutingTable entities by IDs.
+func (niuo *NetInterfaceUpdateOne) RemoveIPStaticRoutingIDs(ids ...int) *NetInterfaceUpdateOne {
+	niuo.mutation.RemoveIPStaticRoutingIDs(ids...)
+	return niuo
+}
+
+// RemoveIPStaticRouting removes "ip_static_routing" edges to IPStaticRoutingTable entities.
+func (niuo *NetInterfaceUpdateOne) RemoveIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return niuo.RemoveIPStaticRoutingIDs(ids...)
+}
+
 // ClearMode clears the "mode" edge to the NetInterfaceMode entity.
 func (niuo *NetInterfaceUpdateOne) ClearMode() *NetInterfaceUpdateOne {
 	niuo.mutation.ClearMode()
+	return niuo
+}
+
+// ClearOnLayer clears the "on_layer" edge to the NetInterfaceLayer entity.
+func (niuo *NetInterfaceUpdateOne) ClearOnLayer() *NetInterfaceUpdateOne {
+	niuo.mutation.ClearOnLayer()
 	return niuo
 }
 
@@ -736,6 +1121,130 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if niuo.mutation.OnPoInterfaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.OnIPAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.RemovedIPStaticRoutingIDs(); len(nodes) > 0 && !niuo.mutation.IPStaticRoutingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if niuo.mutation.ModeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -763,6 +1272,41 @@ func (niuo *NetInterfaceUpdateOne) sqlSave(ctx context.Context) (_node *NetInter
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterfacemode.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if niuo.mutation.OnLayerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := niuo.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
 				},
 			},
 		}

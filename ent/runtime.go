@@ -8,10 +8,14 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/schema"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
@@ -76,6 +80,34 @@ func init() {
 	devicetypeDescDeviceTypeName := devicetypeFields[0].Descriptor()
 	// devicetype.DeviceTypeNameValidator is a validator for the "device_type_name" field. It is called by the builders before save.
 	devicetype.DeviceTypeNameValidator = devicetypeDescDeviceTypeName.Validators[0].(func(string) error)
+	ipaddressFields := schema.IPAddress{}.Fields()
+	_ = ipaddressFields
+	// ipaddressDescIPAddress is the schema descriptor for ip_address field.
+	ipaddressDescIPAddress := ipaddressFields[0].Descriptor()
+	// ipaddress.IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
+	ipaddress.IPAddressValidator = ipaddressDescIPAddress.Validators[0].(func(string) error)
+	// ipaddressDescSubnetMask is the schema descriptor for subnet_mask field.
+	ipaddressDescSubnetMask := ipaddressFields[1].Descriptor()
+	// ipaddress.SubnetMaskValidator is a validator for the "subnet_mask" field. It is called by the builders before save.
+	ipaddress.SubnetMaskValidator = ipaddressDescSubnetMask.Validators[0].(func(string) error)
+	ipstaticroutingtableFields := schema.IPStaticRoutingTable{}.Fields()
+	_ = ipstaticroutingtableFields
+	// ipstaticroutingtableDescNetworkAddress is the schema descriptor for network_address field.
+	ipstaticroutingtableDescNetworkAddress := ipstaticroutingtableFields[0].Descriptor()
+	// ipstaticroutingtable.NetworkAddressValidator is a validator for the "network_address" field. It is called by the builders before save.
+	ipstaticroutingtable.NetworkAddressValidator = ipstaticroutingtableDescNetworkAddress.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescSubnetMask is the schema descriptor for subnet_mask field.
+	ipstaticroutingtableDescSubnetMask := ipstaticroutingtableFields[1].Descriptor()
+	// ipstaticroutingtable.SubnetMaskValidator is a validator for the "subnet_mask" field. It is called by the builders before save.
+	ipstaticroutingtable.SubnetMaskValidator = ipstaticroutingtableDescSubnetMask.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescNextHop is the schema descriptor for next_hop field.
+	ipstaticroutingtableDescNextHop := ipstaticroutingtableFields[2].Descriptor()
+	// ipstaticroutingtable.NextHopValidator is a validator for the "next_hop" field. It is called by the builders before save.
+	ipstaticroutingtable.NextHopValidator = ipstaticroutingtableDescNextHop.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescBrdInterface is the schema descriptor for brd_interface field.
+	ipstaticroutingtableDescBrdInterface := ipstaticroutingtableFields[3].Descriptor()
+	// ipstaticroutingtable.DefaultBrdInterface holds the default value on creation for the brd_interface field.
+	ipstaticroutingtable.DefaultBrdInterface = ipstaticroutingtableDescBrdInterface.Default.(bool)
 	netinterfaceFields := schema.NetInterface{}.Fields()
 	_ = netinterfaceFields
 	// netinterfaceDescInterfaceName is the schema descriptor for interface_name field.
@@ -86,6 +118,12 @@ func init() {
 	netinterfaceDescInterfaceShutdown := netinterfaceFields[1].Descriptor()
 	// netinterface.DefaultInterfaceShutdown holds the default value on creation for the interface_shutdown field.
 	netinterface.DefaultInterfaceShutdown = netinterfaceDescInterfaceShutdown.Default.(bool)
+	netinterfacelayerFields := schema.NetInterfaceLayer{}.Fields()
+	_ = netinterfacelayerFields
+	// netinterfacelayerDescInterfaceLayer is the schema descriptor for interface_layer field.
+	netinterfacelayerDescInterfaceLayer := netinterfacelayerFields[0].Descriptor()
+	// netinterfacelayer.InterfaceLayerValidator is a validator for the "interface_layer" field. It is called by the builders before save.
+	netinterfacelayer.InterfaceLayerValidator = netinterfacelayerDescInterfaceLayer.Validators[0].(func(int) error)
 	netinterfacemodeFields := schema.NetInterfaceMode{}.Fields()
 	_ = netinterfacemodeFields
 	// netinterfacemodeDescInterfaceMode is the schema descriptor for interface_mode field.
@@ -112,6 +150,16 @@ func init() {
 	nettopologydevicemapDescPositionY := nettopologydevicemapFields[1].Descriptor()
 	// nettopologydevicemap.DefaultPositionY holds the default value on creation for the position_y field.
 	nettopologydevicemap.DefaultPositionY = nettopologydevicemapDescPositionY.Default.(int)
+	portchannelinterfaceFields := schema.PortChannelInterface{}.Fields()
+	_ = portchannelinterfaceFields
+	// portchannelinterfaceDescPoInterfaceID is the schema descriptor for po_interface_id field.
+	portchannelinterfaceDescPoInterfaceID := portchannelinterfaceFields[0].Descriptor()
+	// portchannelinterface.PoInterfaceIDValidator is a validator for the "po_interface_id" field. It is called by the builders before save.
+	portchannelinterface.PoInterfaceIDValidator = portchannelinterfaceDescPoInterfaceID.Validators[0].(func(int) error)
+	// portchannelinterfaceDescPoInterfaceShutdown is the schema descriptor for po_interface_shutdown field.
+	portchannelinterfaceDescPoInterfaceShutdown := portchannelinterfaceFields[1].Descriptor()
+	// portchannelinterface.DefaultPoInterfaceShutdown holds the default value on creation for the po_interface_shutdown field.
+	portchannelinterface.DefaultPoInterfaceShutdown = portchannelinterfaceDescPoInterfaceShutdown.Default.(bool)
 	vlanFields := schema.Vlan{}.Fields()
 	_ = vlanFields
 	// vlanDescVlanID is the schema descriptor for vlan_id field.

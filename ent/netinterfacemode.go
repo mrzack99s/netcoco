@@ -26,9 +26,11 @@ type NetInterfaceMode struct {
 type NetInterfaceModeEdges struct {
 	// Modes holds the value of the modes edge.
 	Modes []*NetInterface `json:"modes,omitempty"`
+	// PoModes holds the value of the po_modes edge.
+	PoModes []*PortChannelInterface `json:"po_modes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ModesOrErr returns the Modes value or an error if the edge
@@ -38,6 +40,15 @@ func (e NetInterfaceModeEdges) ModesOrErr() ([]*NetInterface, error) {
 		return e.Modes, nil
 	}
 	return nil, &NotLoadedError{edge: "modes"}
+}
+
+// PoModesOrErr returns the PoModes value or an error if the edge
+// was not loaded in eager-loading.
+func (e NetInterfaceModeEdges) PoModesOrErr() ([]*PortChannelInterface, error) {
+	if e.loadedTypes[1] {
+		return e.PoModes, nil
+	}
+	return nil, &NotLoadedError{edge: "po_modes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -84,6 +95,11 @@ func (nim *NetInterfaceMode) assignValues(columns []string, values []interface{}
 // QueryModes queries the "modes" edge of the NetInterfaceMode entity.
 func (nim *NetInterfaceMode) QueryModes() *NetInterfaceQuery {
 	return (&NetInterfaceModeClient{config: nim.config}).QueryModes(nim)
+}
+
+// QueryPoModes queries the "po_modes" edge of the NetInterfaceMode entity.
+func (nim *NetInterfaceMode) QueryPoModes() *PortChannelInterfaceQuery {
+	return (&NetInterfaceModeClient{config: nim.config}).QueryPoModes(nim)
 }
 
 // Update returns a builder for updating this NetInterfaceMode.

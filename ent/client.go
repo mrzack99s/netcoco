@@ -14,10 +14,14 @@ import (
 	"github.com/mrzack99s/netcoco/ent/device"
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
 	"github.com/mrzack99s/netcoco/ent/nettopology"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 
 	"entgo.io/ent/dialect"
@@ -40,14 +44,22 @@ type Client struct {
 	DevicePlatform *DevicePlatformClient
 	// DeviceType is the client for interacting with the DeviceType builders.
 	DeviceType *DeviceTypeClient
+	// IPAddress is the client for interacting with the IPAddress builders.
+	IPAddress *IPAddressClient
+	// IPStaticRoutingTable is the client for interacting with the IPStaticRoutingTable builders.
+	IPStaticRoutingTable *IPStaticRoutingTableClient
 	// NetInterface is the client for interacting with the NetInterface builders.
 	NetInterface *NetInterfaceClient
+	// NetInterfaceLayer is the client for interacting with the NetInterfaceLayer builders.
+	NetInterfaceLayer *NetInterfaceLayerClient
 	// NetInterfaceMode is the client for interacting with the NetInterfaceMode builders.
 	NetInterfaceMode *NetInterfaceModeClient
 	// NetTopology is the client for interacting with the NetTopology builders.
 	NetTopology *NetTopologyClient
 	// NetTopologyDeviceMap is the client for interacting with the NetTopologyDeviceMap builders.
 	NetTopologyDeviceMap *NetTopologyDeviceMapClient
+	// PortChannelInterface is the client for interacting with the PortChannelInterface builders.
+	PortChannelInterface *PortChannelInterfaceClient
 	// Vlan is the client for interacting with the Vlan builders.
 	Vlan *VlanClient
 }
@@ -68,10 +80,14 @@ func (c *Client) init() {
 	c.Device = NewDeviceClient(c.config)
 	c.DevicePlatform = NewDevicePlatformClient(c.config)
 	c.DeviceType = NewDeviceTypeClient(c.config)
+	c.IPAddress = NewIPAddressClient(c.config)
+	c.IPStaticRoutingTable = NewIPStaticRoutingTableClient(c.config)
 	c.NetInterface = NewNetInterfaceClient(c.config)
+	c.NetInterfaceLayer = NewNetInterfaceLayerClient(c.config)
 	c.NetInterfaceMode = NewNetInterfaceModeClient(c.config)
 	c.NetTopology = NewNetTopologyClient(c.config)
 	c.NetTopologyDeviceMap = NewNetTopologyDeviceMapClient(c.config)
+	c.PortChannelInterface = NewPortChannelInterfaceClient(c.config)
 	c.Vlan = NewVlanClient(c.config)
 }
 
@@ -111,10 +127,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Device:               NewDeviceClient(cfg),
 		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
+		IPAddress:            NewIPAddressClient(cfg),
+		IPStaticRoutingTable: NewIPStaticRoutingTableClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
+		NetInterfaceLayer:    NewNetInterfaceLayerClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
 		NetTopology:          NewNetTopologyClient(cfg),
 		NetTopologyDeviceMap: NewNetTopologyDeviceMapClient(cfg),
+		PortChannelInterface: NewPortChannelInterfaceClient(cfg),
 		Vlan:                 NewVlanClient(cfg),
 	}, nil
 }
@@ -139,10 +159,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Device:               NewDeviceClient(cfg),
 		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
+		IPAddress:            NewIPAddressClient(cfg),
+		IPStaticRoutingTable: NewIPStaticRoutingTableClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
+		NetInterfaceLayer:    NewNetInterfaceLayerClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
 		NetTopology:          NewNetTopologyClient(cfg),
 		NetTopologyDeviceMap: NewNetTopologyDeviceMapClient(cfg),
+		PortChannelInterface: NewPortChannelInterfaceClient(cfg),
 		Vlan:                 NewVlanClient(cfg),
 	}, nil
 }
@@ -178,10 +202,14 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Device.Use(hooks...)
 	c.DevicePlatform.Use(hooks...)
 	c.DeviceType.Use(hooks...)
+	c.IPAddress.Use(hooks...)
+	c.IPStaticRoutingTable.Use(hooks...)
 	c.NetInterface.Use(hooks...)
+	c.NetInterfaceLayer.Use(hooks...)
 	c.NetInterfaceMode.Use(hooks...)
 	c.NetTopology.Use(hooks...)
 	c.NetTopologyDeviceMap.Use(hooks...)
+	c.PortChannelInterface.Use(hooks...)
 	c.Vlan.Use(hooks...)
 }
 
@@ -514,6 +542,54 @@ func (c *DeviceClient) QueryInterfaces(d *Device) *NetInterfaceQuery {
 	return query
 }
 
+// QueryIPStaticRouting queries the ip_static_routing edge of a Device.
+func (c *DeviceClient) QueryIPStaticRouting(d *Device) *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.IPStaticRoutingTable, device.IPStaticRoutingColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoInterfaces queries the po_interfaces edge of a Device.
+func (c *DeviceClient) QueryPoInterfaces(d *Device) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.PoInterfacesTable, device.PoInterfacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHaveIPAddresses queries the have_ip_addresses edge of a Device.
+func (c *DeviceClient) QueryHaveIPAddresses(d *Device) *IPAddressQuery {
+	query := &IPAddressQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.HaveIPAddressesTable, device.HaveIPAddressesColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryInTopology queries the in_topology edge of a Device.
 func (c *DeviceClient) QueryInTopology(d *Device) *NetTopologyDeviceMapQuery {
 	query := &NetTopologyDeviceMapQuery{config: c.config}
@@ -779,6 +855,266 @@ func (c *DeviceTypeClient) Hooks() []Hook {
 	return c.hooks.DeviceType
 }
 
+// IPAddressClient is a client for the IPAddress schema.
+type IPAddressClient struct {
+	config
+}
+
+// NewIPAddressClient returns a client for the IPAddress from the given config.
+func NewIPAddressClient(c config) *IPAddressClient {
+	return &IPAddressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ipaddress.Hooks(f(g(h())))`.
+func (c *IPAddressClient) Use(hooks ...Hook) {
+	c.hooks.IPAddress = append(c.hooks.IPAddress, hooks...)
+}
+
+// Create returns a create builder for IPAddress.
+func (c *IPAddressClient) Create() *IPAddressCreate {
+	mutation := newIPAddressMutation(c.config, OpCreate)
+	return &IPAddressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IPAddress entities.
+func (c *IPAddressClient) CreateBulk(builders ...*IPAddressCreate) *IPAddressCreateBulk {
+	return &IPAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IPAddress.
+func (c *IPAddressClient) Update() *IPAddressUpdate {
+	mutation := newIPAddressMutation(c.config, OpUpdate)
+	return &IPAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IPAddressClient) UpdateOne(ia *IPAddress) *IPAddressUpdateOne {
+	mutation := newIPAddressMutation(c.config, OpUpdateOne, withIPAddress(ia))
+	return &IPAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IPAddressClient) UpdateOneID(id int) *IPAddressUpdateOne {
+	mutation := newIPAddressMutation(c.config, OpUpdateOne, withIPAddressID(id))
+	return &IPAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IPAddress.
+func (c *IPAddressClient) Delete() *IPAddressDelete {
+	mutation := newIPAddressMutation(c.config, OpDelete)
+	return &IPAddressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *IPAddressClient) DeleteOne(ia *IPAddress) *IPAddressDeleteOne {
+	return c.DeleteOneID(ia.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *IPAddressClient) DeleteOneID(id int) *IPAddressDeleteOne {
+	builder := c.Delete().Where(ipaddress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IPAddressDeleteOne{builder}
+}
+
+// Query returns a query builder for IPAddress.
+func (c *IPAddressClient) Query() *IPAddressQuery {
+	return &IPAddressQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a IPAddress entity by its id.
+func (c *IPAddressClient) Get(ctx context.Context, id int) (*IPAddress, error) {
+	return c.Query().Where(ipaddress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IPAddressClient) GetX(ctx context.Context, id int) *IPAddress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOnDevice queries the on_device edge of a IPAddress.
+func (c *IPAddressClient) QueryOnDevice(ia *IPAddress) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ia.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipaddress.Table, ipaddress.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ipaddress.OnDeviceTable, ipaddress.OnDeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(ia.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInterfaces queries the interfaces edge of a IPAddress.
+func (c *IPAddressClient) QueryInterfaces(ia *IPAddress) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ia.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipaddress.Table, ipaddress.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ipaddress.InterfacesTable, ipaddress.InterfacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ia.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoInterfaces queries the po_interfaces edge of a IPAddress.
+func (c *IPAddressClient) QueryPoInterfaces(ia *IPAddress) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ia.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipaddress.Table, ipaddress.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ipaddress.PoInterfacesTable, ipaddress.PoInterfacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ia.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IPAddressClient) Hooks() []Hook {
+	return c.hooks.IPAddress
+}
+
+// IPStaticRoutingTableClient is a client for the IPStaticRoutingTable schema.
+type IPStaticRoutingTableClient struct {
+	config
+}
+
+// NewIPStaticRoutingTableClient returns a client for the IPStaticRoutingTable from the given config.
+func NewIPStaticRoutingTableClient(c config) *IPStaticRoutingTableClient {
+	return &IPStaticRoutingTableClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ipstaticroutingtable.Hooks(f(g(h())))`.
+func (c *IPStaticRoutingTableClient) Use(hooks ...Hook) {
+	c.hooks.IPStaticRoutingTable = append(c.hooks.IPStaticRoutingTable, hooks...)
+}
+
+// Create returns a create builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Create() *IPStaticRoutingTableCreate {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpCreate)
+	return &IPStaticRoutingTableCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IPStaticRoutingTable entities.
+func (c *IPStaticRoutingTableClient) CreateBulk(builders ...*IPStaticRoutingTableCreate) *IPStaticRoutingTableCreateBulk {
+	return &IPStaticRoutingTableCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Update() *IPStaticRoutingTableUpdate {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdate)
+	return &IPStaticRoutingTableUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IPStaticRoutingTableClient) UpdateOne(isrt *IPStaticRoutingTable) *IPStaticRoutingTableUpdateOne {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdateOne, withIPStaticRoutingTable(isrt))
+	return &IPStaticRoutingTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IPStaticRoutingTableClient) UpdateOneID(id int) *IPStaticRoutingTableUpdateOne {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdateOne, withIPStaticRoutingTableID(id))
+	return &IPStaticRoutingTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Delete() *IPStaticRoutingTableDelete {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpDelete)
+	return &IPStaticRoutingTableDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *IPStaticRoutingTableClient) DeleteOne(isrt *IPStaticRoutingTable) *IPStaticRoutingTableDeleteOne {
+	return c.DeleteOneID(isrt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *IPStaticRoutingTableClient) DeleteOneID(id int) *IPStaticRoutingTableDeleteOne {
+	builder := c.Delete().Where(ipstaticroutingtable.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IPStaticRoutingTableDeleteOne{builder}
+}
+
+// Query returns a query builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Query() *IPStaticRoutingTableQuery {
+	return &IPStaticRoutingTableQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a IPStaticRoutingTable entity by its id.
+func (c *IPStaticRoutingTableClient) Get(ctx context.Context, id int) (*IPStaticRoutingTable, error) {
+	return c.Query().Where(ipstaticroutingtable.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IPStaticRoutingTableClient) GetX(ctx context.Context, id int) *IPStaticRoutingTable {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOnDevice queries the on_device edge of a IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) QueryOnDevice(isrt *IPStaticRoutingTable) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := isrt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ipstaticroutingtable.OnDeviceTable, ipstaticroutingtable.OnDeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(isrt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnInterface queries the on_interface edge of a IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) QueryOnInterface(isrt *IPStaticRoutingTable) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := isrt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ipstaticroutingtable.OnInterfaceTable, ipstaticroutingtable.OnInterfaceColumn),
+		)
+		fromV = sqlgraph.Neighbors(isrt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IPStaticRoutingTableClient) Hooks() []Hook {
+	return c.hooks.IPStaticRoutingTable
+}
+
 // NetInterfaceClient is a client for the NetInterface schema.
 type NetInterfaceClient struct {
 	config
@@ -880,6 +1216,54 @@ func (c *NetInterfaceClient) QueryOnDevice(ni *NetInterface) *DeviceQuery {
 	return query
 }
 
+// QueryOnPoInterface queries the on_po_interface edge of a NetInterface.
+func (c *NetInterfaceClient) QueryOnPoInterface(ni *NetInterface) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnPoInterfaceTable, netinterface.OnPoInterfaceColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnIPAddress queries the on_ip_address edge of a NetInterface.
+func (c *NetInterfaceClient) QueryOnIPAddress(ni *NetInterface) *IPAddressQuery {
+	query := &IPAddressQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnIPAddressTable, netinterface.OnIPAddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIPStaticRouting queries the ip_static_routing edge of a NetInterface.
+func (c *NetInterfaceClient) QueryIPStaticRouting(ni *NetInterface) *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterface.IPStaticRoutingTable, netinterface.IPStaticRoutingColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryMode queries the mode edge of a NetInterface.
 func (c *NetInterfaceClient) QueryMode(ni *NetInterface) *NetInterfaceModeQuery {
 	query := &NetInterfaceModeQuery{config: c.config}
@@ -889,6 +1273,22 @@ func (c *NetInterfaceClient) QueryMode(ni *NetInterface) *NetInterfaceModeQuery 
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
 			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.ModeTable, netinterface.ModeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnLayer queries the on_layer edge of a NetInterface.
+func (c *NetInterfaceClient) QueryOnLayer(ni *NetInterface) *NetInterfaceLayerQuery {
+	query := &NetInterfaceLayerQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(netinterfacelayer.Table, netinterfacelayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnLayerTable, netinterface.OnLayerColumn),
 		)
 		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
 		return fromV, nil
@@ -931,6 +1331,128 @@ func (c *NetInterfaceClient) QueryNativeOnVlan(ni *NetInterface) *VlanQuery {
 // Hooks returns the client hooks.
 func (c *NetInterfaceClient) Hooks() []Hook {
 	return c.hooks.NetInterface
+}
+
+// NetInterfaceLayerClient is a client for the NetInterfaceLayer schema.
+type NetInterfaceLayerClient struct {
+	config
+}
+
+// NewNetInterfaceLayerClient returns a client for the NetInterfaceLayer from the given config.
+func NewNetInterfaceLayerClient(c config) *NetInterfaceLayerClient {
+	return &NetInterfaceLayerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `netinterfacelayer.Hooks(f(g(h())))`.
+func (c *NetInterfaceLayerClient) Use(hooks ...Hook) {
+	c.hooks.NetInterfaceLayer = append(c.hooks.NetInterfaceLayer, hooks...)
+}
+
+// Create returns a create builder for NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) Create() *NetInterfaceLayerCreate {
+	mutation := newNetInterfaceLayerMutation(c.config, OpCreate)
+	return &NetInterfaceLayerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NetInterfaceLayer entities.
+func (c *NetInterfaceLayerClient) CreateBulk(builders ...*NetInterfaceLayerCreate) *NetInterfaceLayerCreateBulk {
+	return &NetInterfaceLayerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) Update() *NetInterfaceLayerUpdate {
+	mutation := newNetInterfaceLayerMutation(c.config, OpUpdate)
+	return &NetInterfaceLayerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NetInterfaceLayerClient) UpdateOne(nil *NetInterfaceLayer) *NetInterfaceLayerUpdateOne {
+	mutation := newNetInterfaceLayerMutation(c.config, OpUpdateOne, withNetInterfaceLayer(nil))
+	return &NetInterfaceLayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NetInterfaceLayerClient) UpdateOneID(id int) *NetInterfaceLayerUpdateOne {
+	mutation := newNetInterfaceLayerMutation(c.config, OpUpdateOne, withNetInterfaceLayerID(id))
+	return &NetInterfaceLayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) Delete() *NetInterfaceLayerDelete {
+	mutation := newNetInterfaceLayerMutation(c.config, OpDelete)
+	return &NetInterfaceLayerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *NetInterfaceLayerClient) DeleteOne(nil *NetInterfaceLayer) *NetInterfaceLayerDeleteOne {
+	return c.DeleteOneID(nil.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *NetInterfaceLayerClient) DeleteOneID(id int) *NetInterfaceLayerDeleteOne {
+	builder := c.Delete().Where(netinterfacelayer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NetInterfaceLayerDeleteOne{builder}
+}
+
+// Query returns a query builder for NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) Query() *NetInterfaceLayerQuery {
+	return &NetInterfaceLayerQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a NetInterfaceLayer entity by its id.
+func (c *NetInterfaceLayerClient) Get(ctx context.Context, id int) (*NetInterfaceLayer, error) {
+	return c.Query().Where(netinterfacelayer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NetInterfaceLayerClient) GetX(ctx context.Context, id int) *NetInterfaceLayer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLayers queries the layers edge of a NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) QueryLayers(nly *NetInterfaceLayer) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := nly.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterfacelayer.Table, netinterfacelayer.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacelayer.LayersTable, netinterfacelayer.LayersColumn),
+		)
+		fromV = sqlgraph.Neighbors(nly.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoLayers queries the po_layers edge of a NetInterfaceLayer.
+func (c *NetInterfaceLayerClient) QueryPoLayers(nly *NetInterfaceLayer) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := nly.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterfacelayer.Table, netinterfacelayer.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacelayer.PoLayersTable, netinterfacelayer.PoLayersColumn),
+		)
+		fromV = sqlgraph.Neighbors(nly.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NetInterfaceLayerClient) Hooks() []Hook {
+	return c.hooks.NetInterfaceLayer
 }
 
 // NetInterfaceModeClient is a client for the NetInterfaceMode schema.
@@ -1027,6 +1549,22 @@ func (c *NetInterfaceModeClient) QueryModes(nim *NetInterfaceMode) *NetInterface
 			sqlgraph.From(netinterfacemode.Table, netinterfacemode.FieldID, id),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacemode.ModesTable, netinterfacemode.ModesColumn),
+		)
+		fromV = sqlgraph.Neighbors(nim.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoModes queries the po_modes edge of a NetInterfaceMode.
+func (c *NetInterfaceModeClient) QueryPoModes(nim *NetInterfaceMode) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := nim.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterfacemode.Table, netinterfacemode.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacemode.PoModesTable, netinterfacemode.PoModesColumn),
 		)
 		fromV = sqlgraph.Neighbors(nim.driver.Dialect(), step)
 		return fromV, nil
@@ -1283,6 +1821,208 @@ func (c *NetTopologyDeviceMapClient) Hooks() []Hook {
 	return c.hooks.NetTopologyDeviceMap
 }
 
+// PortChannelInterfaceClient is a client for the PortChannelInterface schema.
+type PortChannelInterfaceClient struct {
+	config
+}
+
+// NewPortChannelInterfaceClient returns a client for the PortChannelInterface from the given config.
+func NewPortChannelInterfaceClient(c config) *PortChannelInterfaceClient {
+	return &PortChannelInterfaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `portchannelinterface.Hooks(f(g(h())))`.
+func (c *PortChannelInterfaceClient) Use(hooks ...Hook) {
+	c.hooks.PortChannelInterface = append(c.hooks.PortChannelInterface, hooks...)
+}
+
+// Create returns a create builder for PortChannelInterface.
+func (c *PortChannelInterfaceClient) Create() *PortChannelInterfaceCreate {
+	mutation := newPortChannelInterfaceMutation(c.config, OpCreate)
+	return &PortChannelInterfaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PortChannelInterface entities.
+func (c *PortChannelInterfaceClient) CreateBulk(builders ...*PortChannelInterfaceCreate) *PortChannelInterfaceCreateBulk {
+	return &PortChannelInterfaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PortChannelInterface.
+func (c *PortChannelInterfaceClient) Update() *PortChannelInterfaceUpdate {
+	mutation := newPortChannelInterfaceMutation(c.config, OpUpdate)
+	return &PortChannelInterfaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PortChannelInterfaceClient) UpdateOne(pci *PortChannelInterface) *PortChannelInterfaceUpdateOne {
+	mutation := newPortChannelInterfaceMutation(c.config, OpUpdateOne, withPortChannelInterface(pci))
+	return &PortChannelInterfaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PortChannelInterfaceClient) UpdateOneID(id int) *PortChannelInterfaceUpdateOne {
+	mutation := newPortChannelInterfaceMutation(c.config, OpUpdateOne, withPortChannelInterfaceID(id))
+	return &PortChannelInterfaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PortChannelInterface.
+func (c *PortChannelInterfaceClient) Delete() *PortChannelInterfaceDelete {
+	mutation := newPortChannelInterfaceMutation(c.config, OpDelete)
+	return &PortChannelInterfaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PortChannelInterfaceClient) DeleteOne(pci *PortChannelInterface) *PortChannelInterfaceDeleteOne {
+	return c.DeleteOneID(pci.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PortChannelInterfaceClient) DeleteOneID(id int) *PortChannelInterfaceDeleteOne {
+	builder := c.Delete().Where(portchannelinterface.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PortChannelInterfaceDeleteOne{builder}
+}
+
+// Query returns a query builder for PortChannelInterface.
+func (c *PortChannelInterfaceClient) Query() *PortChannelInterfaceQuery {
+	return &PortChannelInterfaceQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PortChannelInterface entity by its id.
+func (c *PortChannelInterfaceClient) Get(ctx context.Context, id int) (*PortChannelInterface, error) {
+	return c.Query().Where(portchannelinterface.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PortChannelInterfaceClient) GetX(ctx context.Context, id int) *PortChannelInterface {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMode queries the mode edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryMode(pci *PortChannelInterface) *NetInterfaceModeQuery {
+	query := &NetInterfaceModeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(netinterfacemode.Table, netinterfacemode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.ModeTable, portchannelinterface.ModeColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnLayer queries the on_layer edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryOnLayer(pci *PortChannelInterface) *NetInterfaceLayerQuery {
+	query := &NetInterfaceLayerQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(netinterfacelayer.Table, netinterfacelayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnLayerTable, portchannelinterface.OnLayerColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHaveVlans queries the have_vlans edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryHaveVlans(pci *PortChannelInterface) *VlanQuery {
+	query := &VlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, portchannelinterface.HaveVlansTable, portchannelinterface.HaveVlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeOnVlan queries the native_on_vlan edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryNativeOnVlan(pci *PortChannelInterface) *VlanQuery {
+	query := &VlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(vlan.Table, vlan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.NativeOnVlanTable, portchannelinterface.NativeOnVlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnDevice queries the on_device edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryOnDevice(pci *PortChannelInterface) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnDeviceTable, portchannelinterface.OnDeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnIPAddress queries the on_ip_address edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryOnIPAddress(pci *PortChannelInterface) *IPAddressQuery {
+	query := &IPAddressQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, portchannelinterface.OnIPAddressTable, portchannelinterface.OnIPAddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInterfaces queries the interfaces edge of a PortChannelInterface.
+func (c *PortChannelInterfaceClient) QueryInterfaces(pci *PortChannelInterface) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portchannelinterface.Table, portchannelinterface.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, portchannelinterface.InterfacesTable, portchannelinterface.InterfacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(pci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PortChannelInterfaceClient) Hooks() []Hook {
+	return c.hooks.PortChannelInterface
+}
+
 // VlanClient is a client for the Vlan schema.
 type VlanClient struct {
 	config
@@ -1393,6 +2133,38 @@ func (c *VlanClient) QueryNativeVlan(v *Vlan) *NetInterfaceQuery {
 			sqlgraph.From(vlan.Table, vlan.FieldID, id),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vlan.NativeVlanTable, vlan.NativeVlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoVlans queries the po_vlans edge of a Vlan.
+func (c *VlanClient) QueryPoVlans(v *Vlan) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, vlan.PoVlansTable, vlan.PoVlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoNativeVlan queries the po_native_vlan edge of a Vlan.
+func (c *VlanClient) QueryPoNativeVlan(v *Vlan) *PortChannelInterfaceQuery {
+	query := &PortChannelInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vlan.Table, vlan.FieldID, id),
+			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, vlan.PoNativeVlanTable, vlan.PoNativeVlanColumn),
 		)
 		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
 		return fromV, nil

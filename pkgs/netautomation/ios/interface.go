@@ -3,7 +3,6 @@ package ios
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/mrzack99s/netcoco/ent"
@@ -11,11 +10,61 @@ import (
 	"github.com/mrzack99s/netcoco/pkgs/netautomation/types"
 )
 
-func getInterfaceConfig(o *types.InterfaceSetting) (config []string) {
+func getInterfaceL3Config(o *types.InterfaceL3Setting) (config []string) {
+	switch o.Shutdown {
+	case true:
+		switch o.DeviceType {
+		case constants.DEVICE_TYPE_L3SWITCH:
+			var rawCmd string = `interface %s
+no switchport
+ip address %s %s
+shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.IPAddress, o.SubnetMask)
+			config = strings.Split(replaceRawCmd, "\n")
+		case constants.DEVICE_TYPE_ROUTER:
+			var rawCmd string = `interface %s
+ip address %s %s
+shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.IPAddress, o.SubnetMask)
+			config = strings.Split(replaceRawCmd, "\n")
+		}
+
+	case false:
+		switch o.DeviceType {
+		case constants.DEVICE_TYPE_L3SWITCH:
+			var rawCmd string = `interface %s
+no switchport
+ip address %s %s
+no shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.IPAddress, o.SubnetMask)
+			config = strings.Split(replaceRawCmd, "\n")
+		case constants.DEVICE_TYPE_ROUTER:
+			var rawCmd string = `interface %s
+ip address %s %s
+no shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.IPAddress, o.SubnetMask)
+			config = strings.Split(replaceRawCmd, "\n")
+		}
+	}
+	return
+}
+
+func getInterfaceL2Config(o *types.InterfaceL2Setting) (config []string) {
 
 	switch o.Shutdown {
 	case true:
 		switch o.Mode {
+		case constants.MODE_ETHERCHANNEL:
+			var rawCmd string = `interface %s
+channel-group %d mode active
+shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.PortChannelID)
+			config = strings.Split(replaceRawCmd, "\n")
 		case constants.MODE_ACCESS:
 			var rawCmd string = `interface %s
 switchport mode access
@@ -39,6 +88,7 @@ exit`
 switchport mode trunk
 no switchport access vlan
 switchport trunk allowed vlan %s
+no switchport trunk native vlan
 shutdown
 exit`
 				replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.VLANs)
@@ -62,9 +112,15 @@ exit`
 		}
 	case false:
 		switch o.Mode {
+		case constants.MODE_ETHERCHANNEL:
+			var rawCmd string = `interface %s
+channel-group %d mode active
+no shutdown
+exit`
+			replaceRawCmd := fmt.Sprintf(rawCmd, o.InterfaceName, o.PortChannelID)
+			config = strings.Split(replaceRawCmd, "\n")
 		case constants.MODE_ACCESS:
-			var rawCmd string = `exit
-interface %s
+			var rawCmd string = `interface %s
 switchport mode access
 no switchport trunk allowed vlan
 no switchport trunk native vlan
@@ -86,6 +142,7 @@ exit`
 switchport mode trunk
 no switchport access vlan
 switchport trunk allowed vlan %s
+no switchport trunk native vlan
 no shutdown
 exit`
 
@@ -110,53 +167,121 @@ exit`
 		}
 	}
 
+	if !o.PoSetting {
+		tmp0 := config[0]
+		tmp1 := config[1:]
+		config = nil
+		config = append(config, tmp0)
+		config = append(config, "no channel-group")
+		config = append(config, tmp1...)
+	}
+
 	return
 }
 
 func GetCommitInterfaceConfig(device *ent.Device) (config []string) {
+	var haveEtherChannel bool = false
 	for _, obj := range device.Edges.Interfaces {
+		obj.Edges.OnLayer = obj.QueryOnLayer().OnlyX(context.Background())
+		switch obj.Edges.OnLayer.InterfaceLayer {
+		case 2:
+			obj.Edges.Mode = obj.QueryMode().OnlyX(context.Background())
+			mode := constants.GetIntMode(obj.Edges.Mode)
 
-		obj.Edges.Mode = obj.QueryMode().OnlyX(context.Background())
-		obj.Edges.HaveVlans = obj.QueryHaveVlans().AllX(context.Background())
-		obj.Edges.NativeOnVlan = obj.QueryNativeOnVlan().OnlyX(context.Background())
-
-		mode := constants.MODE_NONE
-		if obj.Edges.Mode.InterfaceMode == "Access" {
-			mode = constants.MODE_ACCESS
-		} else if obj.Edges.Mode.InterfaceMode == "Trunking" {
-			mode = constants.MODE_TRUNKING
-		}
-
-		intVlan := strings.Builder{}
-		if obj.Edges.HaveVlans != nil {
-			if len(obj.Edges.HaveVlans) > 1 {
-				for index, v := range obj.Edges.HaveVlans {
-					if index == len(obj.Edges.HaveVlans)-1 {
-						intVlan.WriteString(fmt.Sprintf("%d", v.VlanID))
-					} else {
-						intVlan.WriteString(fmt.Sprintf("%d,", v.VlanID))
-					}
-
+			if mode == constants.MODE_ETHERCHANNEL {
+				obj.Edges.OnPoInterface = obj.QueryOnPoInterface().OnlyX(context.Background())
+				obj.Edges.OnPoInterface.Edges.Mode = obj.Edges.OnPoInterface.QueryMode().OnlyX(context.Background())
+				if i := obj.Edges.OnPoInterface.QueryHaveVlans().CountX(context.Background()); i > 0 {
+					obj.Edges.OnPoInterface.Edges.HaveVlans = obj.Edges.OnPoInterface.QueryHaveVlans().AllX(context.Background())
+				}
+				if i := obj.Edges.OnPoInterface.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+					obj.Edges.OnPoInterface.Edges.NativeOnVlan = obj.Edges.OnPoInterface.QueryNativeOnVlan().OnlyX(context.Background())
 				}
 			} else {
-				intVlan.WriteString(fmt.Sprintf("%d", obj.Edges.HaveVlans[0].VlanID))
+				obj.Edges.HaveVlans = obj.QueryHaveVlans().AllX(context.Background())
+				if i := obj.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+					obj.Edges.NativeOnVlan = obj.QueryNativeOnVlan().OnlyX(context.Background())
+				}
+
+			}
+
+			if mode == constants.MODE_ETHERCHANNEL {
+				intSetting := &types.InterfaceL2Setting{
+					InterfaceName: obj.InterfaceName,
+					PortChannelID: obj.Edges.OnPoInterface.PoInterfaceID,
+					Mode:          mode,
+					PoSetting:     true,
+					Shutdown:      obj.InterfaceShutdown,
+				}
+				config = append(config, getInterfaceL2Config(intSetting)...)
+				haveEtherChannel = true
+
+			} else {
+
+				intVlan := types.GetHaveVlans(obj.Edges.HaveVlans)
+				nVlan := types.GetNativeVlan(obj.Edges.NativeOnVlan)
+				intSetting := &types.InterfaceL2Setting{
+					InterfaceName: obj.InterfaceName,
+					Mode:          mode,
+					VLANs:         intVlan.String(),
+					NativeVLAN:    nVlan,
+					Shutdown:      obj.InterfaceShutdown,
+					PoSetting:     false,
+				}
+				config = append(config, getInterfaceL2Config(intSetting)...)
+			}
+		case 3:
+			obj.Edges.OnIPAddress = obj.QueryOnIPAddress().OnlyX(context.Background())
+			obj.Edges.OnDevice = obj.QueryOnDevice().OnlyX(context.Background())
+			obj.Edges.OnDevice.Edges.InType = obj.QueryOnDevice().QueryInType().OnlyX(context.Background())
+			intSetting := &types.InterfaceL3Setting{
+				InterfaceName: obj.InterfaceName,
+				Shutdown:      obj.InterfaceShutdown,
+				IPAddress:     obj.Edges.OnIPAddress.IPAddress,
+				SubnetMask:    obj.Edges.OnIPAddress.SubnetMask,
+				DeviceType:    constants.GetDeviceType(obj.Edges.OnDevice.Edges.InType),
+			}
+			config = append(config, getInterfaceL3Config(intSetting)...)
+		}
+
+	}
+	if haveEtherChannel {
+		device.Edges.PoInterfaces = device.QueryPoInterfaces().WithOnLayer().AllX(context.Background())
+		for _, po := range device.Edges.PoInterfaces {
+			switch po.Edges.OnLayer.InterfaceLayer {
+			case 2:
+				po.Edges.Mode = po.QueryMode().OnlyX(context.Background())
+				if i := po.QueryHaveVlans().CountX(context.Background()); i > 0 {
+					po.Edges.HaveVlans = po.QueryHaveVlans().AllX(context.Background())
+				}
+				if i := po.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+					po.Edges.NativeOnVlan = po.QueryNativeOnVlan().OnlyX(context.Background())
+				}
+				intVlan := types.GetHaveVlans(po.Edges.HaveVlans)
+				nVlan := types.GetNativeVlan(po.Edges.NativeOnVlan)
+				intSetting := &types.InterfaceL2Setting{
+					InterfaceName: fmt.Sprintf("port-channel %d", po.ID),
+					Mode:          po.Edges.Mode.InterfaceMode,
+					VLANs:         intVlan.String(),
+					NativeVLAN:    nVlan,
+					Shutdown:      po.PoInterfaceShutdown,
+					PoSetting:     true,
+				}
+				config = append(config, getInterfaceL2Config(intSetting)...)
+			case 3:
+				po.Edges.OnIPAddress = po.QueryOnIPAddress().OnlyX(context.Background())
+				po.Edges.OnDevice = po.QueryOnDevice().OnlyX(context.Background())
+				po.Edges.OnDevice.Edges.InType = po.QueryOnDevice().QueryInType().OnlyX(context.Background())
+				intSetting := &types.InterfaceL3Setting{
+					InterfaceName: fmt.Sprintf("port-channel %d", po.ID),
+					Shutdown:      po.PoInterfaceShutdown,
+					IPAddress:     po.Edges.OnIPAddress.IPAddress,
+					SubnetMask:    po.Edges.OnIPAddress.SubnetMask,
+					DeviceType:    constants.GetDeviceType(po.Edges.OnDevice.Edges.InType),
+				}
+				config = append(config, getInterfaceL3Config(intSetting)...)
 			}
 		}
-
-		nVlan := ""
-		if obj.Edges.NativeOnVlan != nil {
-			nVlan = strconv.FormatInt(int64(obj.Edges.NativeOnVlan.VlanID), 10)
-		}
-
-		intSetting := &types.InterfaceSetting{
-			InterfaceName: obj.InterfaceName,
-			Mode:          mode,
-			VLANs:         intVlan.String(),
-			NativeVLAN:    nVlan,
-			Shutdown:      obj.InterfaceShutdown,
-		}
-
-		config = append(config, getInterfaceConfig(intSetting)...)
 	}
 	return
 }

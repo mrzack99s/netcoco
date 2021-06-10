@@ -36,7 +36,7 @@ func (ctl *DeviceTypeController) Get(c *gin.Context) {
 	usr, err := services.GetDeviceType(ctl.client, deviceTypeId)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 

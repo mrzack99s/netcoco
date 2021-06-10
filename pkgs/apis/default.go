@@ -17,5 +17,8 @@ func DefaultSystem(client *ent.Client) {
 	NewNetAutomationController(system.SecureAPIGroup, client)
 	NewDevicePlatformController(system.SecureAPIGroup, client)
 	NewVlanController(system.SecureAPIGroup, client)
+	NewPortChannelInterfaceController(system.SecureAPIGroup, client)
+	NewInterfaceLayerController(system.SecureAPIGroup, client)
+	NewIPRoutingController(system.SecureAPIGroup, client)
 	templates.NewHTMLController(false)
 }

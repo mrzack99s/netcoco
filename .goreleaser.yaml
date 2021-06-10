@@ -36,16 +36,3 @@ archives:
     id: windows_binary
     builds: [windows]
     format: binary
-
-  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
-    id: unix
-    builds: [linux]
-    format: tar.gz
-    files:
-      - none*
-  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
-    id: windows
-    builds: [windows]
-    format: zip
-    files:
-      - none*

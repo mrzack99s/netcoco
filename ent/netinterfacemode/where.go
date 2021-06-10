@@ -237,6 +237,34 @@ func HasModesWith(preds ...predicate.NetInterface) predicate.NetInterfaceMode {
 	})
 }
 
+// HasPoModes applies the HasEdge predicate on the "po_modes" edge.
+func HasPoModes() predicate.NetInterfaceMode {
+	return predicate.NetInterfaceMode(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoModesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoModesTable, PoModesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoModesWith applies the HasEdge predicate on the "po_modes" edge with a given conditions (other predicates).
+func HasPoModesWith(preds ...predicate.PortChannelInterface) predicate.NetInterfaceMode {
+	return predicate.NetInterfaceMode(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoModesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoModesTable, PoModesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.NetInterfaceMode) predicate.NetInterfaceMode {
 	return predicate.NetInterfaceMode(func(s *sql.Selector) {

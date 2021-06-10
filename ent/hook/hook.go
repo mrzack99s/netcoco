@@ -74,6 +74,32 @@ func (f DeviceTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return f(ctx, mv)
 }
 
+// The IPAddressFunc type is an adapter to allow the use of ordinary
+// function as IPAddress mutator.
+type IPAddressFunc func(context.Context, *ent.IPAddressMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IPAddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.IPAddressMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IPAddressMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The IPStaticRoutingTableFunc type is an adapter to allow the use of ordinary
+// function as IPStaticRoutingTable mutator.
+type IPStaticRoutingTableFunc func(context.Context, *ent.IPStaticRoutingTableMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IPStaticRoutingTableFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.IPStaticRoutingTableMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IPStaticRoutingTableMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The NetInterfaceFunc type is an adapter to allow the use of ordinary
 // function as NetInterface mutator.
 type NetInterfaceFunc func(context.Context, *ent.NetInterfaceMutation) (ent.Value, error)
@@ -83,6 +109,19 @@ func (f NetInterfaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	mv, ok := m.(*ent.NetInterfaceMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NetInterfaceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The NetInterfaceLayerFunc type is an adapter to allow the use of ordinary
+// function as NetInterfaceLayer mutator.
+type NetInterfaceLayerFunc func(context.Context, *ent.NetInterfaceLayerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NetInterfaceLayerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.NetInterfaceLayerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NetInterfaceLayerMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -122,6 +161,19 @@ func (f NetTopologyDeviceMapFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	mv, ok := m.(*ent.NetTopologyDeviceMapMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NetTopologyDeviceMapMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PortChannelInterfaceFunc type is an adapter to allow the use of ordinary
+// function as PortChannelInterface mutator.
+type PortChannelInterfaceFunc func(context.Context, *ent.PortChannelInterfaceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PortChannelInterfaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PortChannelInterfaceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PortChannelInterfaceMutation", m)
 	}
 	return f(ctx, mv)
 }

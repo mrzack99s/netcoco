@@ -10,8 +10,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mrzack99s/netcoco/ent/device"
+	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
+	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
+	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
 	"github.com/mrzack99s/netcoco/ent/vlan"
 )
 
@@ -61,6 +65,59 @@ func (nic *NetInterfaceCreate) SetOnDevice(d *Device) *NetInterfaceCreate {
 	return nic.SetOnDeviceID(d.ID)
 }
 
+// SetOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID.
+func (nic *NetInterfaceCreate) SetOnPoInterfaceID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnPoInterfaceID(id)
+	return nic
+}
+
+// SetNillableOnPoInterfaceID sets the "on_po_interface" edge to the PortChannelInterface entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnPoInterfaceID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnPoInterfaceID(*id)
+	}
+	return nic
+}
+
+// SetOnPoInterface sets the "on_po_interface" edge to the PortChannelInterface entity.
+func (nic *NetInterfaceCreate) SetOnPoInterface(p *PortChannelInterface) *NetInterfaceCreate {
+	return nic.SetOnPoInterfaceID(p.ID)
+}
+
+// SetOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID.
+func (nic *NetInterfaceCreate) SetOnIPAddressID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnIPAddressID(id)
+	return nic
+}
+
+// SetNillableOnIPAddressID sets the "on_ip_address" edge to the IPAddress entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnIPAddressID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnIPAddressID(*id)
+	}
+	return nic
+}
+
+// SetOnIPAddress sets the "on_ip_address" edge to the IPAddress entity.
+func (nic *NetInterfaceCreate) SetOnIPAddress(i *IPAddress) *NetInterfaceCreate {
+	return nic.SetOnIPAddressID(i.ID)
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (nic *NetInterfaceCreate) AddIPStaticRoutingIDs(ids ...int) *NetInterfaceCreate {
+	nic.mutation.AddIPStaticRoutingIDs(ids...)
+	return nic
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (nic *NetInterfaceCreate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *NetInterfaceCreate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return nic.AddIPStaticRoutingIDs(ids...)
+}
+
 // SetModeID sets the "mode" edge to the NetInterfaceMode entity by ID.
 func (nic *NetInterfaceCreate) SetModeID(id int) *NetInterfaceCreate {
 	nic.mutation.SetModeID(id)
@@ -78,6 +135,25 @@ func (nic *NetInterfaceCreate) SetNillableModeID(id *int) *NetInterfaceCreate {
 // SetMode sets the "mode" edge to the NetInterfaceMode entity.
 func (nic *NetInterfaceCreate) SetMode(n *NetInterfaceMode) *NetInterfaceCreate {
 	return nic.SetModeID(n.ID)
+}
+
+// SetOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID.
+func (nic *NetInterfaceCreate) SetOnLayerID(id int) *NetInterfaceCreate {
+	nic.mutation.SetOnLayerID(id)
+	return nic
+}
+
+// SetNillableOnLayerID sets the "on_layer" edge to the NetInterfaceLayer entity by ID if the given value is not nil.
+func (nic *NetInterfaceCreate) SetNillableOnLayerID(id *int) *NetInterfaceCreate {
+	if id != nil {
+		nic = nic.SetOnLayerID(*id)
+	}
+	return nic
+}
+
+// SetOnLayer sets the "on_layer" edge to the NetInterfaceLayer entity.
+func (nic *NetInterfaceCreate) SetOnLayer(n *NetInterfaceLayer) *NetInterfaceCreate {
+	return nic.SetOnLayerID(n.ID)
 }
 
 // AddHaveVlanIDs adds the "have_vlans" edge to the Vlan entity by IDs.
@@ -248,6 +324,65 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 		_node.device_interfaces = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := nic.mutation.OnPoInterfaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnPoInterfaceTable,
+			Columns: []string{netinterface.OnPoInterfaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: portchannelinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.port_channel_interface_interfaces = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.OnIPAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnIPAddressTable,
+			Columns: []string{netinterface.OnIPAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipaddress.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ip_address_interfaces = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   netinterface.IPStaticRoutingTable,
+			Columns: []string{netinterface.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := nic.mutation.ModeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -266,6 +401,26 @@ func (nic *NetInterfaceCreate) createSpec() (*NetInterface, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.net_interface_mode_modes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nic.mutation.OnLayerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   netinterface.OnLayerTable,
+			Columns: []string{netinterface.OnLayerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: netinterfacelayer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.net_interface_layer_layers = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := nic.mutation.HaveVlansIDs(); len(nodes) > 0 {

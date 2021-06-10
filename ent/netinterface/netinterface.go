@@ -13,8 +13,16 @@ const (
 	FieldInterfaceShutdown = "interface_shutdown"
 	// EdgeOnDevice holds the string denoting the on_device edge name in mutations.
 	EdgeOnDevice = "on_device"
+	// EdgeOnPoInterface holds the string denoting the on_po_interface edge name in mutations.
+	EdgeOnPoInterface = "on_po_interface"
+	// EdgeOnIPAddress holds the string denoting the on_ip_address edge name in mutations.
+	EdgeOnIPAddress = "on_ip_address"
+	// EdgeIPStaticRouting holds the string denoting the ip_static_routing edge name in mutations.
+	EdgeIPStaticRouting = "ip_static_routing"
 	// EdgeMode holds the string denoting the mode edge name in mutations.
 	EdgeMode = "mode"
+	// EdgeOnLayer holds the string denoting the on_layer edge name in mutations.
+	EdgeOnLayer = "on_layer"
 	// EdgeHaveVlans holds the string denoting the have_vlans edge name in mutations.
 	EdgeHaveVlans = "have_vlans"
 	// EdgeNativeOnVlan holds the string denoting the native_on_vlan edge name in mutations.
@@ -28,6 +36,27 @@ const (
 	OnDeviceInverseTable = "devices"
 	// OnDeviceColumn is the table column denoting the on_device relation/edge.
 	OnDeviceColumn = "device_interfaces"
+	// OnPoInterfaceTable is the table the holds the on_po_interface relation/edge.
+	OnPoInterfaceTable = "net_interfaces"
+	// OnPoInterfaceInverseTable is the table name for the PortChannelInterface entity.
+	// It exists in this package in order to avoid circular dependency with the "portchannelinterface" package.
+	OnPoInterfaceInverseTable = "port_channel_interfaces"
+	// OnPoInterfaceColumn is the table column denoting the on_po_interface relation/edge.
+	OnPoInterfaceColumn = "port_channel_interface_interfaces"
+	// OnIPAddressTable is the table the holds the on_ip_address relation/edge.
+	OnIPAddressTable = "net_interfaces"
+	// OnIPAddressInverseTable is the table name for the IPAddress entity.
+	// It exists in this package in order to avoid circular dependency with the "ipaddress" package.
+	OnIPAddressInverseTable = "ip_addresses"
+	// OnIPAddressColumn is the table column denoting the on_ip_address relation/edge.
+	OnIPAddressColumn = "ip_address_interfaces"
+	// IPStaticRoutingTable is the table the holds the ip_static_routing relation/edge.
+	IPStaticRoutingTable = "ip_static_routing_tables"
+	// IPStaticRoutingInverseTable is the table name for the IPStaticRoutingTable entity.
+	// It exists in this package in order to avoid circular dependency with the "ipstaticroutingtable" package.
+	IPStaticRoutingInverseTable = "ip_static_routing_tables"
+	// IPStaticRoutingColumn is the table column denoting the ip_static_routing relation/edge.
+	IPStaticRoutingColumn = "net_interface_ip_static_routing"
 	// ModeTable is the table the holds the mode relation/edge.
 	ModeTable = "net_interfaces"
 	// ModeInverseTable is the table name for the NetInterfaceMode entity.
@@ -35,6 +64,13 @@ const (
 	ModeInverseTable = "net_interface_modes"
 	// ModeColumn is the table column denoting the mode relation/edge.
 	ModeColumn = "net_interface_mode_modes"
+	// OnLayerTable is the table the holds the on_layer relation/edge.
+	OnLayerTable = "net_interfaces"
+	// OnLayerInverseTable is the table name for the NetInterfaceLayer entity.
+	// It exists in this package in order to avoid circular dependency with the "netinterfacelayer" package.
+	OnLayerInverseTable = "net_interface_layers"
+	// OnLayerColumn is the table column denoting the on_layer relation/edge.
+	OnLayerColumn = "net_interface_layer_layers"
 	// HaveVlansTable is the table the holds the have_vlans relation/edge. The primary key declared below.
 	HaveVlansTable = "vlan_vlans"
 	// HaveVlansInverseTable is the table name for the Vlan entity.
@@ -60,7 +96,10 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"device_interfaces",
+	"ip_address_interfaces",
+	"net_interface_layer_layers",
 	"net_interface_mode_modes",
+	"port_channel_interface_interfaces",
 	"vlan_native_vlan",
 }
 
