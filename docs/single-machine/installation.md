@@ -1,25 +1,24 @@
-# How to install
-
+# Installation
 
 > First of all, check it completely according to requirement.
 
 1. Clone NetCoCo-UI.
 
-   ```text
-    git clone https://github.com/mrzack99s/netcoco-ui
+   ```console
+    # git clone https://github.com/mrzack99s/netcoco-ui
    ```
 
 2. Install dependency.
    - Yarn \(Recommend\)
 
-      ```text
-      yarn install
+      ```console
+      # yarn install
       ```
 
    - NPM
 
-      ```text
-      npm install
+      ```console
+      # npm install
       ```
 
 3. Change base URL of API at file **.env.production**.
@@ -32,14 +31,14 @@
 4. Build NetCoCo-UI with production.
    - Yarn \(Recommend\)
 
-      ```text
-      yarn build --mode production
+      ```console
+      # yarn build --mode production
       ```
 
    - NPM
 
-      ```text
-      npm build --mode production
+      ```console
+      # npm build --mode production
       ```
 
 5. Make **NetCoCo** directory and create sub-directory
@@ -70,9 +69,9 @@
 8. Copy **/dist** of NetCoCo-UI to **/templates** of NetCoCo.
 9. Create **config.yaml** in NetCoCo directory with executable file. (In linux: /usr/share/netcoco)
 
-    ```text
+    ```yaml
      netcoco:
-         port: <port-number> (default: 8080)
+         port: <port-number> #(default: 8080)
          db:
              sql:
              hostname: <db-hostname>:<db-port>
@@ -90,11 +89,15 @@
 
 11. On Linux, must install the netcoco service
       - Download service file
-      ```text
-         sudo curl -L https://raw.githubusercontent.com/mrzack99s/netcoco/main/netcoco.service -o /etc/systemd/system/netcoco.service
+      ```console
+         # sudo curl -L https://raw.githubusercontent.com/mrzack99s/netcoco/main/netcoco.service -o /etc/systemd/system/netcoco.service
       ```
       - Enable and start service
-      ```text
-         sudo systemctl enable --now netcoco
+      ```console
+         # sudo systemctl enable --now netcoco
+      ```
+      - Enable sysctl ping
+      ```console
+        # sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
       ```
 12. On Windows, run executable file.

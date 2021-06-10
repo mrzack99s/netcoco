@@ -1,6 +1,6 @@
 # Cisco IOS
 
-Prepare for NetCoCo establish to network device
+Prepare SSH services for NetCoCo establish to network device
 
 ## Config Script
 
