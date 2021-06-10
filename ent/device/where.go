@@ -911,6 +911,34 @@ func HasInterfacesWith(preds ...predicate.NetInterface) predicate.Device {
 	})
 }
 
+// HasIPStaticRouting applies the HasEdge predicate on the "ip_static_routing" edge.
+func HasIPStaticRouting() predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(IPStaticRoutingTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IPStaticRoutingTable, IPStaticRoutingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIPStaticRoutingWith applies the HasEdge predicate on the "ip_static_routing" edge with a given conditions (other predicates).
+func HasIPStaticRoutingWith(preds ...predicate.IPStaticRoutingTable) predicate.Device {
+	return predicate.Device(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(IPStaticRoutingInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IPStaticRoutingTable, IPStaticRoutingColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasPoInterfaces applies the HasEdge predicate on the "po_interfaces" edge.
 func HasPoInterfaces() predicate.Device {
 	return predicate.Device(func(s *sql.Selector) {

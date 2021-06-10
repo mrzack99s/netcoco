@@ -24,6 +24,9 @@ type DeviceType func(*sql.Selector)
 // IPAddress is the predicate function for ipaddress builders.
 type IPAddress func(*sql.Selector)
 
+// IPStaticRoutingTable is the predicate function for ipstaticroutingtable builders.
+type IPStaticRoutingTable func(*sql.Selector)
+
 // NetInterface is the predicate function for netinterface builders.
 type NetInterface func(*sql.Selector)
 

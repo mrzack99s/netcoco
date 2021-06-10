@@ -44,6 +44,8 @@ type NetInterfaceEdges struct {
 	OnPoInterface *PortChannelInterface `json:"on_po_interface,omitempty"`
 	// OnIPAddress holds the value of the on_ip_address edge.
 	OnIPAddress *IPAddress `json:"on_ip_address,omitempty"`
+	// IPStaticRouting holds the value of the ip_static_routing edge.
+	IPStaticRouting []*IPStaticRoutingTable `json:"ip_static_routing,omitempty"`
 	// Mode holds the value of the mode edge.
 	Mode *NetInterfaceMode `json:"mode,omitempty"`
 	// OnLayer holds the value of the on_layer edge.
@@ -54,7 +56,7 @@ type NetInterfaceEdges struct {
 	NativeOnVlan *Vlan `json:"native_on_vlan,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OnDeviceOrErr returns the OnDevice value or an error if the edge
@@ -99,10 +101,19 @@ func (e NetInterfaceEdges) OnIPAddressOrErr() (*IPAddress, error) {
 	return nil, &NotLoadedError{edge: "on_ip_address"}
 }
 
+// IPStaticRoutingOrErr returns the IPStaticRouting value or an error if the edge
+// was not loaded in eager-loading.
+func (e NetInterfaceEdges) IPStaticRoutingOrErr() ([]*IPStaticRoutingTable, error) {
+	if e.loadedTypes[3] {
+		return e.IPStaticRouting, nil
+	}
+	return nil, &NotLoadedError{edge: "ip_static_routing"}
+}
+
 // ModeOrErr returns the Mode value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e NetInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		if e.Mode == nil {
 			// The edge mode was loaded in eager-loading,
 			// but was not found.
@@ -116,7 +127,7 @@ func (e NetInterfaceEdges) ModeOrErr() (*NetInterfaceMode, error) {
 // OnLayerOrErr returns the OnLayer value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e NetInterfaceEdges) OnLayerOrErr() (*NetInterfaceLayer, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		if e.OnLayer == nil {
 			// The edge on_layer was loaded in eager-loading,
 			// but was not found.
@@ -130,7 +141,7 @@ func (e NetInterfaceEdges) OnLayerOrErr() (*NetInterfaceLayer, error) {
 // HaveVlansOrErr returns the HaveVlans value or an error if the edge
 // was not loaded in eager-loading.
 func (e NetInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.HaveVlans, nil
 	}
 	return nil, &NotLoadedError{edge: "have_vlans"}
@@ -139,7 +150,7 @@ func (e NetInterfaceEdges) HaveVlansOrErr() ([]*Vlan, error) {
 // NativeOnVlanOrErr returns the NativeOnVlan value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e NetInterfaceEdges) NativeOnVlanOrErr() (*Vlan, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		if e.NativeOnVlan == nil {
 			// The edge native_on_vlan was loaded in eager-loading,
 			// but was not found.
@@ -266,6 +277,11 @@ func (ni *NetInterface) QueryOnPoInterface() *PortChannelInterfaceQuery {
 // QueryOnIPAddress queries the "on_ip_address" edge of the NetInterface entity.
 func (ni *NetInterface) QueryOnIPAddress() *IPAddressQuery {
 	return (&NetInterfaceClient{config: ni.config}).QueryOnIPAddress(ni)
+}
+
+// QueryIPStaticRouting queries the "ip_static_routing" edge of the NetInterface entity.
+func (ni *NetInterface) QueryIPStaticRouting() *IPStaticRoutingTableQuery {
+	return (&NetInterfaceClient{config: ni.config}).QueryIPStaticRouting(ni)
 }
 
 // QueryMode queries the "mode" edge of the NetInterface entity.

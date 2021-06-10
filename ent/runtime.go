@@ -9,6 +9,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -89,6 +90,24 @@ func init() {
 	ipaddressDescSubnetMask := ipaddressFields[1].Descriptor()
 	// ipaddress.SubnetMaskValidator is a validator for the "subnet_mask" field. It is called by the builders before save.
 	ipaddress.SubnetMaskValidator = ipaddressDescSubnetMask.Validators[0].(func(string) error)
+	ipstaticroutingtableFields := schema.IPStaticRoutingTable{}.Fields()
+	_ = ipstaticroutingtableFields
+	// ipstaticroutingtableDescNetworkAddress is the schema descriptor for network_address field.
+	ipstaticroutingtableDescNetworkAddress := ipstaticroutingtableFields[0].Descriptor()
+	// ipstaticroutingtable.NetworkAddressValidator is a validator for the "network_address" field. It is called by the builders before save.
+	ipstaticroutingtable.NetworkAddressValidator = ipstaticroutingtableDescNetworkAddress.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescSubnetMask is the schema descriptor for subnet_mask field.
+	ipstaticroutingtableDescSubnetMask := ipstaticroutingtableFields[1].Descriptor()
+	// ipstaticroutingtable.SubnetMaskValidator is a validator for the "subnet_mask" field. It is called by the builders before save.
+	ipstaticroutingtable.SubnetMaskValidator = ipstaticroutingtableDescSubnetMask.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescNextHop is the schema descriptor for next_hop field.
+	ipstaticroutingtableDescNextHop := ipstaticroutingtableFields[2].Descriptor()
+	// ipstaticroutingtable.NextHopValidator is a validator for the "next_hop" field. It is called by the builders before save.
+	ipstaticroutingtable.NextHopValidator = ipstaticroutingtableDescNextHop.Validators[0].(func(string) error)
+	// ipstaticroutingtableDescBrdInterface is the schema descriptor for brd_interface field.
+	ipstaticroutingtableDescBrdInterface := ipstaticroutingtableFields[3].Descriptor()
+	// ipstaticroutingtable.DefaultBrdInterface holds the default value on creation for the brd_interface field.
+	ipstaticroutingtable.DefaultBrdInterface = ipstaticroutingtableDescBrdInterface.Default.(bool)
 	netinterfaceFields := schema.NetInterface{}.Fields()
 	_ = netinterfaceFields
 	// netinterfaceDescInterfaceName is the schema descriptor for interface_name field.

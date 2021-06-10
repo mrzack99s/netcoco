@@ -21,8 +21,19 @@ func GetAllDevice(client *ent.Client) (response []*ent.Device, err error) {
 }
 
 func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
-	response, err = client.Device.Query().Where(device.IDEQ(id)).Only(context.Background())
-	response.Edges.Interfaces = response.QueryInterfaces().AllX(context.Background())
+	response, err = client.Device.Query().Where(device.IDEQ(id)).
+		WithInterfaces().WithInType().WithInPlatform().WithStoreVlans().WithPoInterfaces().
+		Only(context.Background())
+
+	if response.Edges.InType.DeviceTypeName == "router" || response.Edges.InType.DeviceTypeName == "l3switch" {
+		if i := response.QueryIPStaticRouting().CountX(context.Background()); i > 0 {
+			response.Edges.IPStaticRouting = response.QueryIPStaticRouting().AllX(context.Background())
+			for _, ipr := range response.Edges.IPStaticRouting {
+				ipr.Edges.OnInterface = ipr.QueryOnInterface().OnlyX(context.Background())
+			}
+		}
+	}
+
 	for _, dd := range response.Edges.Interfaces {
 		dd.Edges.Mode = dd.QueryMode().OnlyX(context.Background())
 		dd.Edges.OnLayer = dd.QueryOnLayer().OnlyX(context.Background())
@@ -39,7 +50,6 @@ func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
 		}
 	}
 
-	response.Edges.PoInterfaces = response.QueryPoInterfaces().AllX(context.Background())
 	for _, po := range response.Edges.PoInterfaces {
 		po.Edges.Mode = po.QueryMode().OnlyX(context.Background())
 		po.Edges.OnLayer = po.QueryOnLayer().OnlyX(context.Background())
@@ -55,9 +65,6 @@ func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
 			po.Edges.OnIPAddress = po.QueryOnIPAddress().OnlyX(context.Background())
 		}
 	}
-	response.Edges.InType = response.QueryInType().OnlyX(context.Background())
-	response.Edges.InPlatform = response.QueryInPlatform().OnlyX(context.Background())
-	response.Edges.StoreVlans = response.QueryStoreVlans().AllX(context.Background())
 	return
 }
 

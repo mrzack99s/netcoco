@@ -304,7 +304,7 @@ func EditInterfaceDetail(client *ent.Client, obj ent.NetInterface) (response *en
 }
 
 func DeleteInterface(client *ent.Client, id int) (err error) {
-	netInt, err := client.NetInterface.Query().Where(netinterface.IDEQ(id)).Only(context.Background())
+	netInt, err := client.NetInterface.Query().Where(netinterface.IDEQ(id)).WithOnDevice().Only(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -316,6 +316,16 @@ func DeleteInterface(client *ent.Client, id int) (err error) {
 	}
 
 	err = client.NetInterface.DeleteOneID(id).Exec(context.Background())
+	if err != nil {
+		return
+	}
+
+	if netInt.Edges.OnDevice.DeviceCommitConfig {
+		_, err := netInt.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	return
 }
 

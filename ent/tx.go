@@ -24,6 +24,8 @@ type Tx struct {
 	DeviceType *DeviceTypeClient
 	// IPAddress is the client for interacting with the IPAddress builders.
 	IPAddress *IPAddressClient
+	// IPStaticRoutingTable is the client for interacting with the IPStaticRoutingTable builders.
+	IPStaticRoutingTable *IPStaticRoutingTableClient
 	// NetInterface is the client for interacting with the NetInterface builders.
 	NetInterface *NetInterfaceClient
 	// NetInterfaceLayer is the client for interacting with the NetInterfaceLayer builders.
@@ -179,6 +181,7 @@ func (tx *Tx) init() {
 	tx.DevicePlatform = NewDevicePlatformClient(tx.config)
 	tx.DeviceType = NewDeviceTypeClient(tx.config)
 	tx.IPAddress = NewIPAddressClient(tx.config)
+	tx.IPStaticRoutingTable = NewIPStaticRoutingTableClient(tx.config)
 	tx.NetInterface = NewNetInterfaceClient(tx.config)
 	tx.NetInterfaceLayer = NewNetInterfaceLayerClient(tx.config)
 	tx.NetInterfaceMode = NewNetInterfaceModeClient(tx.config)

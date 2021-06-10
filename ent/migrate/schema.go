@@ -120,6 +120,36 @@ var (
 			},
 		},
 	}
+	// IPStaticRoutingTablesColumns holds the columns for the "ip_static_routing_tables" table.
+	IPStaticRoutingTablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "network_address", Type: field.TypeString},
+		{Name: "subnet_mask", Type: field.TypeString},
+		{Name: "next_hop", Type: field.TypeString},
+		{Name: "brd_interface", Type: field.TypeBool, Default: false},
+		{Name: "device_ip_static_routing", Type: field.TypeInt, Nullable: true},
+		{Name: "net_interface_ip_static_routing", Type: field.TypeInt, Nullable: true},
+	}
+	// IPStaticRoutingTablesTable holds the schema information for the "ip_static_routing_tables" table.
+	IPStaticRoutingTablesTable = &schema.Table{
+		Name:       "ip_static_routing_tables",
+		Columns:    IPStaticRoutingTablesColumns,
+		PrimaryKey: []*schema.Column{IPStaticRoutingTablesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ip_static_routing_tables_devices_ip_static_routing",
+				Columns:    []*schema.Column{IPStaticRoutingTablesColumns[5]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "ip_static_routing_tables_net_interfaces_ip_static_routing",
+				Columns:    []*schema.Column{IPStaticRoutingTablesColumns[6]},
+				RefColumns: []*schema.Column{NetInterfacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// NetInterfacesColumns holds the columns for the "net_interfaces" table.
 	NetInterfacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -410,6 +440,7 @@ var (
 		DevicePlatformsTable,
 		DeviceTypesTable,
 		IPAddressesTable,
+		IPStaticRoutingTablesTable,
 		NetInterfacesTable,
 		NetInterfaceLayersTable,
 		NetInterfaceModesTable,
@@ -429,6 +460,8 @@ func init() {
 	DevicesTable.ForeignKeys[0].RefTable = DevicePlatformsTable
 	DevicesTable.ForeignKeys[1].RefTable = DeviceTypesTable
 	IPAddressesTable.ForeignKeys[0].RefTable = DevicesTable
+	IPStaticRoutingTablesTable.ForeignKeys[0].RefTable = DevicesTable
+	IPStaticRoutingTablesTable.ForeignKeys[1].RefTable = NetInterfacesTable
 	NetInterfacesTable.ForeignKeys[0].RefTable = DevicesTable
 	NetInterfacesTable.ForeignKeys[1].RefTable = IPAddressesTable
 	NetInterfacesTable.ForeignKeys[2].RefTable = NetInterfaceLayersTable

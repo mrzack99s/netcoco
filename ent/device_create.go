@@ -14,6 +14,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
@@ -160,6 +161,21 @@ func (dc *DeviceCreate) AddInterfaces(n ...*NetInterface) *DeviceCreate {
 		ids[i] = n[i].ID
 	}
 	return dc.AddInterfaceIDs(ids...)
+}
+
+// AddIPStaticRoutingIDs adds the "ip_static_routing" edge to the IPStaticRoutingTable entity by IDs.
+func (dc *DeviceCreate) AddIPStaticRoutingIDs(ids ...int) *DeviceCreate {
+	dc.mutation.AddIPStaticRoutingIDs(ids...)
+	return dc
+}
+
+// AddIPStaticRouting adds the "ip_static_routing" edges to the IPStaticRoutingTable entity.
+func (dc *DeviceCreate) AddIPStaticRouting(i ...*IPStaticRoutingTable) *DeviceCreate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return dc.AddIPStaticRoutingIDs(ids...)
 }
 
 // AddPoInterfaceIDs adds the "po_interfaces" edge to the PortChannelInterface entity by IDs.
@@ -466,6 +482,25 @@ func (dc *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: netinterface.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.IPStaticRoutingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   device.IPStaticRoutingTable,
+			Columns: []string{device.IPStaticRoutingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ipstaticroutingtable.FieldID,
 				},
 			},
 		}

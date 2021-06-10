@@ -244,7 +244,7 @@ func EditPortChannelInterface(client *ent.Client, obj ent.PortChannelInterface) 
 }
 
 func DeletePortChannelInterface(client *ent.Client, id int) (err error) {
-	po, err := client.PortChannelInterface.Query().Where(portchannelinterface.IDEQ(id)).Only(context.Background())
+	po, err := client.PortChannelInterface.Query().Where(portchannelinterface.IDEQ(id)).WithOnDevice().Only(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -277,6 +277,16 @@ func DeletePortChannelInterface(client *ent.Client, id int) (err error) {
 	}
 
 	err = client.PortChannelInterface.DeleteOneID(id).Exec(context.Background())
+	if err != nil {
+		return
+	}
+
+	if po.Edges.OnDevice.DeviceCommitConfig {
+		_, err := po.Edges.OnDevice.Update().SetDeviceCommitConfig(false).Save(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	return
 }

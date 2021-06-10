@@ -17,6 +17,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/nettopologydevicemap"
 	"github.com/mrzack99s/netcoco/ent/portchannelinterface"
@@ -37,6 +38,7 @@ type DeviceQuery struct {
 	withInType          *DeviceTypeQuery
 	withInPlatform      *DevicePlatformQuery
 	withInterfaces      *NetInterfaceQuery
+	withIPStaticRouting *IPStaticRoutingTableQuery
 	withPoInterfaces    *PortChannelInterfaceQuery
 	withHaveIPAddresses *IPAddressQuery
 	withInTopology      *NetTopologyDeviceMapQuery
@@ -138,6 +140,28 @@ func (dq *DeviceQuery) QueryInterfaces() *NetInterfaceQuery {
 			sqlgraph.From(device.Table, device.FieldID, selector),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, device.InterfacesTable, device.InterfacesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIPStaticRouting chains the current query on the "ip_static_routing" edge.
+func (dq *DeviceQuery) QueryIPStaticRouting() *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: dq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.IPStaticRoutingTable, device.IPStaticRoutingColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -439,6 +463,7 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 		withInType:          dq.withInType.Clone(),
 		withInPlatform:      dq.withInPlatform.Clone(),
 		withInterfaces:      dq.withInterfaces.Clone(),
+		withIPStaticRouting: dq.withIPStaticRouting.Clone(),
 		withPoInterfaces:    dq.withPoInterfaces.Clone(),
 		withHaveIPAddresses: dq.withHaveIPAddresses.Clone(),
 		withInTopology:      dq.withInTopology.Clone(),
@@ -480,6 +505,17 @@ func (dq *DeviceQuery) WithInterfaces(opts ...func(*NetInterfaceQuery)) *DeviceQ
 		opt(query)
 	}
 	dq.withInterfaces = query
+	return dq
+}
+
+// WithIPStaticRouting tells the query-builder to eager-load the nodes that are connected to
+// the "ip_static_routing" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DeviceQuery) WithIPStaticRouting(opts ...func(*IPStaticRoutingTableQuery)) *DeviceQuery {
+	query := &IPStaticRoutingTableQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withIPStaticRouting = query
 	return dq
 }
 
@@ -604,10 +640,11 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 		nodes       = []*Device{}
 		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			dq.withInType != nil,
 			dq.withInPlatform != nil,
 			dq.withInterfaces != nil,
+			dq.withIPStaticRouting != nil,
 			dq.withPoInterfaces != nil,
 			dq.withHaveIPAddresses != nil,
 			dq.withInTopology != nil,
@@ -725,6 +762,35 @@ func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "device_interfaces" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Interfaces = append(node.Edges.Interfaces, n)
+		}
+	}
+
+	if query := dq.withIPStaticRouting; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Device)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.IPStaticRouting = []*IPStaticRoutingTable{}
+		}
+		query.withFKs = true
+		query.Where(predicate.IPStaticRoutingTable(func(s *sql.Selector) {
+			s.Where(sql.InValues(device.IPStaticRoutingColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.device_ip_static_routing
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "device_ip_static_routing" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "device_ip_static_routing" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.IPStaticRouting = append(node.Edges.IPStaticRouting, n)
 		}
 	}
 

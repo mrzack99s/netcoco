@@ -30,6 +30,7 @@ type hooks struct {
 	DevicePlatform       []ent.Hook
 	DeviceType           []ent.Hook
 	IPAddress            []ent.Hook
+	IPStaticRoutingTable []ent.Hook
 	NetInterface         []ent.Hook
 	NetInterfaceLayer    []ent.Hook
 	NetInterfaceMode     []ent.Hook

@@ -17,6 +17,8 @@ const (
 	EdgeOnPoInterface = "on_po_interface"
 	// EdgeOnIPAddress holds the string denoting the on_ip_address edge name in mutations.
 	EdgeOnIPAddress = "on_ip_address"
+	// EdgeIPStaticRouting holds the string denoting the ip_static_routing edge name in mutations.
+	EdgeIPStaticRouting = "ip_static_routing"
 	// EdgeMode holds the string denoting the mode edge name in mutations.
 	EdgeMode = "mode"
 	// EdgeOnLayer holds the string denoting the on_layer edge name in mutations.
@@ -48,6 +50,13 @@ const (
 	OnIPAddressInverseTable = "ip_addresses"
 	// OnIPAddressColumn is the table column denoting the on_ip_address relation/edge.
 	OnIPAddressColumn = "ip_address_interfaces"
+	// IPStaticRoutingTable is the table the holds the ip_static_routing relation/edge.
+	IPStaticRoutingTable = "ip_static_routing_tables"
+	// IPStaticRoutingInverseTable is the table name for the IPStaticRoutingTable entity.
+	// It exists in this package in order to avoid circular dependency with the "ipstaticroutingtable" package.
+	IPStaticRoutingInverseTable = "ip_static_routing_tables"
+	// IPStaticRoutingColumn is the table column denoting the ip_static_routing relation/edge.
+	IPStaticRoutingColumn = "net_interface_ip_static_routing"
 	// ModeTable is the table the holds the mode relation/edge.
 	ModeTable = "net_interfaces"
 	// ModeInverseTable is the table name for the NetInterfaceMode entity.

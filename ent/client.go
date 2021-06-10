@@ -15,6 +15,7 @@ import (
 	"github.com/mrzack99s/netcoco/ent/deviceplatform"
 	"github.com/mrzack99s/netcoco/ent/devicetype"
 	"github.com/mrzack99s/netcoco/ent/ipaddress"
+	"github.com/mrzack99s/netcoco/ent/ipstaticroutingtable"
 	"github.com/mrzack99s/netcoco/ent/netinterface"
 	"github.com/mrzack99s/netcoco/ent/netinterfacelayer"
 	"github.com/mrzack99s/netcoco/ent/netinterfacemode"
@@ -45,6 +46,8 @@ type Client struct {
 	DeviceType *DeviceTypeClient
 	// IPAddress is the client for interacting with the IPAddress builders.
 	IPAddress *IPAddressClient
+	// IPStaticRoutingTable is the client for interacting with the IPStaticRoutingTable builders.
+	IPStaticRoutingTable *IPStaticRoutingTableClient
 	// NetInterface is the client for interacting with the NetInterface builders.
 	NetInterface *NetInterfaceClient
 	// NetInterfaceLayer is the client for interacting with the NetInterfaceLayer builders.
@@ -78,6 +81,7 @@ func (c *Client) init() {
 	c.DevicePlatform = NewDevicePlatformClient(c.config)
 	c.DeviceType = NewDeviceTypeClient(c.config)
 	c.IPAddress = NewIPAddressClient(c.config)
+	c.IPStaticRoutingTable = NewIPStaticRoutingTableClient(c.config)
 	c.NetInterface = NewNetInterfaceClient(c.config)
 	c.NetInterfaceLayer = NewNetInterfaceLayerClient(c.config)
 	c.NetInterfaceMode = NewNetInterfaceModeClient(c.config)
@@ -124,6 +128,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
 		IPAddress:            NewIPAddressClient(cfg),
+		IPStaticRoutingTable: NewIPStaticRoutingTableClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
 		NetInterfaceLayer:    NewNetInterfaceLayerClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
@@ -155,6 +160,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		DevicePlatform:       NewDevicePlatformClient(cfg),
 		DeviceType:           NewDeviceTypeClient(cfg),
 		IPAddress:            NewIPAddressClient(cfg),
+		IPStaticRoutingTable: NewIPStaticRoutingTableClient(cfg),
 		NetInterface:         NewNetInterfaceClient(cfg),
 		NetInterfaceLayer:    NewNetInterfaceLayerClient(cfg),
 		NetInterfaceMode:     NewNetInterfaceModeClient(cfg),
@@ -197,6 +203,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.DevicePlatform.Use(hooks...)
 	c.DeviceType.Use(hooks...)
 	c.IPAddress.Use(hooks...)
+	c.IPStaticRoutingTable.Use(hooks...)
 	c.NetInterface.Use(hooks...)
 	c.NetInterfaceLayer.Use(hooks...)
 	c.NetInterfaceMode.Use(hooks...)
@@ -528,6 +535,22 @@ func (c *DeviceClient) QueryInterfaces(d *Device) *NetInterfaceQuery {
 			sqlgraph.From(device.Table, device.FieldID, id),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, device.InterfacesTable, device.InterfacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIPStaticRouting queries the ip_static_routing edge of a Device.
+func (c *DeviceClient) QueryIPStaticRouting(d *Device) *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, device.IPStaticRoutingTable, device.IPStaticRoutingColumn),
 		)
 		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
 		return fromV, nil
@@ -970,6 +993,128 @@ func (c *IPAddressClient) Hooks() []Hook {
 	return c.hooks.IPAddress
 }
 
+// IPStaticRoutingTableClient is a client for the IPStaticRoutingTable schema.
+type IPStaticRoutingTableClient struct {
+	config
+}
+
+// NewIPStaticRoutingTableClient returns a client for the IPStaticRoutingTable from the given config.
+func NewIPStaticRoutingTableClient(c config) *IPStaticRoutingTableClient {
+	return &IPStaticRoutingTableClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ipstaticroutingtable.Hooks(f(g(h())))`.
+func (c *IPStaticRoutingTableClient) Use(hooks ...Hook) {
+	c.hooks.IPStaticRoutingTable = append(c.hooks.IPStaticRoutingTable, hooks...)
+}
+
+// Create returns a create builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Create() *IPStaticRoutingTableCreate {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpCreate)
+	return &IPStaticRoutingTableCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IPStaticRoutingTable entities.
+func (c *IPStaticRoutingTableClient) CreateBulk(builders ...*IPStaticRoutingTableCreate) *IPStaticRoutingTableCreateBulk {
+	return &IPStaticRoutingTableCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Update() *IPStaticRoutingTableUpdate {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdate)
+	return &IPStaticRoutingTableUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IPStaticRoutingTableClient) UpdateOne(isrt *IPStaticRoutingTable) *IPStaticRoutingTableUpdateOne {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdateOne, withIPStaticRoutingTable(isrt))
+	return &IPStaticRoutingTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IPStaticRoutingTableClient) UpdateOneID(id int) *IPStaticRoutingTableUpdateOne {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpUpdateOne, withIPStaticRoutingTableID(id))
+	return &IPStaticRoutingTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Delete() *IPStaticRoutingTableDelete {
+	mutation := newIPStaticRoutingTableMutation(c.config, OpDelete)
+	return &IPStaticRoutingTableDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *IPStaticRoutingTableClient) DeleteOne(isrt *IPStaticRoutingTable) *IPStaticRoutingTableDeleteOne {
+	return c.DeleteOneID(isrt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *IPStaticRoutingTableClient) DeleteOneID(id int) *IPStaticRoutingTableDeleteOne {
+	builder := c.Delete().Where(ipstaticroutingtable.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IPStaticRoutingTableDeleteOne{builder}
+}
+
+// Query returns a query builder for IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) Query() *IPStaticRoutingTableQuery {
+	return &IPStaticRoutingTableQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a IPStaticRoutingTable entity by its id.
+func (c *IPStaticRoutingTableClient) Get(ctx context.Context, id int) (*IPStaticRoutingTable, error) {
+	return c.Query().Where(ipstaticroutingtable.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IPStaticRoutingTableClient) GetX(ctx context.Context, id int) *IPStaticRoutingTable {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOnDevice queries the on_device edge of a IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) QueryOnDevice(isrt *IPStaticRoutingTable) *DeviceQuery {
+	query := &DeviceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := isrt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ipstaticroutingtable.OnDeviceTable, ipstaticroutingtable.OnDeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(isrt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOnInterface queries the on_interface edge of a IPStaticRoutingTable.
+func (c *IPStaticRoutingTableClient) QueryOnInterface(isrt *IPStaticRoutingTable) *NetInterfaceQuery {
+	query := &NetInterfaceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := isrt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID, id),
+			sqlgraph.To(netinterface.Table, netinterface.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ipstaticroutingtable.OnInterfaceTable, ipstaticroutingtable.OnInterfaceColumn),
+		)
+		fromV = sqlgraph.Neighbors(isrt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IPStaticRoutingTableClient) Hooks() []Hook {
+	return c.hooks.IPStaticRoutingTable
+}
+
 // NetInterfaceClient is a client for the NetInterface schema.
 type NetInterfaceClient struct {
 	config
@@ -1096,6 +1241,22 @@ func (c *NetInterfaceClient) QueryOnIPAddress(ni *NetInterface) *IPAddressQuery 
 			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
 			sqlgraph.To(ipaddress.Table, ipaddress.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, netinterface.OnIPAddressTable, netinterface.OnIPAddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIPStaticRouting queries the ip_static_routing edge of a NetInterface.
+func (c *NetInterfaceClient) QueryIPStaticRouting(ni *NetInterface) *IPStaticRoutingTableQuery {
+	query := &IPStaticRoutingTableQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(netinterface.Table, netinterface.FieldID, id),
+			sqlgraph.To(ipstaticroutingtable.Table, ipstaticroutingtable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, netinterface.IPStaticRoutingTable, netinterface.IPStaticRoutingColumn),
 		)
 		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
 		return fromV, nil
@@ -1258,32 +1419,32 @@ func (c *NetInterfaceLayerClient) GetX(ctx context.Context, id int) *NetInterfac
 }
 
 // QueryLayers queries the layers edge of a NetInterfaceLayer.
-func (c *NetInterfaceLayerClient) QueryLayers(nl *NetInterfaceLayer) *NetInterfaceQuery {
+func (c *NetInterfaceLayerClient) QueryLayers(nly *NetInterfaceLayer) *NetInterfaceQuery {
 	query := &NetInterfaceQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := nl.ID
+		id := nly.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(netinterfacelayer.Table, netinterfacelayer.FieldID, id),
 			sqlgraph.To(netinterface.Table, netinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacelayer.LayersTable, netinterfacelayer.LayersColumn),
 		)
-		fromV = sqlgraph.Neighbors(nl.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(nly.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryPoLayers queries the po_layers edge of a NetInterfaceLayer.
-func (c *NetInterfaceLayerClient) QueryPoLayers(nl *NetInterfaceLayer) *PortChannelInterfaceQuery {
+func (c *NetInterfaceLayerClient) QueryPoLayers(nly *NetInterfaceLayer) *PortChannelInterfaceQuery {
 	query := &PortChannelInterfaceQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := nl.ID
+		id := nly.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(netinterfacelayer.Table, netinterfacelayer.FieldID, id),
 			sqlgraph.To(portchannelinterface.Table, portchannelinterface.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, netinterfacelayer.PoLayersTable, netinterfacelayer.PoLayersColumn),
 		)
-		fromV = sqlgraph.Neighbors(nl.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(nly.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query

@@ -37,6 +37,9 @@ func (Device) Edges() []ent.Edge {
 		edge.To("interfaces", NetInterface.Type).Annotations(entsql.Annotation{
 			OnDelete: entsql.Cascade,
 		}),
+		edge.To("ip_static_routing", IPStaticRoutingTable.Type).Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
 		edge.To("po_interfaces", PortChannelInterface.Type).Annotations(entsql.Annotation{
 			OnDelete: entsql.Cascade,
 		}),

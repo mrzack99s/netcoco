@@ -314,6 +314,34 @@ func HasOnIPAddressWith(preds ...predicate.IPAddress) predicate.NetInterface {
 	})
 }
 
+// HasIPStaticRouting applies the HasEdge predicate on the "ip_static_routing" edge.
+func HasIPStaticRouting() predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(IPStaticRoutingTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IPStaticRoutingTable, IPStaticRoutingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIPStaticRoutingWith applies the HasEdge predicate on the "ip_static_routing" edge with a given conditions (other predicates).
+func HasIPStaticRoutingWith(preds ...predicate.IPStaticRoutingTable) predicate.NetInterface {
+	return predicate.NetInterface(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(IPStaticRoutingInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IPStaticRoutingTable, IPStaticRoutingColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMode applies the HasEdge predicate on the "mode" edge.
 func HasMode() predicate.NetInterface {
 	return predicate.NetInterface(func(s *sql.Selector) {
