@@ -3,7 +3,7 @@ name: code-analyzer
 on:
   push:
     branches:
-      - develop    
+      - develop-v*
       - dev/issue-**
 
 jobs:
