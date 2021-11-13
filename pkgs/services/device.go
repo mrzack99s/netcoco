@@ -20,6 +20,44 @@ func GetAllDevice(client *ent.Client) (response []*ent.Device, err error) {
 	return
 }
 
+func GetDeviceLightWeightQuery(client *ent.Client, id int) (response *ent.Device, err error) {
+	response, err = client.Device.Query().Where(device.IDEQ(id)).WithInType().WithInPlatform().WithStoreVlans().
+		Only(context.Background())
+
+	return
+}
+
+func GetDevicePOIntOnly(client *ent.Client, id int) (response *ent.Device, err error) {
+	response, err = client.Device.Query().Where(device.IDEQ(id)).WithInType().WithInPlatform().WithStoreVlans().WithPoInterfaces().
+		Only(context.Background())
+
+	if response.Edges.InType.DeviceTypeName == "router" || response.Edges.InType.DeviceTypeName == "l3switch" {
+		if i := response.QueryIPStaticRouting().CountX(context.Background()); i > 0 {
+			response.Edges.IPStaticRouting = response.QueryIPStaticRouting().AllX(context.Background())
+			for _, ipr := range response.Edges.IPStaticRouting {
+				ipr.Edges.OnInterface = ipr.QueryOnInterface().OnlyX(context.Background())
+			}
+		}
+	}
+
+	for _, po := range response.Edges.PoInterfaces {
+		po.Edges.Mode = po.QueryMode().OnlyX(context.Background())
+		po.Edges.OnLayer = po.QueryOnLayer().OnlyX(context.Background())
+		if i := po.QueryHaveVlans().CountX(context.Background()); i > 0 {
+			po.Edges.HaveVlans = po.QueryHaveVlans().AllX(context.Background())
+		}
+
+		if i := po.QueryNativeOnVlan().CountX(context.Background()); i > 0 {
+			po.Edges.NativeOnVlan = po.QueryNativeOnVlan().OnlyX(context.Background())
+		}
+
+		if po.Edges.OnLayer.InterfaceLayer == 3 {
+			po.Edges.OnIPAddress = po.QueryOnIPAddress().OnlyX(context.Background())
+		}
+	}
+	return
+}
+
 func GetDevice(client *ent.Client, id int) (response *ent.Device, err error) {
 	response, err = client.Device.Query().Where(device.IDEQ(id)).
 		WithInterfaces().WithInType().WithInPlatform().WithStoreVlans().WithPoInterfaces().

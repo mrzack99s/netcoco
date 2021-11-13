@@ -38,8 +38,11 @@ func NewHTMLController(ft bool) {
 
 		for _, str := range path {
 			system.HttpRouter.Use(static.Serve(fmt.Sprintf("/ui/%s", str),
-				static.LocalFile(fmt.Sprintf("%sdist", GetRootPath()), true)))
+				static.LocalFile(fmt.Sprintf("%sdist", GetRootPath()), false)))
 		}
+		system.HttpRouter.NoRoute(func(c *gin.Context) {
+			c.File(fmt.Sprintf("%sdist/index.html", GetRootPath()))
+		})
 
 	}
 }

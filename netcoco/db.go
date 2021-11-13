@@ -28,9 +28,9 @@ func Open() (*ent.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(100)
-	db.SetConnMaxLifetime(time.Hour)
+	db.SetMaxIdleConns(25)
+	db.SetMaxOpenConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
 	// Create an ent.Driver from `db`.
 	drv := entsql.OpenDB("mysql", db)
 	return ent.NewClient(ent.Driver(drv)), nil

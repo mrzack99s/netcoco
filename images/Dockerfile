@@ -23,7 +23,7 @@ RUN git checkout ${COCO_VERSION}
 RUN make build
 
 # Production stage
-FROM alpine:3.13 as production
+FROM alpine:3 as production
 
 RUN apk add --no-cache bash
 
