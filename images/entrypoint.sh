@@ -1,12 +1,11 @@
 #!/bin/bash
 
-
 parse_yaml() {
    local prefix=$2
-   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @ | tr @ '\034')
    sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
-        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-   awk -F$fs '{
+   -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p" $1 |
+      awk -F$fs '{
       indent = length($1)/2;
       vname[indent] = $2;
       for (i in vname) {if (i > indent) {delete vname[i]}}
@@ -19,24 +18,22 @@ parse_yaml() {
 
 NETCOCO_PORT="8080"
 
-initial(){
-   for f in templates/dist/js/app*.js
-   do
-   if [ -n "${COCO_HOSTNAME}" ]; then
-      sed -i "s,localhost,${COCO_HOSTNAME},g" $f
-   fi
+initial() {
+   for f in templates/dist/js/app*.js; do
+      if [ -n "${COCO_HOSTNAME}" ]; then
+         sed -i "s,localhost,${COCO_HOSTNAME},g" $f
+      fi
 
-   sed -i "s,8080,${NETCOCO_PORT},g" $f
-   cat $f
+      sed -i "s,8080,${NETCOCO_PORT},g" $f
+      cat $f
    done
 
    if [ -n "${COCO_HOSTNAME}" ]; then
-      sed -i "s,localhost,${COCO_HOSTNAME},g" templates/js/main.js 
+      sed -i "s,localhost,${COCO_HOSTNAME},g" templates/js/main.js
    fi
 
-   sed -i "s,8080,${NETCOCO_PORT},g" templates/js/main.js 
+   sed -i "s,8080,${NETCOCO_PORT},g" templates/js/main.js
 }
-
 
 if [[ -f ./config.yaml ]]; then
    eval $(parse_yaml config.yaml "config_")
@@ -68,4 +65,3 @@ else
    initial
    ./netcoco-linux-amd64 -e
 fi
-

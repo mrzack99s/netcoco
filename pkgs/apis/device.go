@@ -116,6 +116,42 @@ func (ctl *DeviceController) Get(c *gin.Context) {
 
 }
 
+func (ctl *DeviceController) GetLightWeightQuery(c *gin.Context) {
+
+	deviceId, _ := strconv.Atoi(c.Param("deviceId"))
+
+	usr, err := services.GetDeviceLightWeightQuery(ctl.client, deviceId)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+
+	} else {
+		c.JSON(200, usr)
+
+	}
+
+}
+
+func (ctl *DeviceController) GetDevicePOIntOnly(c *gin.Context) {
+
+	deviceId, _ := strconv.Atoi(c.Param("deviceId"))
+
+	usr, err := services.GetDevicePOIntOnly(ctl.client, deviceId)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+
+	} else {
+		c.JSON(200, usr)
+
+	}
+
+}
+
 func (ctl *DeviceController) Delete(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -178,4 +214,6 @@ func (ctl *DeviceController) register() {
 	router.DELETE("delete-vlan/:id/:vid", ctl.DeleteDeviceVlan)
 	router.GET("get", ctl.GetAll)
 	router.GET("get/:deviceId", ctl.Get)
+	router.GET("get-po-int-only/:deviceId", ctl.GetDevicePOIntOnly)
+	router.GET("get-lite/:deviceId", ctl.GetLightWeightQuery)
 }
