@@ -5,7 +5,7 @@ FROM node:14-alpine3.13 as build_node
 RUN apk add git yarn
 RUN git clone https://github.com/mrzack99s/netcoco-ui
 WORKDIR /netcoco-ui
-RUN git checkout v0.2.0-rc1
+RUN git checkout ${COCO_VERSION}
 RUN yarn install 
 RUN sed -i "s,<Domain Name or Hostname>,localhost,g" .env.production
 RUN yarn build --mode production
